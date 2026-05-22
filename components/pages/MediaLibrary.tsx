@@ -1,595 +1,408 @@
 'use client';
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
-  Upload, Search, Plus, Grid3X3, List, Download, 
-  Star, Archive, Copy, MoreHorizontal, Image, Video, File 
+  Upload, 
+  Search, 
+  Plus, 
+  FolderOpen, 
+  Image as ImageIcon, 
+  Video, 
+  FileText, 
+  Download, 
+  Trash2, 
+  Edit3, 
+  Star,
+  Link
 } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell 
-} from 'recharts';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const brandColor = "#430062";
 
 interface MediaAsset {
   id: string;
-  name: string;
-  type: 'image' | 'video' | 'creative';
+  fileName: string;
   url: string;
-  thumbnail: string;
-  size: string;
-  dimensions?: string;
+  type: 'image' | 'video' | 'document';
+  fileSize: string;
   uploadedBy: string;
   uploadedAt: string;
   client: string;
-  campaign: string;
   tags: string[];
   isFavorite: boolean;
-  linkedCount: number;
 }
+
+interface Folder {
+  id: string;
+  name: string;
+  count: number;
+  icon: React.ReactNode;
+}
+
+// Mock Data
+const folders: Folder[] = [
+  { id: "1", name: "Brand Assets", count: 48, icon: <ImageIcon className="h-4 w-4" /> },
+  { id: "2", name: "Lumina Fashion", count: 27, icon: <FolderOpen className="h-4 w-4" /> },
+  { id: "3", name: "Nexus Tech", count: 19, icon: <FolderOpen className="h-4 w-4" /> },
+  { id: "4", name: "Bloom Wellness", count: 34, icon: <FolderOpen className="h-4 w-4" /> },
+  { id: "5", name: "Campaigns 2026", count: 62, icon: <FolderOpen className="h-4 w-4" /> },
+];
 
 const mockAssets: MediaAsset[] = [
   {
-    id: "AS-7841",
-    name: "Hero_Banner_Summer_2026.jpg",
-    type: "image",
-    url: "https://picsum.photos/id/1015/1200/800",
-    thumbnail: "https://picsum.photos/id/1015/400/300",
-    size: "4.8 MB",
-    dimensions: "1920x1080",
-    uploadedBy: "Sarah Chen",
-    uploadedAt: "2026-05-20",
-    client: "Acme Corp",
-    campaign: "Summer Launch",
-    tags: ["hero", "banner"],
-    isFavorite: true,
-    linkedCount: 3
-  },
-  {
-    id: "AS-7842",
-    name: "Product_Reel_Final.mp4",
+    id: "a1",
+    fileName: "summer-hero-reel.mp4",
+    url: "https://picsum.photos/id/1015/800/600",
     type: "video",
-    url: "https://picsum.photos/id/106/1200/800",
-    thumbnail: "https://picsum.photos/id/106/400/300",
-    size: "28.4 MB",
-    dimensions: "1080x1920",
-    uploadedBy: "Alex Rivera",
-    uploadedAt: "2026-05-21",
-    client: "TechFlow Inc",
-    campaign: "Q2 Growth",
-    tags: ["reel", "product"],
-    isFavorite: false,
-    linkedCount: 1
-  },
-  {
-    id: "AS-7843",
-    name: "Testimonial_Carousel_v2.png",
-    type: "image",
-    url: "https://picsum.photos/id/201/1200/800",
-    thumbnail: "https://picsum.photos/id/201/400/300",
-    size: "2.1 MB",
-    dimensions: "1200x1200",
-    uploadedBy: "Marcus Torres",
-    uploadedAt: "2026-05-22",
-    client: "Acme Corp",
-    campaign: "Customer Stories",
-    tags: ["carousel", "testimonial"],
+    fileSize: "42.8 MB",
+    uploadedBy: "Sarah Chen",
+    uploadedAt: "May 20, 2026",
+    client: "Lumina Fashion",
+    tags: ["reel", "summer", "hero"],
     isFavorite: true,
-    linkedCount: 5
   },
   {
-    id: "AS-7844",
-    name: "Brand_Guidelines_2026.pdf",
-    type: "creative",
-    url: "#",
-    thumbnail: "https://picsum.photos/id/237/400/300",
-    size: "1.7 MB",
-    uploadedBy: "Elena Vargas",
-    uploadedAt: "2026-05-19",
-    client: "Global Dynamics",
-    campaign: "Brand Refresh",
-    tags: ["guidelines"],
+    id: "a2",
+    fileName: "q2-report-infographic.png",
+    url: "https://picsum.photos/id/201/800/600",
+    type: "image",
+    fileSize: "8.4 MB",
+    uploadedBy: "Marcus Rivera",
+    uploadedAt: "May 21, 2026",
+    client: "Nexus Tech",
+    tags: ["infographic", "report"],
     isFavorite: false,
-    linkedCount: 8
   },
-];
-
-const clientDistribution = [
-  { name: 'Acme Corp', value: 42, fill: brandColor },
-  { name: 'TechFlow Inc', value: 31, fill: '#6b21a8' },
-  { name: 'Global Dynamics', value: 27, fill: '#a855f7' },
-];
-
-const kpiData = [
-  { title: "Total Assets", value: "1,284", change: "+87 this month", icon: Image },
-  { title: "Storage Used", value: "47.3 GB", change: "of 250 GB", icon: Archive },
-  { title: "This Month", value: "164", change: "Uploads", icon: Upload },
-  { title: "Most Used", value: "92", change: "Assets linked", icon: Star },
+  {
+    id: "a3",
+    fileName: "wellness-moodboard.jpg",
+    url: "https://picsum.photos/id/237/800/600",
+    type: "image",
+    fileSize: "12.1 MB",
+    uploadedBy: "Aisha Patel",
+    uploadedAt: "May 19, 2026",
+    client: "Bloom Wellness",
+    tags: ["moodboard"],
+    isFavorite: true,
+  },
+  {
+    id: "a4",
+    fileName: "product-packaging-mockup.psd",
+    url: "https://picsum.photos/id/106/800/600",
+    type: "image",
+    fileSize: "156 MB",
+    uploadedBy: "David Kim",
+    uploadedAt: "May 22, 2026",
+    client: "Lumina Fashion",
+    tags: ["mockup", "packaging"],
+    isFavorite: false,
+  },
 ];
 
 export default function MediaLibrary() {
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [assets, setAssets] = useState(mockAssets);
+  const [selectedFolder, setSelectedFolder] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
-  const [clientFilter, setClientFilter] = useState("All");
-  const [typeFilter, setTypeFilter] = useState("All");
+  const [typeFilter, setTypeFilter] = useState<"all" | "image" | "video" | "document">("all");
   const [selectedAsset, setSelectedAsset] = useState<MediaAsset | null>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const [favoritesOnly, setFavoritesOnly] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const filteredAssets = useMemo(() => {
-    return mockAssets.filter(asset => {
-      const matchesSearch = asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           asset.tags.some(t => t.toLowerCase().includes(searchTerm.toLowerCase()));
-      const matchesClient = clientFilter === "All" || asset.client === clientFilter;
-      const matchesType = typeFilter === "All" || asset.type === typeFilter.toLowerCase();
-      const matchesFavorite = !favoritesOnly || asset.isFavorite;
-      
-      return matchesSearch && matchesClient && matchesType && matchesFavorite;
-    });
-  }, [searchTerm, clientFilter, typeFilter, favoritesOnly]);
+  const filteredAssets = assets.filter(asset => {
+    const matchesSearch = asset.fileName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         asset.client.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesType = typeFilter === "all" || asset.type === typeFilter;
+    return matchesSearch && matchesType;
+  });
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
+  const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(true);
-  }, []);
-
-  const handleDragLeave = useCallback(() => {
-    setIsDragging(false);
-  }, []);
-
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    alert("📤 Files uploaded successfully! (Demo - files would be processed here)");
-  }, []);
-
-  const toggleFavorite = (id: string) => {
-    // In real app: update state / API
-    alert(`⭐ Asset ${id} favorited`);
   };
 
-  const copyLink = (asset: MediaAsset) => {
-    alert(`🔗 Link copied: ${asset.url}`);
+  const handleDragLeave = () => setIsDragging(false);
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    // Simulate upload
+    alert("Files uploaded successfully! (Demo)");
+  };
+
+  const openPreview = (asset: MediaAsset) => {
+    setSelectedAsset(asset);
+    setIsPreviewOpen(true);
+  };
+
+  const toggleFavorite = (id: string) => {
+    setAssets(prev => prev.map(asset => 
+      asset.id === id ? { ...asset, isFavorite: !asset.isFavorite } : asset
+    ));
   };
 
   return (
     <div className="min-h-screen bg-zinc-50">
       {/* Header */}
-      <div className="border-b bg-white sticky top-0 z-50">
-        <div className="px-8 py-6 flex items-center justify-between">
+      <header className="sticky top-0 z-50 border-b border-zinc-200 bg-white">
+        <div className="flex h-16 items-center justify-between px-8">
           <div className="flex items-center gap-4">
-            <div 
-              className="w-10 h-10 rounded-2xl flex items-center justify-center text-white font-bold text-2xl"
-              style={{ backgroundColor: brandColor }}
-            >
-              A
-            </div>
-            <div>
-              <h1 className="text-3xl font-semibold tracking-tight">Media Library</h1>
-              <p className="text-zinc-500">Centralized Asset Management • 1.2k files</p>
+            <div className="flex items-center gap-3">
+              <div 
+                className="h-9 w-9 rounded-2xl flex items-center justify-center text-white font-bold text-2xl"
+                style={{ backgroundColor: brandColor }}
+              >
+                A
+              </div>
+              <div>
+                <h1 className="text-2xl font-semibold tracking-tight">Media Library</h1>
+                <p className="text-sm text-zinc-500">Centralized asset hub • 214 files</p>
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm">
-              <Download className="w-4 h-4 mr-2" />
-              Export Index
-            </Button>
-            
+          <div className="flex items-center gap-4">
+            <div className="relative w-80">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
+              <Input 
+                placeholder="Search assets..." 
+                className="pl-10 bg-zinc-50"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+
+            <Select value={typeFilter} onValueChange={(v: any) => setTypeFilter(v)}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="File Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Files</SelectItem>
+                <SelectItem value="image">Images</SelectItem>
+                <SelectItem value="video">Videos</SelectItem>
+                <SelectItem value="document">Documents</SelectItem>
+              </SelectContent>
+            </Select>
+
             <Button 
+              onClick={() => fileInputRef.current?.click()}
               style={{ backgroundColor: brandColor }}
               className="text-white"
-              onClick={() => alert("Upload dialog would open here")}
             >
-              <Upload className="w-4 h-4 mr-2" />
-              Upload Assets
+              <Upload className="mr-2 h-4 w-4" />
+              Upload
             </Button>
-          </div>
-        </div>
-
-        {/* Filters Bar */}
-        <div className="px-8 pb-6 border-t pt-4 flex flex-wrap items-center gap-4">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-3 w-4 h-4 text-zinc-400" />
-            <Input 
-              placeholder="Search assets, tags, campaigns..." 
-              className="pl-10"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              className="hidden" 
+              multiple 
+              onChange={() => alert("Files selected (Demo)")} 
             />
           </div>
+        </div>
+      </header>
 
-          <Select value={clientFilter} onValueChange={setClientFilter}>
-            <SelectTrigger className="w-44">
-              <SelectValue placeholder="Client" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="All">All Clients</SelectItem>
-              <SelectItem value="Acme Corp">Acme Corp</SelectItem>
-              <SelectItem value="TechFlow Inc">TechFlow Inc</SelectItem>
-              <SelectItem value="Global Dynamics">Global Dynamics</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="All">All Types</SelectItem>
-              <SelectItem value="image">Images</SelectItem>
-              <SelectItem value="video">Videos</SelectItem>
-              <SelectItem value="creative">Creatives</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Button 
-            variant={favoritesOnly ? "default" : "outline"} 
-            size="sm"
-            onClick={() => setFavoritesOnly(!favoritesOnly)}
-          >
-            <Star className="w-4 h-4 mr-2" />
-            Favorites
-          </Button>
-
-          <div className="ml-auto flex items-center border rounded-xl p-1">
-            <Button 
-              variant={viewMode === 'grid' ? "default" : "ghost"} 
-              size="sm"
-              onClick={() => setViewMode('grid')}
-            >
-              <Grid3X3 className="w-4 h-4" />
-            </Button>
-            <Button 
-              variant={viewMode === 'list' ? "default" : "ghost"} 
-              size="sm"
-              onClick={() => setViewMode('list')}
-            >
-              <List className="w-4 h-4" />
+      <div className="flex h-[calc(100vh-4rem)]">
+        {/* Sidebar - Folders */}
+        <div className="w-72 border-r border-zinc-200 bg-white p-6 overflow-y-auto">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="font-semibold text-zinc-900">Folders</h3>
+            <Button variant="ghost" size="sm">
+              <Plus className="h-4 w-4" />
             </Button>
           </div>
-        </div>
-      </div>
 
-      <div className="p-8 flex gap-8">
-        {/* Main Content */}
-        <div className="flex-1">
-          {/* KPI Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-            {kpiData.map((kpi, index) => (
-              <Card key={index} className="shadow-sm">
-                <CardHeader className="pb-3">
-                  <div className="flex justify-between items-center">
-                    <CardTitle className="text-sm font-medium text-zinc-500">{kpi.title}</CardTitle>
-                    <kpi.icon className="w-5 h-5 text-zinc-400" />
+          <div className="space-y-1">
+            <div 
+              onClick={() => setSelectedFolder("all")}
+              className={`flex items-center gap-3 px-4 py-3 rounded-2xl cursor-pointer transition-colors ${selectedFolder === "all" ? "bg-zinc-100" : "hover:bg-zinc-50"}`}
+            >
+              <FolderOpen className="h-5 w-5 text-zinc-500" />
+              <span className="font-medium">All Assets</span>
+              <Badge variant="secondary" className="ml-auto">{assets.length}</Badge>
+            </div>
+
+            {folders.map(folder => (
+              <div 
+                key={folder.id}
+                onClick={() => setSelectedFolder(folder.id)}
+                className={`flex items-center gap-3 px-4 py-3 rounded-2xl cursor-pointer transition-colors ${selectedFolder === folder.id ? "bg-zinc-100" : "hover:bg-zinc-50"}`}
+              >
+                {folder.icon}
+                <span className="font-medium">{folder.name}</span>
+                <Badge variant="secondary" className="ml-auto text-xs">{folder.count}</Badge>
+              </div>
+            ))}
+          </div>
+
+          <Separator className="my-8" />
+
+          <div>
+            <h4 className="text-xs uppercase tracking-widest text-zinc-500 mb-4">Recent Uploads</h4>
+            <div className="space-y-4 text-sm">
+              {assets.slice(0, 3).map(asset => (
+                <div key={asset.id} className="flex gap-3">
+                  <div className="w-10 h-10 bg-zinc-100 rounded-lg flex-shrink-0 overflow-hidden">
+                    <img src={asset.url} alt="" className="w-full h-full object-cover" />
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-4xl font-semibold tracking-tighter">{kpi.value}</div>
-                  <p className="text-sm text-zinc-500 mt-1">{kpi.change}</p>
+                  <div className="truncate">
+                    <p className="font-medium truncate">{asset.fileName}</p>
+                    <p className="text-xs text-zinc-500">{asset.uploadedAt}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content Area */}
+        <div className="flex-1 p-8 overflow-y-auto">
+          {/* Upload Zone */}
+          <div 
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            className={`border-2 border-dashed rounded-3xl p-12 mb-10 text-center transition-all ${isDragging ? 'border-violet-400 bg-violet-50' : 'border-zinc-200 hover:border-zinc-300'}`}
+          >
+            <Upload className="mx-auto h-12 w-12 text-zinc-400 mb-4" />
+            <p className="font-medium text-lg">Drag &amp; drop files here</p>
+            <p className="text-sm text-zinc-500 mt-1">or click to browse • Supports images, videos, PSDs</p>
+          </div>
+
+          {/* Assets Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
+            {filteredAssets.map((asset) => (
+              <Card 
+                key={asset.id}
+                className="group bg-white border border-zinc-200 overflow-hidden rounded-3xl hover:shadow-md transition-all cursor-pointer"
+                onClick={() => openPreview(asset)}
+              >
+                <div className="relative h-52 bg-zinc-100">
+                  <img 
+                    src={asset.url} 
+                    alt={asset.fileName}
+                    className="w-full h-full object-cover"
+                  />
+                  
+                  <div className="absolute top-3 right-3 flex gap-2">
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); toggleFavorite(asset.id); }}
+                      className="bg-white/90 hover:bg-white p-1.5 rounded-full shadow-sm"
+                    >
+                      <Star className={`h-4 w-4 ${asset.isFavorite ? 'fill-amber-400 text-amber-400' : 'text-zinc-500'}`} />
+                    </button>
+                  </div>
+
+                  <div className="absolute bottom-3 left-3">
+                    <Badge variant="secondary" className="text-xs capitalize">
+                      {asset.type}
+                    </Badge>
+                  </div>
+                </div>
+
+                <CardContent className="p-4">
+                  <p className="font-medium text-sm line-clamp-2 leading-tight mb-2">
+                    {asset.fileName}
+                  </p>
+                  <div className="flex justify-between items-center text-xs text-zinc-500">
+                    <span>{asset.client}</span>
+                    <span>{asset.fileSize}</span>
+                  </div>
                 </CardContent>
               </Card>
             ))}
           </div>
 
-          {/* Drag & Drop Zone */}
-          <div 
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            className={`border-2 border-dashed rounded-3xl p-8 mb-8 text-center transition-all ${isDragging ? 'border-violet-500 bg-violet-50' : 'border-zinc-200'}`}
-          >
-            <Upload className="mx-auto w-10 h-10 text-zinc-400 mb-4" />
-            <p className="font-medium">Drop files here or click to upload</p>
-            <p className="text-sm text-zinc-500 mt-1">PNG, JPG, MP4, PDF up to 100MB</p>
-          </div>
-
-          {/* Assets View */}
-          {viewMode === 'grid' ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredAssets.map((asset) => (
-                <Card 
-                  key={asset.id} 
-                  className="group overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer"
-                  onClick={() => setSelectedAsset(asset)}
-                >
-                  <div className="relative aspect-video bg-zinc-100">
-                    <img 
-                      src={asset.thumbnail} 
-                      alt={asset.name}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute top-3 right-3 flex gap-1">
-                      {asset.type === 'video' && <Badge variant="secondary">🎥</Badge>}
-                      <Badge variant="outline" className="bg-white/90 text-xs">{asset.size}</Badge>
-                    </div>
-                  </div>
-
-                  <div className="p-4">
-                    <div className="flex items-start justify-between">
-                      <div className="font-medium line-clamp-2 text-sm leading-tight pr-2">
-                        {asset.name}
-                      </div>
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); toggleFavorite(asset.id); }}
-                        className="text-amber-500"
-                      >
-                        <Star className={`w-4 h-4 ${asset.isFavorite ? 'fill-current' : ''}`} />
-                      </button>
-                    </div>
-
-                    <div className="text-xs text-zinc-500 mt-3 flex justify-between">
-                      <span>{asset.client}</span>
-                      <span>{asset.uploadedAt}</span>
-                    </div>
-
-                    <div className="flex gap-2 mt-4">
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        className="flex-1 text-xs h-8"
-                        onClick={(e) => { e.stopPropagation(); copyLink(asset); }}
-                      >
-                        <Copy className="w-3 h-3 mr-1" /> Link
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        className="flex-1 text-xs h-8"
-                        onClick={(e) => { e.stopPropagation(); alert("Downloading..."); }}
-                      >
-                        <Download className="w-3 h-3 mr-1" /> Save
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            /* List View */
-            <Card>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="text-left py-4 px-6 font-medium text-sm">Asset</th>
-                      <th className="text-left py-4 px-6 font-medium text-sm">Client / Campaign</th>
-                      <th className="text-left py-4 px-6 font-medium text-sm">Type</th>
-                      <th className="text-left py-4 px-6 font-medium text-sm">Size</th>
-                      <th className="text-left py-4 px-6 font-medium text-sm">Uploaded</th>
-                      <th className="w-32"></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredAssets.map((asset) => (
-                      <tr 
-                        key={asset.id} 
-                        className="border-b hover:bg-zinc-50 cursor-pointer group"
-                        onClick={() => setSelectedAsset(asset)}
-                      >
-                        <td className="py-4 px-6">
-                          <div className="flex items-center gap-4">
-                            <div className="w-12 h-10 bg-zinc-100 rounded-lg overflow-hidden">
-                              <img src={asset.thumbnail} className="w-full h-full object-cover" alt="" />
-                            </div>
-                            <div>
-                              <div className="font-medium text-sm">{asset.name}</div>
-                              {asset.dimensions && <div className="text-xs text-zinc-500">{asset.dimensions}</div>}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="py-4 px-6">
-                          <div>
-                            <div>{asset.client}</div>
-                            <div className="text-xs text-zinc-500">{asset.campaign}</div>
-                          </div>
-                        </td>
-                        <td className="py-4 px-6">
-                          <Badge variant="secondary" className="capitalize">{asset.type}</Badge>
-                        </td>
-                        <td className="py-4 px-6 text-sm">{asset.size}</td>
-                        <td className="py-4 px-6 text-sm text-zinc-500">
-                          {asset.uploadedBy}<br />
-                          <span className="text-xs">{asset.uploadedAt}</span>
-                        </td>
-                        <td className="py-4 px-6">
-                          <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Button size="sm" variant="ghost" onClick={(e) => {e.stopPropagation(); copyLink(asset);}}>
-                              <Copy className="w-4 h-4" />
-                            </Button>
-                            <Button size="sm" variant="ghost" onClick={(e) => {e.stopPropagation(); toggleFavorite(asset.id);}}>
-                              <Star className={`w-4 h-4 ${asset.isFavorite ? 'fill-amber-500 text-amber-500' : ''}`} />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </Card>
-          )}
-
           {filteredAssets.length === 0 && (
             <div className="text-center py-20">
-              <div className="mx-auto w-20 h-20 bg-zinc-100 rounded-3xl flex items-center justify-center mb-6">
-                <Image className="w-10 h-10 text-zinc-400" />
+              <div className="mx-auto w-16 h-16 bg-zinc-100 rounded-2xl flex items-center justify-center mb-6">
+                <ImageIcon className="h-8 w-8 text-zinc-400" />
               </div>
-              <h3 className="text-xl font-semibold">No assets found</h3>
-              <p className="text-zinc-500 mt-2">Try adjusting your filters</p>
+              <h3 className="font-medium">No assets found</h3>
+              <p className="text-zinc-500 mt-1">Try adjusting your filters</p>
             </div>
           )}
-        </div>
-
-        {/* Sidebar */}
-        <div className="w-80 space-y-6">
-          {/* Storage Overview */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Storage Overview</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={140}>
-                <PieChart>
-                  <Pie
-                    data={clientDistribution}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={45}
-                    outerRadius={65}
-                    dataKey="value"
-                  >
-                    {clientDistribution.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.fill} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="mt-4 space-y-3">
-                {clientDistribution.map((c, i) => (
-                  <div key={i} className="flex justify-between text-sm">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: c.fill }} />
-                      {c.name}
-                    </div>
-                    <span className="font-medium">{c.value}%</span>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Recent Uploads */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Recent Uploads</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ScrollArea className="h-72">
-                {mockAssets.slice(0, 4).map((asset, idx) => (
-                  <React.Fragment key={asset.id}>
-                    <div className="flex gap-3 py-3">
-                      <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 border">
-                        <img src={asset.thumbnail} className="object-cover w-full h-full" alt="" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium line-clamp-1">{asset.name}</p>
-                        <p className="text-xs text-zinc-500">{asset.client}</p>
-                        <p className="text-[10px] text-zinc-400 mt-1">{asset.uploadedAt}</p>
-                      </div>
-                    </div>
-                    {idx < 3 && <Separator />}
-                  </React.Fragment>
-                ))}
-              </ScrollArea>
-            </CardContent>
-          </Card>
-
-          {/* Quick Stats */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Quick Stats</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6 text-sm">
-              <div className="flex justify-between">
-                <span className="text-zinc-500">Images</span>
-                <span className="font-medium">682</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-zinc-500">Videos</span>
-                <span className="font-medium">241</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-zinc-500">Documents</span>
-                <span className="font-medium">361</span>
-              </div>
-              <Separator />
-              <div className="pt-2 text-xs text-emerald-600 flex items-center gap-1">
-                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-                All assets are backed up
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
 
-      {/* Asset Detail Modal */}
-      <Dialog open={!!selectedAsset} onOpenChange={() => setSelectedAsset(null)}>
-        <DialogContent className="max-w-3xl">
+      {/* Asset Preview Sheet */}
+      <Sheet open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+        <SheetContent className="w-full sm:max-w-4xl p-0">
           {selectedAsset && (
-            <>
-              <DialogHeader>
-                <DialogTitle className="flex items-center justify-between pr-8">
-                  {selectedAsset.name}
-                  <Badge variant="outline">{selectedAsset.size}</Badge>
-                </DialogTitle>
-              </DialogHeader>
+            <div className="flex flex-col h-full">
+              <SheetHeader className="p-8 border-b">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <SheetTitle className="text-2xl">{selectedAsset.fileName}</SheetTitle>
+                    <p className="text-sm text-zinc-500 mt-1">{selectedAsset.client} • Uploaded by {selectedAsset.uploadedBy}</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <Button variant="outline" size="sm">
+                      <Download className="mr-2 h-4 w-4" />
+                      Download
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <Link className="mr-2 h-4 w-4" />
+                      Copy Link
+                    </Button>
+                  </div>
+                </div>
+              </SheetHeader>
 
-              <div className="mt-2">
-                <div className="rounded-3xl overflow-hidden border mb-6">
+              <div className="flex-1 p-8 flex items-center justify-center bg-zinc-950 relative">
+                {selectedAsset.type === 'video' ? (
+                  <video src={selectedAsset.url} controls className="max-h-[70vh] rounded-2xl" />
+                ) : (
                   <img 
                     src={selectedAsset.url} 
-                    alt={selectedAsset.name}
-                    className="w-full h-auto max-h-[420px] object-contain bg-zinc-950"
+                    alt={selectedAsset.fileName}
+                    className="max-h-[70vh] rounded-2xl shadow-2xl" 
                   />
-                </div>
+                )}
+              </div>
 
-                <div className="grid grid-cols-2 gap-8 text-sm">
-                  <div className="space-y-4">
-                    <div>
-                      <div className="text-xs text-zinc-500 mb-1">CLIENT</div>
-                      <div className="font-medium">{selectedAsset.client}</div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-zinc-500 mb-1">CAMPAIGN</div>
-                      <div className="font-medium">{selectedAsset.campaign}</div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-zinc-500 mb-1">UPLOADED BY</div>
-                      <div className="flex items-center gap-2">
-                        <Avatar className="w-6 h-6">
-                          <AvatarFallback>{selectedAsset.uploadedBy.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                        </Avatar>
-                        <span>{selectedAsset.uploadedBy}</span>
-                      </div>
-                    </div>
-                  </div>
-
+              <div className="p-8 border-t bg-white">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
                   <div>
-                    <div className="text-xs text-zinc-500 mb-3">TAGS</div>
-                    <div className="flex flex-wrap gap-2">
+                    <p className="text-xs text-zinc-500">FILE SIZE</p>
+                    <p className="font-medium mt-1">{selectedAsset.fileSize}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-zinc-500">UPLOADED</p>
+                    <p className="font-medium mt-1">{selectedAsset.uploadedAt}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-zinc-500">TAGS</p>
+                    <div className="flex flex-wrap gap-2 mt-2">
                       {selectedAsset.tags.map(tag => (
-                        <Badge key={tag} variant="secondary">#{tag}</Badge>
+                        <Badge key={tag} variant="outline" className="text-xs">{tag}</Badge>
                       ))}
                     </div>
                   </div>
+                  <div>
+                    <p className="text-xs text-zinc-500">ACTIONS</p>
+                    <div className="flex gap-3 mt-3">
+                      <Button size="sm" variant="outline">Attach to Content</Button>
+                      <Button size="sm" variant="destructive" className="text-xs">
+                        <Trash2 className="h-3 w-3 mr-1" /> Delete
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               </div>
-
-              <div className="flex gap-3 mt-8">
-                <Button className="flex-1" style={{ backgroundColor: brandColor }}>
-                  Attach to Content
-                </Button>
-                <Button variant="outline" className="flex-1">Download Original</Button>
-                <Button variant="outline" onClick={() => copyLink(selectedAsset)}>
-                  <Copy className="mr-2 w-4 h-4" /> Copy Link
-                </Button>
-              </div>
-            </>
+            </div>
           )}
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
