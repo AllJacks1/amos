@@ -41,7 +41,7 @@ const users: User[] = [
 ];
 
 export default function SettingsModule() {
-  const [activeTab, setActiveTab] = useState('workspace');
+  const [activeTab, setActiveTab] = useState('users');
   const [workspaceName, setWorkspaceName] = useState("AMOS Agency");
   const [brandColor, setBrandColor] = useState("#430062");
   const [notificationSettings, setNotificationSettings] = useState({
@@ -166,7 +166,7 @@ export default function SettingsModule() {
                     </div>
                     <Button onClick={inviteUser} className="rounded-2xl">
                       <Plus className="mr-2 h-4 w-4" />
-                      Invite Member
+                      Add Member
                     </Button>
                   </div>
                 </CardHeader>
@@ -176,7 +176,7 @@ export default function SettingsModule() {
                       <TableRow>
                         <TableHead>Member</TableHead>
                         <TableHead>Role</TableHead>
-                        <TableHead>Last Active</TableHead>
+                        {/* <TableHead>Last Active</TableHead> */}
                         <TableHead>Status</TableHead>
                         <TableHead className="w-12"></TableHead>
                       </TableRow>
@@ -199,7 +199,7 @@ export default function SettingsModule() {
                           <TableCell>
                             <Badge variant="outline">{user.role}</Badge>
                           </TableCell>
-                          <TableCell className="text-sm text-zinc-500">{user.lastActive}</TableCell>
+                          {/* <TableCell className="text-sm text-zinc-500">{user.lastActive}</TableCell> */}
                           <TableCell>
                             <Badge className="bg-emerald-100 text-emerald-700 rounded-full">Active</Badge>
                           </TableCell>

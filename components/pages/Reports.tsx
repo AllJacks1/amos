@@ -213,13 +213,13 @@ export default function ReportsPage() {
 
         {/* Executive KPI Cards */}
         <div>
-          <div className="flex items-end justify-between mb-6">
+          {/* <div className="flex items-end justify-between mb-6">
             <div>
               <h2 className="text-xl font-semibold text-zinc-900">Executive Summary</h2>
               <p className="text-zinc-500">May 2026 Performance</p>
             </div>
             <Badge variant="secondary" className="rounded-full px-3 py-1">+18% from last month</Badge>
-          </div>
+          </div> */}
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {kpiData.map((kpi, i) => (
