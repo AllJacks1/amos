@@ -47,6 +47,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
+import AddClientModal from "../sections/AddClientModal";
 
 // Types
 interface Client {
@@ -62,6 +63,7 @@ interface Client {
   monthlyReach: string;
   engagementRate: number;
   teamMembers: number;
+  email?: string;
 }
 
 interface PlatformConnection {
@@ -81,7 +83,7 @@ interface TeamMember {
 }
 
 // Mock Data
-const clients: Client[] = [
+const initialClients: Client[] = [
   {
     id: "1",
     name: "Rachel Green",
@@ -174,10 +176,26 @@ const teamMembers: TeamMember[] = [
   },
 ];
 
+const industries = [
+  { value: 'beauty_cosmetics', label: 'Beauty & Cosmetics' },
+  { value: 'saas_technology', label: 'SaaS Technology' },
+  { value: 'fashion_retail', label: 'Fashion & Retail' },
+  { value: 'food_beverage', label: 'Food & Beverage' },
+  { value: 'health_wellness', label: 'Health & Wellness' },
+  { value: 'finance', label: 'Finance & Banking' },
+  { value: 'education', label: 'Education' },
+  { value: 'entertainment', label: 'Entertainment' },
+  { value: 'real_estate', label: 'Real Estate' },
+  { value: 'automotive', label: 'Automotive' },
+];
+
 export default function Clients() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [isAddClientOpen, setIsAddClientOpen] = useState(false);
+
+  const [clients, setClients] = useState<Client[]>(initialClients);
 
   const filteredClients = clients.filter((client) => {
     const matchesSearch =
@@ -243,7 +261,10 @@ export default function Clients() {
               </SelectContent>
             </Select>
 
-            <Button className="rounded-2xl bg-[#430062] hover:bg-[#430062]/90">
+            <Button
+              onClick={() => setIsAddClientOpen(true)}
+              className="rounded-2xl bg-[#430062] hover:bg-[#430062]/90"
+            >
               <Plus className="mr-2 h-4 w-4" />
               New Client
             </Button>
@@ -624,6 +645,36 @@ export default function Clients() {
           )}
         </DialogContent>
       </Dialog>
+      <AddClientModal
+        isOpen={isAddClientOpen}
+        onClose={() => setIsAddClientOpen(false)}
+        onAdd={(client) => {
+          const newClient: Client = {
+            id: Math.random().toString(36).slice(2),
+            name: client.name,
+            companyName: client.companyName,
+            logo:
+              client.logo ||
+              `https://picsum.photos/id/${Math.floor(Math.random() * 200)}/128/128`,
+            industry:
+              industries.find((i) => i.value === client.industry)?.label ||
+              client.industry,
+            brandColor: "#430062",
+            activeCampaigns: 0,
+            status: "active",
+            createdAt: new Date().toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            }),
+            monthlyReach: "0",
+            engagementRate: 0,
+            teamMembers: 1,
+          };
+          setClients((prev) => [...prev, newClient]);
+        }}
+        brandColor="#430062"
+      />
     </div>
   );
 }
