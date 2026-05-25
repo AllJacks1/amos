@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState } from "react";
 import {
@@ -7,13 +7,7 @@ import {
   Table as TableIcon,
   Plus,
   Search,
-  Filter,
   MoreHorizontal,
-  Edit3,
-  Trash2,
-  Clock,
-  CheckCircle,
-  Users,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,7 +19,6 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from "@/components/ui/sheet";
 import {
   Select,
@@ -34,12 +27,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 const brandColor = "#430062";
 
+// ==================== TYPES ====================
 interface ContentItem {
   id: string;
   title: string;
@@ -57,12 +51,11 @@ interface ContentItem {
 interface Comment {
   id: string;
   user: string;
-  avatar: string;
   comment: string;
   timestamp: string;
 }
 
-// Mock Data
+// ==================== MOCK DATA ====================
 const mockContents: ContentItem[] = [
   {
     id: "c1",
@@ -106,20 +99,8 @@ const mockContents: ContentItem[] = [
 ];
 
 const mockComments: Comment[] = [
-  {
-    id: "com1",
-    user: "Sarah Chen",
-    avatar: "",
-    comment: "Looks great! Just add brand logo at the end.",
-    timestamp: "2 hours ago",
-  },
-  {
-    id: "com2",
-    user: "David Kim",
-    avatar: "",
-    comment: "Approved from client side.",
-    timestamp: "Yesterday",
-  },
+  { id: "com1", user: "Sarah Chen", comment: "Looks great! Just add brand logo at the end.", timestamp: "2 hours ago" },
+  { id: "com2", user: "David Kim", comment: "Approved from client side.", timestamp: "Yesterday" },
 ];
 
 const statusColors = {
@@ -141,62 +122,33 @@ const statusLabels = {
 };
 
 export default function ContentOperations() {
-  const [activeView, setActiveView] = useState<"calendar" | "kanban" | "table">(
-    "kanban",
-  );
+  const [activeView, setActiveView] = useState<"kanban" | "calendar" | "table">("kanban");
   const [contents, setContents] = useState(mockContents);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [selectedContent, setSelectedContent] = useState<ContentItem | null>(
-    null,
-  );
+  const [selectedContent, setSelectedContent] = useState<ContentItem | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
-  // Filter contents
   const filteredContents = contents.filter((item) => {
-    const matchesSearch =
+    const matchesSearch = 
       item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.client.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus =
-      statusFilter === "all" || item.status === statusFilter;
+    const matchesStatus = statusFilter === "all" || item.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
-  // Kanban Columns
   const kanbanColumns = [
-    {
-      id: "draft",
-      title: "Draft",
-      items: filteredContents.filter((c) => c.status === "draft"),
-    },
-    {
-      id: "review",
-      title: "Internal Review",
-      items: filteredContents.filter((c) => c.status === "review"),
-    },
-    {
-      id: "approval",
-      title: "For Approval",
-      items: filteredContents.filter((c) => c.status === "approval"),
-    },
-    {
-      id: "approved",
-      title: "Approved",
-      items: filteredContents.filter((c) => c.status === "approved"),
-    },
-    {
-      id: "scheduled",
-      title: "Scheduled",
-      items: filteredContents.filter((c) => c.status === "scheduled"),
-    },
+    { id: "draft", title: "Draft", items: filteredContents.filter(c => c.status === "draft") },
+    { id: "review", title: "Internal Review", items: filteredContents.filter(c => c.status === "review") },
+    { id: "approval", title: "For Approval", items: filteredContents.filter(c => c.status === "approval") },
+    { id: "approved", title: "Approved", items: filteredContents.filter(c => c.status === "approved") },
+    { id: "scheduled", title: "Scheduled", items: filteredContents.filter(c => c.status === "scheduled") },
   ];
 
   const handleStatusChange = (id: string, newStatus: ContentItem["status"]) => {
-    setContents((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, status: newStatus } : item,
-      ),
-    );
+    setContents(prev => prev.map(item => 
+      item.id === id ? { ...item, status: newStatus } : item
+    ));
   };
 
   const openDetail = (content: ContentItem) => {
@@ -205,114 +157,71 @@ export default function ContentOperations() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50">
-      {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-zinc-200 bg-white">
-        <div className="flex h-16 items-center justify-between px-8">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3">
-              <div
-                className="h-9 w-9 rounded-2xl flex items-center justify-center text-white font-bold text-2xl"
-                style={{ backgroundColor: brandColor }}
-              >
-                A
-              </div>
-              <div>
-                <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
-                  Content Operations
-                </h1>
-                <p className="text-sm text-zinc-500">
-                  Unified workspace • 87 total pieces
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <div className="flex items-center bg-white border border-zinc-200 rounded-full px-4 py-1.5 w-80">
-              <Search className="h-4 w-4 text-zinc-400 mr-3" />
-              <Input
-                placeholder="Search content, clients..."
-                className="border-0 focus-visible:ring-0 px-0 shadow-none text-sm"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-44">
-                <SelectValue placeholder="Filter Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="draft">Draft</SelectItem>
-                <SelectItem value="review">In Review</SelectItem>
-                <SelectItem value="approval">For Approval</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
-                <SelectItem value="scheduled">Scheduled</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Button
-              style={{ backgroundColor: brandColor }}
-              className="text-white"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              New Content
-            </Button>
-          </div>
+    <div className="p-6 lg:p-8 space-y-8">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight">Content Operations</h1>
+          <p className="text-zinc-600 mt-1">Unified workspace • 87 total pieces</p>
         </div>
 
-        {/* View Tabs */}
-        <div className="px-8 border-t border-zinc-100">
-          <Tabs
-            value={activeView}
-            onValueChange={(v) => setActiveView(v as any)}
-            className="w-full"
-          >
-            <TabsList className="bg-transparent h-12">
-              <TabsTrigger
-                value="kanban"
-                className="data-[state=active]:border-b-2 data-[state=active]:border-violet-600 rounded-none"
-              >
-                <LayoutDashboard className="mr-2 h-4 w-4" />
-                Kanban
-              </TabsTrigger>
-              <TabsTrigger
-                value="calendar"
-                className="data-[state=active]:border-b-2 data-[state=active]:border-violet-600 rounded-none"
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                Calendar
-              </TabsTrigger>
-              <TabsTrigger
-                value="table"
-                className="data-[state=active]:border-b-2 data-[state=active]:border-violet-600 rounded-none"
-              >
-                <TableIcon className="mr-2 h-4 w-4" />
-                Table
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
-      </header>
+        <div className="flex items-center gap-3">
+          <div className="relative w-80">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
+            <Input
+              placeholder="Search content, clients..."
+              className="pl-10"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
 
-      <div className="p-8">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-44">
+              <SelectValue placeholder="Filter Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="draft">Draft</SelectItem>
+              <SelectItem value="review">In Review</SelectItem>
+              <SelectItem value="approval">For Approval</SelectItem>
+              <SelectItem value="approved">Approved</SelectItem>
+              <SelectItem value="scheduled">Scheduled</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Button style={{ backgroundColor: brandColor }} className="text-white">
+            <Plus className="mr-2 h-4 w-4" />
+            New Content
+          </Button>
+        </div>
+      </div>
+
+      {/* View Tabs */}
+      <Tabs value={activeView} onValueChange={(v) => setActiveView(v as any)} className="w-full">
+        <TabsList className="bg-white border border-zinc-200">
+          <TabsTrigger value="kanban" className="data-[state=active]:border-b-2 data-[state=active]:border-violet-600">
+            <LayoutDashboard className="mr-2 h-4 w-4" />
+            Kanban
+          </TabsTrigger>
+          <TabsTrigger value="calendar">
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            Calendar
+          </TabsTrigger>
+          <TabsTrigger value="table">
+            <TableIcon className="mr-2 h-4 w-4" />
+            Table
+          </TabsTrigger>
+        </TabsList>
+
         {/* Kanban View */}
-        {activeView === "kanban" && (
+        <TabsContent value="kanban" className="mt-6">
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 overflow-x-auto pb-8">
             {kanbanColumns.map((column) => (
-              <div
-                key={column.id}
-                className="bg-white rounded-3xl border border-zinc-100 p-5 min-w-[280px]"
-              >
+              <div key={column.id} className="bg-white rounded-3xl border border-zinc-100 p-5 min-w-[280px]">
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="font-semibold text-zinc-900">
-                    {column.title}
-                  </h3>
-                  <Badge variant="secondary" className="text-xs">
-                    {column.items.length}
-                  </Badge>
+                  <h3 className="font-semibold">{column.title}</h3>
+                  <Badge variant="secondary">{column.items.length}</Badge>
                 </div>
 
                 <div className="space-y-3">
@@ -320,53 +229,38 @@ export default function ContentOperations() {
                     <div
                       key={item.id}
                       onClick={() => openDetail(item)}
-                      className="bg-white border border-zinc-200 rounded-2xl p-4 hover:shadow-md transition-all cursor-pointer group"
+                      className="bg-white border border-zinc-200 rounded-2xl p-4 hover:shadow-md transition-all cursor-pointer"
                     >
                       {item.thumbnail && (
-                        <img
-                          src={item.thumbnail}
-                          alt={item.title}
-                          className="w-full h-32 object-cover rounded-xl mb-4"
-                        />
+                        <img src={item.thumbnail} alt={item.title} className="w-full h-32 object-cover rounded-xl mb-4" />
                       )}
-                      <div className="font-medium leading-tight mb-2 line-clamp-2">
-                        {item.title}
-                      </div>
-                      <div className="text-sm text-zinc-500 mb-3">
-                        {item.client}
-                      </div>
+                      <div className="font-medium line-clamp-2 mb-2">{item.title}</div>
+                      <div className="text-sm text-zinc-500 mb-3">{item.client}</div>
 
                       <div className="flex items-center justify-between">
                         <Badge className={statusColors[item.status]}>
                           {statusLabels[item.status]}
                         </Badge>
-                        <div className="flex items-center gap-2">
-                          <Avatar className="h-6 w-6">
-                            <AvatarFallback className="text-[10px]">
-                              {item.assignedTo
-                                .split(" ")
-                                .map((n) => n[0])
-                                .join("")}
-                            </AvatarFallback>
-                          </Avatar>
-                        </div>
+                        <Avatar className="h-6 w-6">
+                          <AvatarFallback className="text-xs">
+                            {item.assignedTo.split(" ").map(n => n[0]).join("")}
+                          </AvatarFallback>
+                        </Avatar>
                       </div>
                     </div>
                   ))}
 
                   {column.items.length === 0 && (
-                    <div className="text-center py-12 text-zinc-400 text-sm">
-                      No content here
-                    </div>
+                    <div className="text-center py-12 text-zinc-400">No content here</div>
                   )}
                 </div>
               </div>
             ))}
           </div>
-        )}
+        </TabsContent>
 
-        {/* Calendar View */}
-        {activeView === "calendar" && (
+        {/* Calendar & Table Views (same structure as before) */}
+        <TabsContent value="calendar" className="mt-6">
           <Card className="bg-white border border-zinc-200 rounded-3xl">
             <CardHeader>
               <CardTitle>May 2026 Content Calendar</CardTitle>
@@ -414,10 +308,9 @@ export default function ContentOperations() {
               </div>
             </CardContent>
           </Card>
-        )}
+        </TabsContent>
 
-        {/* Table View */}
-        {activeView === "table" && (
+        <TabsContent value="table" className="mt-6">
           <div className="bg-white rounded-3xl border border-zinc-200 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -502,18 +395,17 @@ export default function ContentOperations() {
               </table>
             </div>
           </div>
-        )}
-      </div>
+        </TabsContent>
+      </Tabs>
 
       {/* Content Detail Sheet */}
       <Sheet open={isDetailOpen} onOpenChange={setIsDetailOpen}>
         <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
+          {/* Your existing detail sheet content remains unchanged */}
           {selectedContent && (
             <>
               <SheetHeader className="mb-8">
-                <SheetTitle className="text-2xl">
-                  {selectedContent.title}
-                </SheetTitle>
+                <SheetTitle className="text-2xl">{selectedContent.title}</SheetTitle>
                 <div className="flex gap-3 mt-2">
                   <Badge className={statusColors[selectedContent.status]}>
                     {statusLabels[selectedContent.status]}

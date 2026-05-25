@@ -2,271 +2,318 @@
 
 import React, { useState } from 'react';
 import { 
-  TrendingUp, 
-  Users, 
-  Eye, 
-  MousePointer, 
-  Calendar as CalendarIcon,
-  Search 
+  TrendingUp, TrendingDown, Eye, MousePointer, Heart, 
+  Users, Calendar, Download, Search 
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  PieChart,
-  Pie,
-  Cell,
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
+  PieChart, Pie, Cell
 } from 'recharts';
 
-const brandColor = "#430062";
-
+// Types
 interface KPICard {
-  title: string;
+  label: string;
   value: string;
   change: number;
   trend: 'up' | 'down';
   icon: React.ReactNode;
 }
 
-interface TopPost {
+interface Post {
   id: string;
   title: string;
-  platform: string;
   thumbnail: string;
+  platform: string;
+  type: string;
   reach: number;
   interactions: number;
   engagementRate: number;
   clicks: number;
-  publishDate: string;
+  publishedAt: string;
+}
+
+interface TrendData {
+  date: string;
+  reach: number;
+  engagement: number;
+  clicks: number;
 }
 
 // Mock Data
-const kpiCards: KPICard[] = [
-  { title: "Total Reach", value: "248.4K", change: 18, trend: "up", icon: <Eye className="h-5 w-5" /> },
-  { title: "Total Impressions", value: "1.2M", change: 12, trend: "up", icon: <Users className="h-5 w-5" /> },
-  { title: "Engagement Rate", value: "6.8%", change: -2, trend: "down", icon: <TrendingUp className="h-5 w-5" /> },
-  { title: "Total Clicks", value: "18.7K", change: 24, trend: "up", icon: <MousePointer className="h-5 w-5" /> },
+const kpiData: KPICard[] = [
+  { label: "Total Reach", value: "1.24M", change: 14.8, trend: "up", icon: <Eye className="h-5 w-5" /> },
+  { label: "Total Impressions", value: "2.89M", change: 9.3, trend: "up", icon: <Users className="h-5 w-5" /> },
+  { label: "Total Engagement", value: "186.4K", change: 22.1, trend: "up", icon: <Heart className="h-5 w-5" /> },
+  { label: "Total Clicks", value: "47.2K", change: -3.4, trend: "down", icon: <MousePointer className="h-5 w-5" /> },
 ];
 
-const trendData = [
-  { date: "May 16", reach: 12400, engagement: 820, clicks: 340 },
-  { date: "May 17", reach: 9800, engagement: 650, clicks: 280 },
-  { date: "May 18", reach: 15600, engagement: 1240, clicks: 670 },
-  { date: "May 19", reach: 13200, engagement: 890, clicks: 420 },
-  { date: "May 20", reach: 18900, engagement: 1580, clicks: 940 },
-  { date: "May 21", reach: 14200, engagement: 1120, clicks: 580 },
-  { date: "May 22", reach: 21400, engagement: 1870, clicks: 1120 },
+const performanceTrend = [
+  { date: "May 15", reach: 45200, engagement: 12400, clicks: 3200 },
+  { date: "May 16", reach: 68100, engagement: 18900, clicks: 4800 },
+  { date: "May 17", reach: 53400, engagement: 14200, clicks: 3900 },
+  { date: "May 18", reach: 89400, engagement: 26700, clicks: 7100 },
+  { date: "May 19", reach: 67300, engagement: 19800, clicks: 5200 },
+  { date: "May 20", reach: 112400, engagement: 32400, clicks: 8900 },
+  { date: "May 21", reach: 98400, engagement: 28100, clicks: 7600 },
 ];
 
 const platformData = [
-  { name: "Instagram", reach: 124000, fill: "#E1306C" },
-  { name: "LinkedIn", reach: 89000, fill: "#0A66C2" },
-  { name: "Facebook", reach: 67000, fill: "#1877F2" },
+  { name: "Instagram", reach: 42, fill: "#430062" },
+  { name: "Facebook", reach: 28, fill: "#3b82f6" },
+  { name: "LinkedIn", reach: 18, fill: "#64748b" },
+  { name: "TikTok", reach: 12, fill: "#ec4899" },
 ];
 
-const topPosts: TopPost[] = [
+const topPosts: Post[] = [
   {
-    id: "p1",
-    title: "Summer Collection Launch Reel",
+    id: "1",
+    title: "Product launch behind-the-scenes reel",
+    thumbnail: "https://picsum.photos/id/1015/280/160",
     platform: "Instagram",
-    thumbnail: "https://picsum.photos/id/1015/120/120",
-    reach: 45200,
-    interactions: 3240,
-    engagementRate: 12.4,
-    clicks: 1840,
-    publishDate: "May 20",
+    type: "Reel",
+    reach: 124800,
+    interactions: 28400,
+    engagementRate: 22.8,
+    clicks: 6700,
+    publishedAt: "2h ago"
   },
   {
-    id: "p2",
-    title: "Q2 Performance Insights",
+    id: "2",
+    title: "5 mistakes killing your LinkedIn reach",
+    thumbnail: "https://picsum.photos/id/201/280/160",
     platform: "LinkedIn",
-    thumbnail: "https://picsum.photos/id/201/120/120",
-    reach: 31800,
-    interactions: 1870,
-    engagementRate: 8.9,
-    clicks: 1240,
-    publishDate: "May 19",
+    type: "Carousel",
+    reach: 87300,
+    interactions: 12400,
+    engagementRate: 14.2,
+    clicks: 5400,
+    publishedAt: "Yesterday"
   },
   {
-    id: "p3",
-    title: "Wellness Routine Tips",
-    platform: "Instagram",
-    thumbnail: "https://picsum.photos/id/237/120/120",
-    reach: 27400,
-    interactions: 2310,
-    engagementRate: 11.2,
-    clicks: 980,
-    publishDate: "May 21",
+    id: "3",
+    title: "Client success story - 340% ROI",
+    thumbnail: "https://picsum.photos/id/106/280/160",
+    platform: "Facebook",
+    type: "Video",
+    reach: 67200,
+    interactions: 9800,
+    engagementRate: 14.6,
+    clicks: 3200,
+    publishedAt: "May 20"
   },
 ];
 
-export default function AnalyticsModule() {
+export default function AnalyticsPage() {
   const [dateRange, setDateRange] = useState("7d");
   const [platformFilter, setPlatformFilter] = useState("all");
+  const [contentTypeFilter, setContentTypeFilter] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState<"engagement" | "reach" | "clicks">("engagement");
+
+  const formatNumber = (num: number) => new Intl.NumberFormat('en-US').format(num);
+
+  const filteredPosts = [...topPosts]
+    .filter(post => 
+      post.title.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      (platformFilter === "all" || post.platform.toLowerCase() === platformFilter) &&
+      (contentTypeFilter === "all" || post.type.toLowerCase() === contentTypeFilter.toLowerCase())
+    )
+    .sort((a, b) => {
+      if (sortBy === "engagement") return b.interactions - a.interactions;
+      if (sortBy === "reach") return b.reach - a.reach;
+      return b.clicks - a.clicks;
+    });
 
   return (
     <div className="min-h-screen bg-zinc-50">
-      {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-zinc-200 bg-white">
-        <div className="flex h-16 items-center justify-between px-8">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3">
-              <div 
-                className="h-9 w-9 rounded-2xl flex items-center justify-center text-white font-bold text-2xl"
-                style={{ backgroundColor: brandColor }}
-              >
-                A
-              </div>
-              <div>
-                <h1 className="text-2xl font-semibold tracking-tight">Analytics</h1>
-                <p className="text-sm text-zinc-500">Marketing Performance • Live</p>
-              </div>
-            </div>
+      <div className="p-8 space-y-10">
+        {/* Page Header + Filters */}
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+          <div>
+            <h1 className="text-3xl font-semibold tracking-tight text-zinc-900">Analytics</h1>
+            <p className="text-zinc-500 mt-1">Live Marketing Performance • May 2026</p>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="relative w-80">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+              <Input
+                placeholder="Search content..."
+                className="pl-10 rounded-2xl"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+
             <Select value={dateRange} onValueChange={setDateRange}>
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="w-40 rounded-2xl">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="24h">Last 24 hours</SelectItem>
                 <SelectItem value="7d">Last 7 days</SelectItem>
                 <SelectItem value="30d">Last 30 days</SelectItem>
                 <SelectItem value="90d">Last 90 days</SelectItem>
-                <SelectItem value="q2">Q2 2026</SelectItem>
               </SelectContent>
             </Select>
 
             <Select value={platformFilter} onValueChange={setPlatformFilter}>
-              <SelectTrigger className="w-44">
-                <SelectValue placeholder="All Platforms" />
+              <SelectTrigger className="w-40 rounded-2xl">
+                <SelectValue placeholder="Platform" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Platforms</SelectItem>
                 <SelectItem value="instagram">Instagram</SelectItem>
-                <SelectItem value="linkedin">LinkedIn</SelectItem>
                 <SelectItem value="facebook">Facebook</SelectItem>
+                <SelectItem value="linkedin">LinkedIn</SelectItem>
+                <SelectItem value="tiktok">TikTok</SelectItem>
               </SelectContent>
             </Select>
 
-            <Button variant="outline">Export Report</Button>
+            <Select value={contentTypeFilter} onValueChange={setContentTypeFilter}>
+              <SelectTrigger className="w-40 rounded-2xl">
+                <SelectValue placeholder="Content Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                <SelectItem value="reel">Reels</SelectItem>
+                <SelectItem value="video">Videos</SelectItem>
+                <SelectItem value="carousel">Carousels</SelectItem>
+                <SelectItem value="post">Static Posts</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Button variant="outline" className="rounded-2xl" onClick={() => alert('Export coming soon')}>
+              <Download className="mr-2 h-4 w-4" />
+              Export
+            </Button>
           </div>
         </div>
-      </header>
 
-      <div className="p-8 space-y-10">
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {kpiCards.map((kpi, index) => (
-            <Card key={index} className="bg-white border border-zinc-200 rounded-3xl shadow-sm">
-              <CardHeader className="flex flex-row items-center justify-between pb-4">
-                <CardTitle className="text-base text-zinc-600 font-medium">{kpi.title}</CardTitle>
-                <div className="text-zinc-400">{kpi.icon}</div>
+          {kpiData.map((kpi, index) => (
+            <Card key={index} className="rounded-3xl border border-zinc-100 shadow-sm hover:shadow transition-all">
+              <CardHeader className="pb-3">
+                <div className="flex justify-between">
+                  <div className="text-zinc-500 text-sm font-medium">{kpi.label}</div>
+                  {kpi.icon}
+                </div>
               </CardHeader>
               <CardContent>
-                <div className="text-4xl font-semibold tracking-tighter mb-3">{kpi.value}</div>
+                <div className="text-4xl font-semibold tracking-tighter mb-2">{kpi.value}</div>
                 <div className="flex items-center gap-2 text-sm">
-                  <div className={`flex items-center gap-1 ${kpi.trend === 'up' ? 'text-emerald-600' : 'text-rose-600'}`}>
-                    <TrendingUp className="h-4 w-4" />
+                  {kpi.trend === 'up' ? (
+                    <TrendingUp className="text-emerald-500 h-4 w-4" />
+                  ) : (
+                    <TrendingDown className="text-rose-500 h-4 w-4" />
+                  )}
+                  <span className={kpi.trend === 'up' ? "text-emerald-600" : "text-rose-600"}>
                     {kpi.change}%
-                  </div>
-                  <span className="text-zinc-500">vs last period</span>
+                  </span>
+                  <span className="text-zinc-400">from last period</span>
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
-          {/* Main Trend Chart */}
-          <div className="xl:col-span-8">
-            <Card className="bg-white border border-zinc-200 rounded-3xl shadow-sm">
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <CardTitle>Performance Trend</CardTitle>
-                  <Badge variant="outline">Reach + Engagement</Badge>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={trendData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f1f1" />
-                      <XAxis dataKey="date" stroke="#71717a" />
-                      <YAxis stroke="#71717a" />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: '#fff', 
-                          border: '1px solid #e4e4e7', 
-                          borderRadius: '12px',
-                          boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'
-                        }} 
-                      />
-                      <Line 
-                        type="natural" 
-                        dataKey="reach" 
-                        stroke={brandColor} 
-                        strokeWidth={4} 
-                        dot={{ r: 5, fill: brandColor }}
-                        name="Reach"
-                      />
-                      <Line 
-                        type="natural" 
-                        dataKey="engagement" 
-                        stroke="#71717a" 
-                        strokeWidth={3} 
-                        strokeDasharray="5 5"
-                        dot={{ r: 4 }}
-                        name="Engagement"
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+        {/* Main Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-7 gap-6">
+          {/* Engagement Trend */}
+          <Card className="lg:col-span-4 rounded-3xl border border-zinc-100">
+            <CardHeader>
+              <CardTitle>Performance Over Time</CardTitle>
+              <CardDescription>Reach, Engagement & Clicks trend</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={performanceTrend}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                    <XAxis dataKey="date" stroke="#64748b" fontSize={12} />
+                    <YAxis stroke="#64748b" fontSize={12} />
+                    <RechartsTooltip 
+                      contentStyle={{ 
+                        borderRadius: '12px', 
+                        border: 'none', 
+                        boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' 
+                      }} 
+                    />
+                    <Area type="natural" dataKey="reach" stroke="#430062" fill="#430062" fillOpacity={0.08} strokeWidth={3} />
+                    <Area type="natural" dataKey="engagement" stroke="#a855f7" fill="#a855f7" fillOpacity={0.08} strokeWidth={2.5} />
+                    <Area type="natural" dataKey="clicks" stroke="#eab308" fill="#eab308" fillOpacity={0.08} strokeWidth={2} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Platform Breakdown */}
-          <div className="xl:col-span-4">
-            <Card className="bg-white border border-zinc-200 rounded-3xl shadow-sm h-full">
-              <CardHeader>
-                <CardTitle>Platform Breakdown</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={platformData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f1f1" />
-                      <XAxis dataKey="name" stroke="#71717a" />
-                      <YAxis stroke="#71717a" />
-                      <Tooltip />
-                      <Bar dataKey="reach" fill={brandColor} radius={8} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <Card className="lg:col-span-3 rounded-3xl border border-zinc-100">
+            <CardHeader>
+              <CardTitle>Platform Breakdown</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-80 flex items-center justify-center">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie 
+                      data={platformData} 
+                      cx="50%" 
+                      cy="50%" 
+                      innerRadius={85} 
+                      outerRadius={130} 
+                      dataKey="reach"
+                    >
+                      {platformData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </Pie>
+                    <RechartsTooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="space-y-4 mt-4">
+                {platformData.map((platform) => (
+                  <div key={platform.name} className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-3 h-3 rounded-full" style={{ background: platform.fill }} />
+                      <span>{platform.name}</span>
+                    </div>
+                    <span className="font-medium">{platform.reach}%</span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Top Performing Posts */}
-        <Card className="bg-white border border-zinc-200 rounded-3xl shadow-sm">
+        <Card className="rounded-3xl border border-zinc-100">
           <CardHeader>
-            <div className="flex justify-between items-center">
-              <CardTitle>Top Performing Posts</CardTitle>
-              <Button variant="ghost" size="sm">View All Posts →</Button>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Top Performing Content</CardTitle>
+                <CardDescription>Real-time ranked by engagement</CardDescription>
+              </div>
+              <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
+                <SelectTrigger className="w-52 rounded-2xl">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="engagement">Sort by Engagement</SelectItem>
+                  <SelectItem value="reach">Sort by Reach</SelectItem>
+                  <SelectItem value="clicks">Sort by Clicks</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </CardHeader>
           <CardContent>
@@ -277,40 +324,53 @@ export default function AnalyticsModule() {
                   <TableHead>Platform</TableHead>
                   <TableHead className="text-right">Reach</TableHead>
                   <TableHead className="text-right">Interactions</TableHead>
-                  <TableHead className="text-right">Engagement</TableHead>
+                  <TableHead className="text-right">Engagement Rate</TableHead>
                   <TableHead className="text-right">Clicks</TableHead>
-                  <TableHead>Date</TableHead>
+                  <TableHead>Published</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {topPosts.map((post) => (
+                {filteredPosts.map((post) => (
                   <TableRow key={post.id} className="hover:bg-zinc-50 cursor-pointer">
                     <TableCell>
                       <div className="flex items-center gap-4">
                         <img 
                           src={post.thumbnail} 
-                          alt={post.title}
-                          className="w-12 h-12 rounded-xl object-cover"
+                          alt={post.title} 
+                          className="w-14 h-10 object-cover rounded-xl" 
                         />
-                        <div className="font-medium max-w-[260px] line-clamp-2">{post.title}</div>
+                        <div>
+                          <div className="font-medium line-clamp-1">{post.title}</div>
+                          <div className="text-xs text-zinc-500">{post.type}</div>
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline">{post.platform}</Badge>
                     </TableCell>
                     <TableCell className="text-right font-mono font-medium">
-                      {(post.reach / 1000).toFixed(0)}K
+                      {formatNumber(post.reach)}
                     </TableCell>
-                    <TableCell className="text-right font-mono">{post.interactions.toLocaleString()}</TableCell>
+                    <TableCell className="text-right font-mono font-medium">
+                      {formatNumber(post.interactions)}
+                    </TableCell>
                     <TableCell className="text-right">
                       <span className="text-emerald-600 font-medium">{post.engagementRate}%</span>
                     </TableCell>
-                    <TableCell className="text-right font-mono">{post.clicks.toLocaleString()}</TableCell>
-                    <TableCell className="text-zinc-500 text-sm">{post.publishDate}</TableCell>
+                    <TableCell className="text-right font-mono font-medium">
+                      {formatNumber(post.clicks)}
+                    </TableCell>
+                    <TableCell className="text-sm text-zinc-500">{post.publishedAt}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
+
+            {filteredPosts.length === 0 && (
+              <div className="text-center py-16 text-zinc-400">
+                No content found matching your filters.
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

@@ -6,11 +6,7 @@ import {
   Clock, 
   AlertCircle, 
   Search, 
-  Plus, 
-  Calendar as CalendarIcon,
-  MessageSquare,
-  ArrowRight,
-  User
+  Plus 
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,13 +15,14 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 
 const brandColor = "#430062";
 
+// ==================== TYPES ====================
 interface ApprovalItem {
   id: string;
   title: string;
@@ -33,7 +30,6 @@ interface ApprovalItem {
   platform: string;
   contentType: string;
   client: string;
-  clientAvatar: string;
   thumbnail: string;
   status: 'pending' | 'revision' | 'approved';
   dueDate: string;
@@ -45,7 +41,6 @@ interface Comment {
   id: string;
   user: string;
   role: string;
-  avatar: string;
   comment: string;
   timestamp: string;
 }
@@ -58,7 +53,7 @@ interface HistoryEntry {
   comment?: string;
 }
 
-// Mock Data
+// ==================== MOCK DATA ====================
 const approvals: ApprovalItem[] = [
   {
     id: "app1",
@@ -67,7 +62,6 @@ const approvals: ApprovalItem[] = [
     platform: "Instagram",
     contentType: "Reel",
     client: "Lumina Fashion",
-    clientAvatar: "",
     thumbnail: "https://picsum.photos/id/1015/600/400",
     status: "pending",
     dueDate: "May 24, 2026",
@@ -81,7 +75,6 @@ const approvals: ApprovalItem[] = [
     platform: "LinkedIn",
     contentType: "Carousel",
     client: "Nexus Tech",
-    clientAvatar: "",
     thumbnail: "https://picsum.photos/id/201/600/400",
     status: "revision",
     dueDate: "May 23, 2026",
@@ -95,7 +88,6 @@ const approvals: ApprovalItem[] = [
     platform: "Instagram",
     contentType: "Static",
     client: "Bloom Wellness",
-    clientAvatar: "",
     thumbnail: "https://picsum.photos/id/237/600/400",
     status: "approved",
     dueDate: "May 20, 2026",
@@ -105,8 +97,8 @@ const approvals: ApprovalItem[] = [
 ];
 
 const mockComments: Comment[] = [
-  { id: "c1", user: "Elena Voss", role: "Client", avatar: "", comment: "I love the visuals but can we make the CTA button larger?", timestamp: "4 hours ago" },
-  { id: "c2", user: "Sarah Chen", role: "Marketing", avatar: "", comment: "Updated the button size and contrast. Ready for review.", timestamp: "2 hours ago" },
+  { id: "c1", user: "Elena Voss", role: "Client", comment: "I love the visuals but can we make the CTA button larger?", timestamp: "4 hours ago" },
+  { id: "c2", user: "Sarah Chen", role: "Marketing", comment: "Updated the button size and contrast. Ready for review.", timestamp: "2 hours ago" },
 ];
 
 const mockHistory: HistoryEntry[] = [
@@ -147,194 +139,179 @@ export default function ApprovalsModule() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50">
-      {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-zinc-200 bg-white">
-        <div className="flex h-16 items-center justify-between px-8">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3">
-              <div 
-                className="h-9 w-9 rounded-2xl flex items-center justify-center text-white font-bold text-2xl"
-                style={{ backgroundColor: brandColor }}
-              >
-                A
-              </div>
-              <div>
-                <h1 className="text-2xl font-semibold tracking-tight">Approvals</h1>
-                <p className="text-sm text-zinc-500">Client collaboration hub</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <div className="relative w-80">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
-              <Input 
-                placeholder="Search approvals..." 
-                className="pl-10"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-
-            <Select value={clientFilter} onValueChange={setClientFilter}>
-              <SelectTrigger className="w-52">
-                <SelectValue placeholder="All Clients" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Clients</SelectItem>
-                <SelectItem value="Lumina Fashion">Lumina Fashion</SelectItem>
-                <SelectItem value="Nexus Tech">Nexus Tech</SelectItem>
-                <SelectItem value="Bloom Wellness">Bloom Wellness</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Button style={{ backgroundColor: brandColor }} className="text-white">
-              <Plus className="mr-2 h-4 w-4" />
-              Upload New
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      <div className="p-8">
-        {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          <Card className="bg-white border border-zinc-200 rounded-3xl shadow-sm">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">Pending Review</CardTitle>
-                <Clock className="h-5 w-5 text-amber-600" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-5xl font-semibold tracking-tighter">7</div>
-              <p className="text-sm text-zinc-500 mt-2">Due this week</p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white border border-zinc-200 rounded-3xl shadow-sm">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">Revision Needed</CardTitle>
-                <AlertCircle className="h-5 w-5 text-rose-600" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-5xl font-semibold tracking-tighter">3</div>
-              <p className="text-sm text-zinc-500 mt-2">Action required</p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white border border-zinc-200 rounded-3xl shadow-sm">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">Approved This Month</CardTitle>
-                <CheckCircle className="h-5 w-5 text-emerald-600" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-5xl font-semibold tracking-tighter">24</div>
-              <p className="text-sm text-emerald-600 mt-2">+4 from last month</p>
-            </CardContent>
-          </Card>
+    <div className="p-6 lg:p-8 space-y-8">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight">Approvals</h1>
+          <p className="text-zinc-600 mt-1">Client collaboration hub</p>
         </div>
 
-        {/* Status Tabs */}
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
-          <TabsList className="mb-8 bg-white border border-zinc-200">
-            <TabsTrigger value="pending" className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              Pending Review
-            </TabsTrigger>
-            <TabsTrigger value="revision" className="flex items-center gap-2">
-              <AlertCircle className="h-4 w-4" />
-              Needs Revision
-            </TabsTrigger>
-            <TabsTrigger value="approved" className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4" />
-              Approved
-            </TabsTrigger>
-          </TabsList>
+        <div className="flex items-center gap-3">
+          <div className="relative w-80">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
+            <Input 
+              placeholder="Search approvals..." 
+              className="pl-10"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
 
-          {/* All Tabs share the same content layout */}
-          {["pending", "revision", "approved"].map((tab) => (
-            <TabsContent key={tab} value={tab} className="mt-0">
-              {filteredApprovals.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredApprovals.map((item) => (
-                    <Card 
-                      key={item.id} 
-                      className="bg-white border border-zinc-200 rounded-3xl overflow-hidden hover:shadow-md transition-all cursor-pointer group"
-                      onClick={() => openDetail(item)}
-                    >
-                      <div className="relative">
-                        <img 
-                          src={item.thumbnail} 
-                          alt={item.title}
-                          className="w-full h-52 object-cover"
-                        />
-                        <div className="absolute top-4 right-4">
-                          <Badge 
-                            className={
-                              item.status === 'pending' ? 'bg-amber-100 text-amber-700' :
-                              item.status === 'revision' ? 'bg-rose-100 text-rose-700' :
-                              'bg-emerald-100 text-emerald-700'
-                            }
-                          >
-                            {item.status === 'pending' ? 'Pending' : 
-                             item.status === 'revision' ? 'Revision' : 'Approved'}
-                          </Badge>
-                        </div>
+          <Select value={clientFilter} onValueChange={setClientFilter}>
+            <SelectTrigger className="w-52">
+              <SelectValue placeholder="All Clients" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Clients</SelectItem>
+              <SelectItem value="Lumina Fashion">Lumina Fashion</SelectItem>
+              <SelectItem value="Nexus Tech">Nexus Tech</SelectItem>
+              <SelectItem value="Bloom Wellness">Bloom Wellness</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Button style={{ backgroundColor: brandColor }} className="text-white">
+            <Plus className="mr-2 h-4 w-4" />
+            Upload New
+          </Button>
+        </div>
+      </div>
+
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="bg-white border border-zinc-200 rounded-3xl shadow-sm">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg">Pending Review</CardTitle>
+              <Clock className="h-5 w-5 text-amber-600" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-5xl font-semibold tracking-tighter">7</div>
+            <p className="text-sm text-zinc-500 mt-2">Due this week</p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white border border-zinc-200 rounded-3xl shadow-sm">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg">Revision Needed</CardTitle>
+              <AlertCircle className="h-5 w-5 text-rose-600" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-5xl font-semibold tracking-tighter">3</div>
+            <p className="text-sm text-zinc-500 mt-2">Action required</p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white border border-zinc-200 rounded-3xl shadow-sm">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg">Approved This Month</CardTitle>
+              <CheckCircle className="h-5 w-5 text-emerald-600" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-5xl font-semibold tracking-tighter">24</div>
+            <p className="text-sm text-emerald-600 mt-2">+4 from last month</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Status Tabs */}
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
+        <TabsList className="mb-8 bg-white border border-zinc-200">
+          <TabsTrigger value="pending" className="flex items-center gap-2">
+            <Clock className="h-4 w-4" />
+            Pending Review
+          </TabsTrigger>
+          <TabsTrigger value="revision" className="flex items-center gap-2">
+            <AlertCircle className="h-4 w-4" />
+            Needs Revision
+          </TabsTrigger>
+          <TabsTrigger value="approved" className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4" />
+            Approved
+          </TabsTrigger>
+        </TabsList>
+
+        {["pending", "revision", "approved"].map((tab) => (
+          <TabsContent key={tab} value={tab} className="mt-0">
+            {filteredApprovals.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredApprovals.map((item) => (
+                  <Card 
+                    key={item.id} 
+                    className="bg-white border border-zinc-200 rounded-3xl overflow-hidden hover:shadow-md transition-all cursor-pointer group"
+                    onClick={() => openDetail(item)}
+                  >
+                    <div className="relative">
+                      <img 
+                        src={item.thumbnail} 
+                        alt={item.title}
+                        className="w-full h-52 object-cover"
+                      />
+                      <div className="absolute top-4 right-4">
+                        <Badge 
+                          className={
+                            item.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                            item.status === 'revision' ? 'bg-rose-100 text-rose-700' :
+                            'bg-emerald-100 text-emerald-700'
+                          }
+                        >
+                          {item.status === 'pending' ? 'Pending' : 
+                           item.status === 'revision' ? 'Revision' : 'Approved'}
+                        </Badge>
+                      </div>
+                    </div>
+
+                    <CardContent className="p-6">
+                      <div className="font-semibold text-lg leading-tight mb-2 line-clamp-2">
+                        {item.title}
+                      </div>
+                      
+                      <div className="flex items-center gap-3 text-sm text-zinc-500 mb-4">
+                        <span>{item.platform}</span>
+                        <span>•</span>
+                        <span>{item.contentType}</span>
                       </div>
 
-                      <CardContent className="p-6">
-                        <div className="font-semibold text-lg leading-tight mb-2 line-clamp-2">
-                          {item.title}
-                        </div>
-                        
-                        <div className="flex items-center gap-3 text-sm text-zinc-500 mb-4">
-                          <span>{item.platform}</span>
-                          <span>•</span>
-                          <span>{item.contentType}</span>
-                        </div>
-
-                        <div className="flex justify-between items-center">
-                          <div className="flex items-center gap-3">
-                            <Avatar className="h-8 w-8">
-                              <AvatarFallback className="bg-zinc-100 text-xs">
-                                {item.client.split(' ').map(n => n[0]).join('')}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="text-sm font-medium">{item.client}</p>
-                              <p className="text-xs text-zinc-500">Due {item.dueDate}</p>
-                            </div>
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-8 w-8">
+                            <AvatarFallback className="bg-zinc-100 text-xs">
+                              {item.client.split(' ').map(n => n[0]).join('')}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="text-sm font-medium">{item.client}</p>
+                            <p className="text-xs text-zinc-500">Due {item.dueDate}</p>
                           </div>
-
-                          {item.revisionCount > 0 && (
-                            <Badge variant="outline" className="text-xs">
-                              {item.revisionCount} revisions
-                            </Badge>
-                          )}
                         </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+
+                        {item.revisionCount > 0 && (
+                          <Badge variant="outline" className="text-xs">
+                            {item.revisionCount} revisions
+                          </Badge>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-20">
+                <div className="mx-auto w-16 h-16 bg-zinc-100 rounded-full flex items-center justify-center mb-6">
+                  <CheckCircle className="h-8 w-8 text-zinc-400" />
                 </div>
-              ) : (
-                <div className="text-center py-20">
-                  <div className="mx-auto w-16 h-16 bg-zinc-100 rounded-full flex items-center justify-center mb-6">
-                    <CheckCircle className="h-8 w-8 text-zinc-400" />
-                  </div>
-                  <h3 className="text-xl font-medium">No approvals here</h3>
-                  <p className="text-zinc-500 mt-2">Everything is up to date.</p>
-                </div>
-              )}
-            </TabsContent>
-          ))}
-        </Tabs>
-      </div>
+                <h3 className="text-xl font-medium">No approvals here</h3>
+                <p className="text-zinc-500 mt-2">Everything is up to date.</p>
+              </div>
+            )}
+          </TabsContent>
+        ))}
+      </Tabs>
 
       {/* Content Detail Sheet */}
       <Sheet open={isDetailOpen} onOpenChange={setIsDetailOpen}>

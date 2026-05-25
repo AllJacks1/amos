@@ -34,6 +34,8 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+const brandColor = "#430062";
+
 // Types
 interface KPI {
   title: string;
@@ -63,11 +65,7 @@ interface ApprovalItem {
 
 interface Activity {
   id: string;
-  user: {
-    name: string;
-    avatar: string;
-    initials: string;
-  };
+  user: { name: string; initials: string };
   action: string;
   entity: string;
   timestamp: string;
@@ -83,7 +81,7 @@ interface TopPost {
   badge: "excellent" | "good";
 }
 
-// Mock Data (unchanged)
+// Mock Data
 const kpis: KPI[] = [
   { title: "Total Posts", value: "248", change: 12, trend: "up", icon: <BarChart3 className="h-5 w-5" /> },
   { title: "Pending Approvals", value: "7", change: -3, trend: "down", icon: <Clock className="h-5 w-5" /> },
@@ -117,116 +115,78 @@ const topPosts: TopPost[] = [
 ];
 
 const recentActivities: Activity[] = [
-  { id: "act1", user: { name: "Sarah Chen", avatar: "", initials: "SC" }, action: "approved", entity: "Summer Promo Video", timestamp: "11 min ago" },
-  { id: "act2", user: { name: "Marcus Rivera", avatar: "", initials: "MR" }, action: "published", entity: "Client Testimonial Reel", timestamp: "47 min ago" },
-  { id: "act3", user: { name: "Aisha Patel", avatar: "", initials: "AP" }, action: "requested changes", entity: "Website Launch Post", timestamp: "2 hours ago" },
+  { id: "act1", user: { name: "Sarah Chen", initials: "SC" }, action: "approved", entity: "Summer Promo Video", timestamp: "11 min ago" },
+  { id: "act2", user: { name: "Marcus Rivera", initials: "MR" }, action: "published", entity: "Client Testimonial Reel", timestamp: "47 min ago" },
+  { id: "act3", user: { name: "Aisha Patel", initials: "AP" }, action: "requested changes", entity: "Website Launch Post", timestamp: "2 hours ago" },
 ];
-
-const brandColor = "#430062";
 
 export default function AMOSDashboard() {
   const [dateRange, setDateRange] = useState("This Week");
 
   return (
-    <div className="min-h-screen bg-zinc-50 text-zinc-900">
-      {/* Sticky Header */}
-      <header className="sticky top-0 z-50 border-b border-zinc-200 bg-white/95 backdrop-blur-lg">
-        <div className="flex h-16 items-center justify-between px-8">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3">
-              <div
-                className="h-8 w-8 rounded-xl flex items-center justify-center text-white font-bold text-xl"
-                style={{ backgroundColor: brandColor }}
-              >
-                A
-              </div>
-              <div>
-                <h1 className="text-2xl font-semibold tracking-tight">AMOS</h1>
-                <p className="text-xs text-zinc-500 -mt-1">Marketing OS</p>
-              </div>
-            </div>
-            <div className="ml-8 text-sm text-zinc-500 font-medium">Command Center</div>
-          </div>
+    <div className="p-6 lg:p-8 space-y-8">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+          <h2 className="text-3xl lg:text-4xl font-semibold tracking-tight">Good morning, Alex</h2>
+          <p className="text-zinc-600 mt-2 text-lg">
+            Here's what's happening with your marketing operations today.
+          </p>
+        </div>
 
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 bg-white border border-zinc-200 rounded-xl px-4 py-1.5 text-sm">
-              <Calendar className="h-4 w-4 text-zinc-500" />
-              <select
-                value={dateRange}
-                onChange={(e) => setDateRange(e.target.value)}
-                className="bg-transparent outline-none text-zinc-700"
-              >
-                <option>This Week</option>
-                <option>Last 30 Days</option>
-                <option>This Month</option>
-                <option>Q2 2026</option>
-              </select>
-            </div>
-
-            <Button variant="outline" size="sm">
-              <Search className="mr-2 h-4 w-4" />
-              Search
-            </Button>
-
-            <Button
-              className="text-white flex items-center gap-2"
-              style={{ backgroundColor: brandColor }}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 bg-white border border-zinc-200 rounded-xl px-4 py-1.5 text-sm">
+            <Calendar className="h-4 w-4 text-zinc-500" />
+            <select
+              value={dateRange}
+              onChange={(e) => setDateRange(e.target.value)}
+              className="bg-transparent outline-none text-zinc-700"
             >
-              <Plus className="h-4 w-4" />
-              New Campaign
-            </Button>
-
-            <Avatar className="h-8 w-8">
-              <AvatarImage src="https://github.com/shadcn.png" />
-              <AvatarFallback>JD</AvatarFallback>
-            </Avatar>
+              <option>This Week</option>
+              <option>Last 30 Days</option>
+              <option>This Month</option>
+              <option>Q2 2026</option>
+            </select>
           </div>
-        </div>
-      </header>
 
-      <div className="p-8">
-        {/* Welcome */}
-        <div className="mb-10">
-          <div className="flex justify-between items-end mb-2">
-            <div>
-              <h2 className="text-4xl font-semibold tracking-tight">Good morning, Alex</h2>
-              <p className="text-zinc-600 mt-2 text-lg">
-                Here's what's happening with your marketing operations today.
-              </p>
-            </div>
-            <Button variant="ghost" size="sm" className="text-zinc-500">
-              View full report →
-            </Button>
-          </div>
-        </div>
+          <Button variant="outline" size="sm">
+            <Search className="mr-2 h-4 w-4" />
+            Search
+          </Button>
 
-        {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-          {kpis.map((kpi, index) => (
-            <Card key={index} className="bg-white border border-zinc-200 rounded-2xl shadow-sm">
-              <CardHeader className="flex flex-row items-center justify-between pb-3">
-                <div className="text-zinc-500">{kpi.title}</div>
-                <div className="text-zinc-400">{kpi.icon}</div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-4xl font-semibold mb-3 tracking-tighter">{kpi.value}</div>
-                <div className="flex items-center gap-2 text-sm">
-                  <div className={`flex items-center gap-1 ${kpi.trend === "up" ? "text-emerald-600" : "text-rose-600"}`}>
-                    {kpi.trend === "up" ? <ArrowUpRight className="h-4 w-4" /> : <ArrowDownRight className="h-4 w-4" />}
-                    {Math.abs(kpi.change)}%
-                  </div>
-                  <span className="text-zinc-500">from last period</span>
+          <Button style={{ backgroundColor: brandColor }} className="text-white">
+            <Plus className="mr-2 h-4 w-4" />
+            New Campaign
+          </Button>
+        </div>
+      </div>
+
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {kpis.map((kpi, index) => (
+          <Card key={index} className="bg-white border border-zinc-200 rounded-3xl shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between pb-3">
+              <div className="text-zinc-500">{kpi.title}</div>
+              <div className="text-zinc-400">{kpi.icon}</div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-4xl font-semibold mb-3 tracking-tighter">{kpi.value}</div>
+              <div className="flex items-center gap-2 text-sm">
+                <div className={`flex items-center gap-1 ${kpi.trend === "up" ? "text-emerald-600" : "text-rose-600"}`}>
+                  {kpi.trend === "up" ? <ArrowUpRight className="h-4 w-4" /> : <ArrowDownRight className="h-4 w-4" />}
+                  {Math.abs(kpi.change)}%
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                <span className="text-zinc-500">from last period</span>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-          {/* Left Column */}
-          <div className="xl:col-span-7 space-y-6">
-            {/* Upcoming Content */}
-            <Card className="bg-white border border-zinc-200 rounded-3xl shadow-sm">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+        {/* Left Column */}
+        <div className="xl:col-span-7 space-y-6">
+        <Card className="bg-white border border-zinc-200 rounded-3xl shadow-sm">
               <CardHeader className="border-b border-zinc-100 pb-4">
                 <div className="flex items-center justify-between">
                   <div>
@@ -317,13 +277,11 @@ export default function AMOSDashboard() {
                   ))}
                 </div>
               </CardContent>
-            </Card>
-          </div>
+            </Card> </div>
 
-          {/* Right Column */}
-          <div className="xl:col-span-5 space-y-6">
-            {/* Performance Snapshot */}
-            <Card className="bg-white border border-zinc-200 rounded-3xl shadow-sm">
+        {/* Right Column */}
+        <div className="xl:col-span-5 space-y-6">
+          <Card className="bg-white border border-zinc-200 rounded-3xl shadow-sm">
               <CardHeader>
                 <CardTitle>Performance Snapshot</CardTitle>
                 <CardDescription>This week vs last week</CardDescription>
@@ -429,9 +387,7 @@ export default function AMOSDashboard() {
                   ))}
                 </div>
               </CardContent>
-            </Card>
-          </div>
-        </div>
+            </Card></div>
       </div>
     </div>
   );
