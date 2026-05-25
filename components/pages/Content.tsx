@@ -257,14 +257,14 @@ export default function ContentOperations() {
           </TabsTrigger>
           <TabsTrigger
             value="calendar"
-            className="flex-1 sm:flex-none justify-center text-xs sm:text-sm px-3 py-2 sm:px-4 sm:py-2.5"
+            className="data-[state=active]:border-b-2 data-[state=active]:border-violet-600 data-[state=active]:bg-violet-50 flex-1 sm:flex-none justify-center text-xs sm:text-sm px-3 py-2 sm:px-4 sm:py-2.5"
           >
             <CalendarIcon className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
             <span className="hidden sm:inline">Calendar</span>
           </TabsTrigger>
           <TabsTrigger
             value="table"
-            className="flex-1 sm:flex-none justify-center text-xs sm:text-sm px-3 py-2 sm:px-4 sm:py-2.5"
+            className="data-[state=active]:border-b-2 data-[state=active]:border-violet-600 data-[state=active]:bg-violet-50 flex-1 sm:flex-none justify-center text-xs sm:text-sm px-3 py-2 sm:px-4 sm:py-2.5"
           >
             <TableIcon className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
             <span className="hidden sm:inline">Table</span>
