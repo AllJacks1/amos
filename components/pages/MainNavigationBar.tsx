@@ -50,13 +50,13 @@ const mainNav: NavItem[] = [
     label: "Approvals",
     icon: <CheckCircle2 className="h-5 w-5" />,
     href: "/approvals",
-    badge: 7,
+    //badge: 7,
   },
-  {
-    label: "Media Library",
-    icon: <ImageIcon className="h-5 w-5" />,
-    href: "/media",
-  },
+  // {
+  //   label: "Media Library",
+  //   icon: <ImageIcon className="h-5 w-5" />,
+  //   href: "/media",
+  // },
   {
     label: "Analytics",
     icon: <BarChart3 className="h-5 w-5" />,
@@ -323,9 +323,9 @@ export default function AMOSLayout({
               </div>
 
               <div className="ml-auto flex items-center gap-2">
-                <Button variant="ghost" size="icon">
+                {/* <Button variant="ghost" size="icon">
                   <Bell className="h-5 w-5" />
-                </Button>
+                </Button> */}
 
                 <Sheet
                   open={isMobileOpen}

@@ -8,8 +8,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export default function GlobalHeader() {
   return (
-    <header className="h-16 border-b border-zinc-200 bg-white/95 backdrop-blur-lg sticky top-0 z-40 hidden lg:flex items-center px-8">
-      <div className="flex-1 flex items-center gap-4">
+    <header className="h-16 border-b border-zinc-200 bg-white/95 backdrop-blur-lg sticky top-0 z-40 hidden lg:flex items-center justify-end px-8">
+      {/* <div className="flex-1 flex items-center gap-4">
         <div className="relative w-96">
           <Search className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
           <Input 
@@ -17,10 +17,10 @@ export default function GlobalHeader() {
             className="pl-10 bg-zinc-50 border-zinc-200 focus-visible:ring-1"
           />
         </div>
-      </div>
+      </div> */}
 
       <div className="flex items-center gap-4">
-        <Button variant="outline" size="sm">
+        {/* <Button variant="outline" size="sm">
           <Plus className="mr-2 h-4 w-4" />
           Quick Action
         </Button>
@@ -30,7 +30,7 @@ export default function GlobalHeader() {
           <div className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 rounded-full text-[10px] flex items-center justify-center text-white">
             3
           </div>
-        </Button>
+        </Button> */}
 
         <Avatar className="h-8 w-8 cursor-pointer">
           <AvatarImage src="https://github.com/shadcn.png" />

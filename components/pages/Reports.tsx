@@ -205,9 +205,9 @@ export default function ReportsPage() {
               Export PDF
             </Button>
 
-            <Button className="rounded-2xl bg-[#430062] hover:bg-[#430062]/90">
+            {/* <Button className="rounded-2xl bg-[#430062] hover:bg-[#430062]/90">
               Share Report
-            </Button>
+            </Button> */}
           </div>
         </div>
 
@@ -483,7 +483,7 @@ export default function ReportsPage() {
         </Card>
 
         {/* Executive Insights */}
-        <Card className="rounded-3xl bg-gradient-to-br from-zinc-900 to-zinc-950 text-white border-none">
+        {/* <Card className="rounded-3xl bg-gradient-to-br from-zinc-900 to-zinc-950 text-white border-none">
           <CardHeader>
             <CardTitle className="text-white">Executive Insights</CardTitle>
           </CardHeader>
@@ -522,7 +522,7 @@ export default function ReportsPage() {
               These two formats are currently responsible for 71% of all qualified leads.
             </p>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
     </div>
   );

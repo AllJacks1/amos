@@ -177,7 +177,7 @@ export default function Clients() {
                   <TableHead>Engagement</TableHead>
                   <TableHead>Team</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead className="w-12"></TableHead>
+                  {/* <TableHead className="w-12"></TableHead> */}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -221,7 +221,7 @@ export default function Clients() {
                       </div>
                     </TableCell>
                     <TableCell>{getStatusBadge(client.status)}</TableCell>
-                    <TableCell>
+                    {/* <TableCell>
                       <Sheet>
                         <SheetTrigger asChild>
                           <Button 
@@ -237,10 +237,10 @@ export default function Clients() {
                           <SheetHeader>
                             <SheetTitle>Quick Actions</SheetTitle>
                           </SheetHeader>
-                          {/* Quick actions content */}
+                          Quick actions content
                         </SheetContent>
                       </Sheet>
-                    </TableCell>
+                    </TableCell> */}
                   </TableRow>
                 ))}
               </TableBody>

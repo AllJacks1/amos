@@ -149,10 +149,10 @@ export default function AMOSDashboard() {
             </select>
           </div>
 
-          <Button variant="outline" size="sm">
+          {/* <Button variant="outline" size="sm">
             <Search className="mr-2 h-4 w-4" />
             Search
-          </Button>
+          </Button> */}
 
           <Button style={{ backgroundColor: brandColor }} className="text-white">
             <Plus className="mr-2 h-4 w-4" />

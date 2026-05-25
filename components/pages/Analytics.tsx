@@ -141,7 +141,7 @@ export default function AnalyticsPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-4">
-            <div className="relative w-80">
+            {/* <div className="relative w-80">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
               <Input
                 placeholder="Search content..."
@@ -149,7 +149,7 @@ export default function AnalyticsPage() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-            </div>
+            </div> */}
 
             <Select value={dateRange} onValueChange={setDateRange}>
               <SelectTrigger className="w-40 rounded-2xl">
