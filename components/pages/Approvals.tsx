@@ -1,7 +1,19 @@
 "use client";
 
 import React, { useState } from "react";
-import { CheckCircle, Clock, AlertCircle, Search, Plus, X } from "lucide-react";
+import {
+  CheckCircle,
+  Clock,
+  AlertCircle,
+  Search,
+  Plus,
+  X,
+  FolderOpen,
+  ExternalLink,
+  Inbox,
+  CheckCircle2,
+  PartyPopper,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -41,6 +53,7 @@ interface ApprovalItem {
   dueDate: string;
   submittedAt: string;
   revisionCount: number;
+  driveLinks?: string[];
 }
 
 interface Comment {
@@ -73,6 +86,10 @@ const approvals: ApprovalItem[] = [
     status: "pending",
     dueDate: "May 24, 2026",
     submittedAt: "2 days ago",
+    driveLinks: [
+      "https://drive.google.com/file/d/3y8wL5qM2nPrS9uZvXkW5yA7bC9dE1fH/view",
+      "https://drive.google.com/file/d/4z9xM6rN3oQsT0vAwYlX6zB8cD0eF2gI/view",
+    ],
     revisionCount: 1,
   },
   {
@@ -86,6 +103,10 @@ const approvals: ApprovalItem[] = [
     status: "revision",
     dueDate: "May 23, 2026",
     submittedAt: "Yesterday",
+    driveLinks: [
+      "https://drive.google.com/file/d/3y8wL5qM2nPrS9uZvXkW5yA7bC9dE1fH/view",
+      "https://drive.google.com/file/d/4z9xM6rN3oQsT0vAwYlX6zB8cD0eF2gI/view",
+    ],
     revisionCount: 2,
   },
   {
@@ -99,6 +120,10 @@ const approvals: ApprovalItem[] = [
     status: "approved",
     dueDate: "May 20, 2026",
     submittedAt: "3 days ago",
+    driveLinks: [
+      "https://drive.google.com/file/d/3y8wL5qM2nPrS9uZvXkW5yA7bC9dE1fH/view",
+      "https://drive.google.com/file/d/4z9xM6rN3oQsT0vAwYlX6zB8cD0eF2gI/view",
+    ],
     revisionCount: 0,
   },
 ];
@@ -179,6 +204,34 @@ export default function ApprovalsModule() {
     setIsDetailOpen(false);
   };
 
+  function formatDueDate(dateStr: string): string {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffDays = Math.ceil(
+      (date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
+    );
+
+    if (diffDays < 0)
+      return `Overdue by ${Math.abs(diffDays)} day${Math.abs(diffDays) !== 1 ? "s" : ""}`;
+    if (diffDays === 0) return "Due today";
+    if (diffDays === 1) return "Due tomorrow";
+    if (diffDays <= 7) return `Due in ${diffDays} days`;
+    return `Due ${date.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
+  }
+
+  function isOverdue(dateStr: string): boolean {
+    const due = new Date(dateStr);
+    due.setHours(23, 59, 59, 999);
+
+    return due < new Date();
+  }
+
+  const pendingCount = approvals.filter((a) => a.status === "pending").length;
+
+  const revisionCount = approvals.filter((a) => a.status === "revision").length;
+
+  const approvedCount = approvals.filter((a) => a.status === "approved").length;
+
   return (
     <div className="p-6 lg:p-8 space-y-8">
       <div className="flex flex-col gap-6">
@@ -235,7 +288,7 @@ export default function ApprovalsModule() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-5xl font-semibold tracking-tighter">7</div>
+              <div className="text-4xl font-semibold tracking-tighter">7</div>
               <p className="text-sm text-zinc-500 mt-2">Due this week</p>
             </CardContent>
           </Card>
@@ -248,7 +301,7 @@ export default function ApprovalsModule() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-5xl font-semibold tracking-tighter">3</div>
+              <div className="text-4xl font-semibold tracking-tighter">3</div>
               <p className="text-sm text-zinc-500 mt-2">Action required</p>
             </CardContent>
           </Card>
@@ -261,7 +314,7 @@ export default function ApprovalsModule() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-5xl font-semibold tracking-tighter">24</div>
+              <div className="text-4xl font-semibold tracking-tighter">24</div>
               <p className="text-sm text-emerald-600 mt-2">
                 +4 from last month
               </p>
@@ -278,79 +331,107 @@ export default function ApprovalsModule() {
           className="w-full"
         >
           <TabsList className="bg-white border border-zinc-200 flex flex-wrap h-auto w-full md:w-fit p-1 gap-1">
-            <TabsTrigger
-              value="pending"
-              className="data-[state=active]:border-b-2 data-[state=active]:border-violet-600 data-[state=active]:bg-violet-50 flex-1 sm:flex-none justify-center text-xs sm:text-sm px-3 py-2 sm:px-4 sm:py-2.5"
-            >
-              <Clock className="h-4 w-4" />
-              <span className="hidden sm:inline">Pending Review</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="revision"
-              className="data-[state=active]:border-b-2 data-[state=active]:border-violet-600 data-[state=active]:bg-violet-50 flex-1 sm:flex-none justify-center text-xs sm:text-sm px-3 py-2 sm:px-4 sm:py-2.5"
-            >
-              <AlertCircle className="h-4 w-4" />
-              <span className="hidden sm:inline">Needs Revision</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="approved"
-              className="data-[state=active]:border-b-2 data-[state=active]:border-violet-600 data-[state=active]:bg-violet-50 flex-1 sm:flex-none justify-center text-xs sm:text-sm px-3 py-2 sm:px-4 sm:py-2.5"
-            >
-              <CheckCircle className="h-4 w-4" />
-              <span className="hidden sm:inline">Approved</span>
-            </TabsTrigger>
+            {[
+              {
+                value: "pending",
+                label: "Pending Review",
+                icon: Clock,
+                count: pendingCount,
+              },
+              {
+                value: "revision",
+                label: "Needs Revision",
+                icon: AlertCircle,
+                count: revisionCount,
+              },
+              {
+                value: "approved",
+                label: "Approved",
+                icon: CheckCircle,
+                count: approvedCount,
+              },
+            ].map(({ value, label, icon: Icon, count }) => (
+              <TabsTrigger
+                key={value}
+                value={value}
+                className="data-[state=active]:border-b-2 data-[state=active]:border-violet-600 data-[state=active]:bg-violet-50 flex-1 sm:flex-none justify-center text-xs sm:text-sm sm:px-4 sm:py-2.5"
+              >
+                <Icon className="h-4 w-4 flex-shrink-0" />
+
+                {/* Full label on larger screens */}
+                <span className="hidden sm:inline">{label}</span>
+
+                {count > 0 && (
+                  <span className="ml-1 text-[10px] sm:text-xs bg-zinc-200/80 data-[state=active]:bg-violet-100 text-zinc-600 data-[state=active]:text-violet-700 px-1.5 py-0.5 rounded-full font-semibold transition-colors">
+                    {count}
+                  </span>
+                )}
+              </TabsTrigger>
+            ))}
           </TabsList>
 
           {["pending", "revision", "approved"].map((tab) => (
-            <TabsContent key={tab} value={tab} className="mt-0">
+            <TabsContent
+              key={tab}
+              value={tab}
+              className="mt-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/20 rounded-lg"
+            >
               {filteredApprovals.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {filteredApprovals.map((item) => (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">
+                  {filteredApprovals.map((item, index) => (
                     <Card
                       key={item.id}
-                      className="bg-white border border-zinc-200 rounded-3xl overflow-hidden hover:shadow-md transition-all cursor-pointer group flex flex-col"
+                      className="group bg-white border border-zinc-200/80 rounded-2xl overflow-hidden hover:shadow-lg hover:shadow-zinc-200/50 hover:border-zinc-300/80 transition-all duration-300 cursor-pointer flex flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/30 focus-visible:ring-offset-2"
                       onClick={() => openDetail(item)}
+                      style={{ animationDelay: `${index * 40}ms` }}
                     >
-                      <div className="relative">
-                        <img
-                          src={item.thumbnail}
-                          alt={item.title}
-                          className="w-full aspect-video object-cover"
-                        />
-                        <div className="absolute top-4 right-4">
-                          <Badge
-                            className={
-                              item.status === "pending"
-                                ? "bg-amber-100 text-amber-700"
-                                : item.status === "revision"
-                                  ? "bg-rose-100 text-rose-700"
-                                  : "bg-emerald-100 text-emerald-700"
-                            }
-                          >
-                            {item.status === "pending"
-                              ? "Pending"
-                              : item.status === "revision"
-                                ? "Revision"
-                                : "Approved"}
-                          </Badge>
-                        </div>
-                      </div>
-
-                      <CardContent className="p-6 flex-1 flex flex-col">
-                        <div className="font-semibold text-lg leading-tight mb-3 line-clamp-2">
+                      <CardContent className="p-5 sm:p-6 flex-1 flex flex-col">
+                        {/* Title */}
+                        <h3 className="font-semibold text-base sm:text-lg leading-snug mb-2 line-clamp-2 text-zinc-900 group-hover:text-violet-700 transition-colors duration-200">
                           {item.title}
-                        </div>
+                        </h3>
 
-                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-zinc-500 mb-5">
-                          <span>{item.platform}</span>
+                        {/* Metadata */}
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs sm:text-sm text-zinc-500 mb-4">
+                          <span className="font-medium text-zinc-600">
+                            {item.platform}
+                          </span>
                           <span className="text-zinc-300">•</span>
                           <span>{item.contentType}</span>
                         </div>
 
-                        <div className="mt-auto flex flex-col xs:flex-row xs:items-center justify-between gap-4">
-                          <div className="flex items-center gap-3 min-w-0">
-                            <Avatar className="h-9 w-9 flex-shrink-0">
-                              <AvatarFallback className="bg-zinc-100 text-xs">
+                        {/* Drive Files */}
+                        {item.driveLinks && item.driveLinks.length > 0 && (
+                          <div className="mb-4">
+                            <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400 mb-2">
+                              Drive Files
+                            </p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {item.driveLinks.map((link, idx) => (
+                                <a
+                                  key={idx}
+                                  href={link}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="inline-flex items-center gap-1.5 text-xs bg-zinc-50 hover:bg-zinc-100 active:bg-zinc-200 transition-all duration-200 px-2.5 py-1.5 rounded-lg text-zinc-600 border border-zinc-200/80 hover:border-zinc-300 hover:shadow-sm group/link"
+                                >
+                                  <FolderOpen className="h-3 w-3 text-amber-600 flex-shrink-0" />
+                                  <span className="truncate max-w-[120px] sm:max-w-[140px]">
+                                    File {idx + 1}
+                                  </span>
+                                  <ExternalLink className="h-2.5 w-2.5 text-zinc-400 opacity-0 group-hover/link:opacity-100 transition-opacity flex-shrink-0" />
+                                </a>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Footer */}
+                        <div className="mt-auto pt-4 border-t border-zinc-100 flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <Avatar className="h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0 ring-2 ring-zinc-50">
+                              <AvatarFallback className="bg-zinc-100 text-zinc-600 text-xs font-medium">
                                 {item.client
                                   .split(" ")
                                   .map((n) => n[0])
@@ -358,11 +439,17 @@ export default function ApprovalsModule() {
                               </AvatarFallback>
                             </Avatar>
                             <div className="min-w-0">
-                              <p className="text-sm font-medium truncate">
+                              <p className="text-sm font-medium text-zinc-900 truncate">
                                 {item.client}
                               </p>
-                              <p className="text-xs text-zinc-500">
-                                Due {item.dueDate}
+                              <p
+                                className={`text-xs ${
+                                  isOverdue(item.dueDate)
+                                    ? "text-rose-500 font-medium"
+                                    : "text-zinc-500"
+                                }`}
+                              >
+                                {formatDueDate(item.dueDate)}
                               </p>
                             </div>
                           </div>
@@ -370,24 +457,54 @@ export default function ApprovalsModule() {
                           {item.revisionCount > 0 && (
                             <Badge
                               variant="outline"
-                              className="text-xs whitespace-nowrap self-start xs:self-center"
+                              className="text-[11px] sm:text-xs whitespace-nowrap flex-shrink-0 bg-zinc-50 text-zinc-600 border-zinc-200"
                             >
-                              {item.revisionCount} revisions
+                              {item.revisionCount} revision
+                              {item.revisionCount !== 1 ? "s" : ""}
                             </Badge>
                           )}
                         </div>
                       </CardContent>
+
+                      {/* Status bar for cards without thumbnail */}
+                      {!item.thumbnail && (
+                        <div
+                          className={`h-1 w-full ${
+                            item.status === "pending"
+                              ? "bg-amber-400"
+                              : item.status === "revision"
+                                ? "bg-rose-400"
+                                : "bg-emerald-400"
+                          }`}
+                        />
+                      )}
                     </Card>
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-20">
-                  <div className="mx-auto w-16 h-16 bg-zinc-100 rounded-full flex items-center justify-center mb-6">
-                    <CheckCircle className="h-8 w-8 text-zinc-400" />
+                <div className="text-center py-16 sm:py-24 animate-in fade-in duration-500">
+                  <div className="mx-auto w-14 h-14 sm:w-16 sm:h-16 bg-zinc-50 border border-zinc-100 rounded-2xl flex items-center justify-center mb-5">
+                    {tab === "pending" ? (
+                      <Inbox className="h-7 w-7 text-zinc-300" />
+                    ) : tab === "revision" ? (
+                      <CheckCircle2 className="h-7 w-7 text-zinc-300" />
+                    ) : (
+                      <PartyPopper className="h-7 w-7 text-zinc-300" />
+                    )}
                   </div>
-                  <h3 className="text-xl font-medium">No approvals here</h3>
-                  <p className="text-zinc-500 mt-2">
-                    Everything is up to date.
+                  <h3 className="text-lg sm:text-xl font-semibold text-zinc-900">
+                    {tab === "pending"
+                      ? "All caught up!"
+                      : tab === "revision"
+                        ? "No revisions needed"
+                        : "Nothing approved yet"}
+                  </h3>
+                  <p className="text-sm sm:text-base text-zinc-500 mt-2 max-w-sm mx-auto">
+                    {tab === "pending"
+                      ? "There are no items waiting for your review right now."
+                      : tab === "revision"
+                        ? "Great work! No content needs revision at the moment."
+                        : "Approved items will appear here once you review them."}
                   </p>
                 </div>
               )}
@@ -428,16 +545,40 @@ export default function ApprovalsModule() {
 
               {/* Scrollable Content */}
               <div className="flex-1 overflow-y-auto px-6 sm:px-8 py-8 space-y-10 min-h-0">
-                {/* Thumbnail */}
-                {selectedApproval.thumbnail && (
-                  <div className="rounded-2xl overflow-hidden -mx-6 sm:-mx-8">
-                    <img
-                      src={selectedApproval.thumbnail}
-                      alt="preview"
-                      className="w-full aspect-video object-cover shadow-sm"
-                    />
-                  </div>
-                )}
+                {/* Google Drive Files */}
+                {selectedApproval.driveLinks &&
+                  selectedApproval.driveLinks.length > 0 && (
+                    <div>
+                      <h4 className="uppercase text-xs tracking-widest text-zinc-500 mb-3 flex items-center gap-2">
+                        <FolderOpen className="h-4 w-4" />
+                        GOOGLE DRIVE FILES
+                      </h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {selectedApproval.driveLinks.map((link, idx) => (
+                          <a
+                            key={idx}
+                            href={link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="group flex items-center gap-4 p-4 border border-zinc-200 hover:border-amber-300 rounded-2xl hover:bg-amber-50/50 transition-all"
+                          >
+                            <div className="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center flex-shrink-0">
+                              <FolderOpen className="h-6 w-6 text-amber-600" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="font-medium text-sm text-zinc-900 group-hover:text-amber-700 transition-colors">
+                                Asset File {idx + 1}
+                              </p>
+                              <p className="text-xs text-zinc-500 truncate">
+                                Google Drive Link
+                              </p>
+                            </div>
+                            <ExternalLink className="h-5 w-5 text-zinc-400 group-hover:text-amber-600 transition-colors" />
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                 {/* Caption */}
                 <div>
@@ -524,15 +665,6 @@ export default function ApprovalsModule() {
 
               {/* Sticky Action Bar */}
               <div className="border-t bg-white p-6 sm:p-8 z-10 flex-shrink-0">
-                <div className="mb-5">
-                  <Textarea
-                    placeholder="Add a comment or note..."
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    className="resize-none min-h-[88px]"
-                  />
-                </div>
-
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Button
                     variant="outline"
