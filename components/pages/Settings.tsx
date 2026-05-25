@@ -1,33 +1,61 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { 
-  Settings, Users, Palette, Bell, Plug, Shield, Save, Plus, Trash2 
-} from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Separator } from '@/components/ui/separator';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import React, { useState } from "react";
+import {
+  Settings,
+  Users,
+  Palette,
+  Bell,
+  Plug,
+  Shield,
+  Save,
+  Plus,
+  Trash2,
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import AddMemberModal from "../sections/AddMemberModal";
 
 interface User {
   id: string;
   name: string;
   email: string;
   role: string;
-  status: 'active' | 'invited';
+  status: "active" | "invited";
   lastActive: string;
   avatar: string;
 }
 
 const sidebarItems = [
   // { id: 'workspace', label: 'Workspace', icon: Settings },
-  { id: 'users', label: 'Team Members', icon: Users },
+  { id: "users", label: "Team Members", icon: Users },
   // { id: 'permissions', label: 'Permissions', icon: Shield },
   // { id: 'notifications', label: 'Notifications', icon: Bell },
   // { id: 'integrations', label: 'Integrations', icon: Plug },
@@ -35,13 +63,37 @@ const sidebarItems = [
 ];
 
 const users: User[] = [
-  { id: "1", name: "Alex Rivera", email: "alex@agency.com", role: "Admin", status: "active", lastActive: "Just now", avatar: "https://picsum.photos/id/64/128/128" },
-  { id: "2", name: "Priya Patel", email: "priya@agency.com", role: "Marketing Lead", status: "active", lastActive: "2h ago", avatar: "https://picsum.photos/id/201/128/128" },
-  { id: "3", name: "Jordan Kim", email: "jordan@agency.com", role: "Creative Director", status: "active", lastActive: "Yesterday", avatar: "https://picsum.photos/id/106/128/128" },
+  {
+    id: "1",
+    name: "Alex Rivera",
+    email: "alex@agency.com",
+    role: "Admin",
+    status: "active",
+    lastActive: "Just now",
+    avatar: "https://picsum.photos/id/64/128/128",
+  },
+  {
+    id: "2",
+    name: "Priya Patel",
+    email: "priya@agency.com",
+    role: "Marketing Lead",
+    status: "active",
+    lastActive: "2h ago",
+    avatar: "https://picsum.photos/id/201/128/128",
+  },
+  {
+    id: "3",
+    name: "Jordan Kim",
+    email: "jordan@agency.com",
+    role: "Creative Director",
+    status: "active",
+    lastActive: "Yesterday",
+    avatar: "https://picsum.photos/id/106/128/128",
+  },
 ];
 
 export default function SettingsModule() {
-  const [activeTab, setActiveTab] = useState('users');
+  const [activeTab, setActiveTab] = useState("users");
   const [workspaceName, setWorkspaceName] = useState("AMOS Agency");
   const [brandColor, setBrandColor] = useState("#430062");
   const [notificationSettings, setNotificationSettings] = useState({
@@ -52,6 +104,7 @@ export default function SettingsModule() {
   });
 
   const [teamMembers, setTeamMembers] = useState(users);
+  const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
 
   const handleSave = () => {
     alert("Settings saved successfully!");
@@ -68,9 +121,14 @@ export default function SettingsModule() {
         <div className="flex justify-between items-end mb-10">
           <div>
             <h1 className="text-3xl font-semibold tracking-tight">Settings</h1>
-            <p className="text-zinc-500 mt-1">Workspace configuration and administration</p>
+            <p className="text-zinc-500 mt-1">
+              Workspace configuration and administration
+            </p>
           </div>
-          <Button onClick={handleSave} className="rounded-2xl bg-[#430062] hover:bg-[#430062]/90">
+          <Button
+            onClick={handleSave}
+            className="rounded-2xl bg-[#430062] hover:bg-[#430062]/90"
+          >
             <Save className="mr-2 h-4 w-4" />
             Save Changes
           </Button>
@@ -87,9 +145,9 @@ export default function SettingsModule() {
                     key={item.id}
                     onClick={() => setActiveTab(item.id)}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left transition-all ${
-                      activeTab === item.id 
-                        ? 'bg-white shadow-sm text-[#430062] font-medium' 
-                        : 'hover:bg-white/60 text-zinc-600'
+                      activeTab === item.id
+                        ? "bg-white shadow-sm text-[#430062] font-medium"
+                        : "hover:bg-white/60 text-zinc-600"
                     }`}
                   >
                     <Icon className="h-5 w-5" />
@@ -103,17 +161,19 @@ export default function SettingsModule() {
           {/* Main Content Area */}
           <div className="flex-1 max-w-4xl">
             {/* Workspace Settings */}
-            {activeTab === 'workspace' && (
+            {activeTab === "workspace" && (
               <Card className="rounded-3xl">
                 <CardHeader>
                   <CardTitle>Workspace Information</CardTitle>
-                  <CardDescription>Manage your agency workspace details</CardDescription>
+                  <CardDescription>
+                    Manage your agency workspace details
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-8">
                   <div>
                     <Label>Workspace Name</Label>
-                    <Input 
-                      value={workspaceName} 
+                    <Input
+                      value={workspaceName}
                       onChange={(e) => setWorkspaceName(e.target.value)}
                       className="mt-2 rounded-2xl"
                     />
@@ -122,13 +182,16 @@ export default function SettingsModule() {
                   <div>
                     <Label>Brand Color</Label>
                     <div className="flex items-center gap-4 mt-2">
-                      <input 
-                        type="color" 
-                        value={brandColor} 
+                      <input
+                        type="color"
+                        value={brandColor}
                         onChange={(e) => setBrandColor(e.target.value)}
                         className="w-12 h-12 rounded-xl cursor-pointer border border-zinc-200"
                       />
-                      <Input value={brandColor} className="rounded-2xl font-mono" />
+                      <Input
+                        value={brandColor}
+                        className="rounded-2xl font-mono"
+                      />
                     </div>
                   </div>
 
@@ -138,7 +201,9 @@ export default function SettingsModule() {
                       <div className="w-20 h-20 border-2 border-dashed border-zinc-300 rounded-3xl flex items-center justify-center bg-white">
                         <span className="text-xs text-zinc-400">LOGO</span>
                       </div>
-                      <Button variant="outline" className="rounded-2xl">Upload New Logo</Button>
+                      <Button variant="outline" className="rounded-2xl">
+                        Upload New Logo
+                      </Button>
                     </div>
                   </div>
 
@@ -147,8 +212,13 @@ export default function SettingsModule() {
                   <div>
                     <Label>Workspace URL</Label>
                     <div className="mt-2 flex">
-                      <div className="bg-zinc-100 px-4 flex items-center rounded-l-2xl text-sm text-zinc-500">amos.app/</div>
-                      <Input className="rounded-l-none rounded-2xl" defaultValue="agency" />
+                      <div className="bg-zinc-100 px-4 flex items-center rounded-l-2xl text-sm text-zinc-500">
+                        amos.app/
+                      </div>
+                      <Input
+                        className="rounded-l-none rounded-2xl"
+                        defaultValue="agency"
+                      />
                     </div>
                   </div>
                 </CardContent>
@@ -156,15 +226,20 @@ export default function SettingsModule() {
             )}
 
             {/* User Management */}
-            {activeTab === 'users' && (
+            {activeTab === "users" && (
               <Card className="rounded-3xl">
                 <CardHeader>
                   <div className="flex justify-between items-center">
                     <div>
                       <CardTitle>Team Members</CardTitle>
-                      <CardDescription>Manage who has access to this workspace</CardDescription>
+                      <CardDescription>
+                        Manage who has access to this workspace
+                      </CardDescription>
                     </div>
-                    <Button onClick={inviteUser} className="rounded-2xl">
+                    <Button
+                      onClick={() => setIsAddMemberOpen(true)}
+                      className="rounded-2xl"
+                    >
                       <Plus className="mr-2 h-4 w-4" />
                       Add Member
                     </Button>
@@ -188,11 +263,18 @@ export default function SettingsModule() {
                             <div className="flex items-center gap-4">
                               <Avatar>
                                 <AvatarImage src={user.avatar} />
-                                <AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                <AvatarFallback>
+                                  {user.name
+                                    .split(" ")
+                                    .map((n) => n[0])
+                                    .join("")}
+                                </AvatarFallback>
                               </Avatar>
                               <div>
                                 <div className="font-medium">{user.name}</div>
-                                <div className="text-sm text-zinc-500">{user.email}</div>
+                                <div className="text-sm text-zinc-500">
+                                  {user.email}
+                                </div>
                               </div>
                             </div>
                           </TableCell>
@@ -201,10 +283,16 @@ export default function SettingsModule() {
                           </TableCell>
                           {/* <TableCell className="text-sm text-zinc-500">{user.lastActive}</TableCell> */}
                           <TableCell>
-                            <Badge className="bg-emerald-100 text-emerald-700 rounded-full">Active</Badge>
+                            <Badge className="bg-emerald-100 text-emerald-700 rounded-full">
+                              Active
+                            </Badge>
                           </TableCell>
                           <TableCell>
-                            <Button variant="ghost" size="icon" className="text-red-500 hover:bg-red-50">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-red-500 hover:bg-red-50"
+                            >
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </TableCell>
@@ -217,46 +305,79 @@ export default function SettingsModule() {
             )}
 
             {/* Permissions */}
-            {activeTab === 'permissions' && (
+            {activeTab === "permissions" && (
               <Card className="rounded-3xl">
                 <CardHeader>
                   <CardTitle>Role Permissions</CardTitle>
-                  <CardDescription>Control access to different modules</CardDescription>
+                  <CardDescription>
+                    Control access to different modules
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-8">
-                  {['Admin', 'Marketing Lead', 'Creative', 'Client View'].map((role, i) => (
-                    <div key={i} className="p-6 border rounded-3xl">
-                      <div className="font-semibold mb-4">{role}</div>
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div className="flex justify-between"><span>Reports</span><Switch defaultChecked /></div>
-                        <div className="flex justify-between"><span>Analytics</span><Switch defaultChecked /></div>
-                        <div className="flex justify-between"><span>Clients</span><Switch defaultChecked={role !== 'Client View'} /></div>
-                        <div className="flex justify-between"><span>Campaigns</span><Switch defaultChecked /></div>
-                        <div className="flex justify-between"><span>Settings</span><Switch defaultChecked={role === 'Admin'} /></div>
+                  {["Admin", "Marketing Lead", "Creative", "Client View"].map(
+                    (role, i) => (
+                      <div key={i} className="p-6 border rounded-3xl">
+                        <div className="font-semibold mb-4">{role}</div>
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div className="flex justify-between">
+                            <span>Reports</span>
+                            <Switch defaultChecked />
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Analytics</span>
+                            <Switch defaultChecked />
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Clients</span>
+                            <Switch defaultChecked={role !== "Client View"} />
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Campaigns</span>
+                            <Switch defaultChecked />
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Settings</span>
+                            <Switch defaultChecked={role === "Admin"} />
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ),
+                  )}
                 </CardContent>
               </Card>
             )}
 
             {/* Notifications */}
-            {activeTab === 'notifications' && (
+            {activeTab === "notifications" && (
               <Card className="rounded-3xl">
                 <CardHeader>
                   <CardTitle>Notification Preferences</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   {Object.keys(notificationSettings).map((key) => (
-                    <div key={key} className="flex items-center justify-between py-3">
+                    <div
+                      key={key}
+                      className="flex items-center justify-between py-3"
+                    >
                       <div>
-                        <div className="font-medium capitalize">{key.replace(/([A-Z])/g, ' $1')}</div>
-                        <div className="text-sm text-zinc-500">Receive updates via email and in-app</div>
+                        <div className="font-medium capitalize">
+                          {key.replace(/([A-Z])/g, " $1")}
+                        </div>
+                        <div className="text-sm text-zinc-500">
+                          Receive updates via email and in-app
+                        </div>
                       </div>
-                      <Switch 
-                        checked={notificationSettings[key as keyof typeof notificationSettings]}
-                        onCheckedChange={(checked) => 
-                          setNotificationSettings(prev => ({...prev, [key]: checked}))
+                      <Switch
+                        checked={
+                          notificationSettings[
+                            key as keyof typeof notificationSettings
+                          ]
+                        }
+                        onCheckedChange={(checked) =>
+                          setNotificationSettings((prev) => ({
+                            ...prev,
+                            [key]: checked,
+                          }))
                         }
                       />
                     </div>
@@ -266,25 +387,39 @@ export default function SettingsModule() {
             )}
 
             {/* Integrations */}
-            {activeTab === 'integrations' && (
+            {activeTab === "integrations" && (
               <Card className="rounded-3xl">
                 <CardHeader>
                   <CardTitle>Connected Platforms</CardTitle>
-                  <CardDescription>Manage social media and third-party integrations</CardDescription>
+                  <CardDescription>
+                    Manage social media and third-party integrations
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {['Instagram', 'Facebook', 'LinkedIn', 'Google Analytics'].map((platform, i) => (
-                    <div key={i} className="flex items-center justify-between p-6 border rounded-3xl">
+                  {[
+                    "Instagram",
+                    "Facebook",
+                    "LinkedIn",
+                    "Google Analytics",
+                  ].map((platform, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center justify-between p-6 border rounded-3xl"
+                    >
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 bg-zinc-100 rounded-2xl flex items-center justify-center">
                           {platform[0]}
                         </div>
                         <div>
                           <div className="font-medium">{platform}</div>
-                          <div className="text-sm text-emerald-600">Connected • Last synced 2h ago</div>
+                          <div className="text-sm text-emerald-600">
+                            Connected • Last synced 2h ago
+                          </div>
                         </div>
                       </div>
-                      <Button variant="outline" className="rounded-2xl">Reconnect</Button>
+                      <Button variant="outline" className="rounded-2xl">
+                        Reconnect
+                      </Button>
                     </div>
                   ))}
                 </CardContent>
@@ -292,18 +427,23 @@ export default function SettingsModule() {
             )}
 
             {/* Appearance */}
-            {activeTab === 'appearance' && (
+            {activeTab === "appearance" && (
               <Card className="rounded-3xl">
                 <CardHeader>
                   <CardTitle>Appearance</CardTitle>
-                  <CardDescription>Customize how your workspace looks</CardDescription>
+                  <CardDescription>
+                    Customize how your workspace looks
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-8">
                   <div>
                     <Label>Theme</Label>
                     <div className="grid grid-cols-3 gap-4 mt-3">
-                      {['Light', 'Dark', 'System'].map((theme) => (
-                        <div key={theme} className="border-2 border-[#430062] rounded-3xl p-6 text-center cursor-pointer">
+                      {["Light", "Dark", "System"].map((theme) => (
+                        <div
+                          key={theme}
+                          className="border-2 border-[#430062] rounded-3xl p-6 text-center cursor-pointer"
+                        >
                           {theme}
                         </div>
                       ))}
@@ -331,6 +471,24 @@ export default function SettingsModule() {
           </div>
         </div>
       </div>
+      <AddMemberModal
+        isOpen={isAddMemberOpen}
+        onClose={() => setIsAddMemberOpen(false)}
+        onAdd={(member) => {
+          // Add to your teamMembers state
+          const newUser: User = {
+            id: Math.random().toString(36).slice(2),
+            name: member.name,
+            email: member.email,
+            role: member.role,
+            status: "invited",
+            lastActive: "Just invited",
+            avatar: "",
+          };
+          setTeamMembers((prev) => [...prev, newUser]);
+        }}
+        brandColor={brandColor}
+      />
     </div>
   );
 }
