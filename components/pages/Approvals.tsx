@@ -37,6 +37,7 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
+import AddContentModal from "../sections/AddContentModal";
 
 const brandColor = "#430062";
 
@@ -178,6 +179,7 @@ export default function ApprovalsModule() {
   );
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [newComment, setNewComment] = useState("");
+  const [isAddContentOpen, setIsAddContentOpen] = useState(false);
 
   const filteredApprovals = approvals.filter((item) => {
     const matchesSearch =
@@ -270,10 +272,11 @@ export default function ApprovalsModule() {
             {/* Upload Button */}
             <Button
               style={{ backgroundColor: brandColor }}
-              className="text-white whitespace-nowrap px-6"
+              className="text-white w-full sm:w-auto"
+              onClick={() => setIsAddContentOpen(true)}
             >
-              <Plus className="mr-2 h-4 w-4" />
-              Upload New
+              <Plus className="mr-2 h-4 w-4 flex-shrink-0" />
+              New Content
             </Button>
           </div>
         </div>
@@ -686,6 +689,27 @@ export default function ApprovalsModule() {
           )}
         </DialogContent>
       </Dialog>
+      <AddContentModal
+        isOpen={isAddContentOpen}
+        onClose={() => setIsAddContentOpen(false)}
+        onAdd={(content) => {
+          const newContent: ContentItem = {
+            id: `c${Date.now()}`,
+            title: content.title,
+            caption: content.caption,
+            platform: content.platform,
+            contentType: content.contentType,
+            status: content.status as ContentItem["status"],
+            publishDate: content.publishDate,
+            client: content.client,
+            assignedTo: content.assignedTo,
+            driveLinks: content.driveLinks,
+            pillar: content.pillar,
+          };
+          setContents((prev) => [...prev, newContent]);
+        }}
+        brandColor={brandColor}
+      />
     </div>
   );
 }
