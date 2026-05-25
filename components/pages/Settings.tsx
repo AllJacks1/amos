@@ -28,7 +28,7 @@ interface User {
 const sidebarItems = [
   // { id: 'workspace', label: 'Workspace', icon: Settings },
   { id: 'users', label: 'Team Members', icon: Users },
-  { id: 'permissions', label: 'Permissions', icon: Shield },
+  // { id: 'permissions', label: 'Permissions', icon: Shield },
   // { id: 'notifications', label: 'Notifications', icon: Bell },
   // { id: 'integrations', label: 'Integrations', icon: Plug },
   // { id: 'appearance', label: 'Appearance', icon: Palette },
