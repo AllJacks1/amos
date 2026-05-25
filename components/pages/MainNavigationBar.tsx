@@ -36,11 +36,11 @@ interface NavItem {
 }
 
 const mainNav: NavItem[] = [
-  {
-    label: "Overview",
-    icon: <LayoutDashboard className="h-5 w-5" />,
-    href: "/dashboard",
-  },
+  // {
+  //   label: "Overview",
+  //   icon: <LayoutDashboard className="h-5 w-5" />,
+  //   href: "/dashboard",
+  // },
   {
     label: "Content",
     icon: <FileText className="h-5 w-5" />,
@@ -57,16 +57,16 @@ const mainNav: NavItem[] = [
   //   icon: <ImageIcon className="h-5 w-5" />,
   //   href: "/media",
   // },
-  {
-    label: "Analytics",
-    icon: <BarChart3 className="h-5 w-5" />,
-    href: "/analytics",
-  },
-  {
-    label: "Reports",
-    icon: <PieChart className="h-5 w-5" />,
-    href: "/reports",
-  },
+  // {
+  //   label: "Analytics",
+  //   icon: <BarChart3 className="h-5 w-5" />,
+  //   href: "/analytics",
+  // },
+  // {
+  //   label: "Reports",
+  //   icon: <PieChart className="h-5 w-5" />,
+  //   href: "/reports",
+  // },
 ];
 
 const managementNav: NavItem[] = [
@@ -236,7 +236,7 @@ export default function AMOSLayout({
           </div>
 
           {/* Footer */}
-          <div className="shrink-0 border-t border-zinc-200 p-4">
+          {/* <div className="shrink-0 border-t border-zinc-200 p-4">
             <div className="flex items-center gap-3 rounded-2xl p-2 hover:bg-zinc-100 transition-colors cursor-pointer min-w-0">
               <Avatar className="h-9 w-9 border border-zinc-100 shrink-0">
                 <AvatarImage src="https://github.com/shadcn.png" />
@@ -265,7 +265,7 @@ export default function AMOSLayout({
                 </>
               )}
             </div>
-          </div>
+          </div> */}
 
           {/* Collapse Toggle */}
           <button

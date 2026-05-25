@@ -16,12 +16,6 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -46,7 +40,7 @@ interface ContentItem {
   publishDate: string;
   client: string;
   assignedTo: string;
-  thumbnail?: string;
+  driveLinks: string[];
   pillar: string;
 }
 
@@ -69,7 +63,10 @@ const mockContents: ContentItem[] = [
     publishDate: "2026-05-24",
     client: "Lumina Fashion",
     assignedTo: "Sarah Chen",
-    thumbnail: "https://picsum.photos/id/1015/400/300",
+    driveLinks: [
+      "https://drive.google.com/file/d/1x7vK9pL2mNqR8tYvUjW3xZ5aB7cD9eF/view",
+      "https://drive.google.com/file/d/1aB2cD3eF4gH5iJ6kL7mN8oP9qR0sT1u/view",
+    ],
     pillar: "Product Launch",
   },
   {
@@ -78,11 +75,13 @@ const mockContents: ContentItem[] = [
     caption: "Numbers don't lie. Results do.",
     platform: "LinkedIn",
     contentType: "Carousel",
-    status: "approval",
+    status: "posted",
     publishDate: "2026-05-27",
     client: "Nexus Tech",
     assignedTo: "Marcus Rivera",
-    thumbnail: "https://picsum.photos/id/201/400/300",
+    driveLinks: [
+      "https://drive.google.com/file/d/1odwTxBNBZOOaRJfxgmCPC4eJzm-n7pQR/view?usp=sharing",
+    ],
     pillar: "Thought Leadership",
   },
   {
@@ -95,7 +94,10 @@ const mockContents: ContentItem[] = [
     publishDate: "2026-05-26",
     client: "Bloom Wellness",
     assignedTo: "Aisha Patel",
-    thumbnail: "https://picsum.photos/id/237/400/300",
+    driveLinks: [
+      "https://drive.google.com/file/d/3y8wL5qM2nPrS9uZvXkW5yA7bC9dE1fH/view",
+      "https://drive.google.com/file/d/4z9xM6rN3oQsT0vAwYlX6zB8cD0eF2gI/view",
+    ],
     pillar: "Educational",
   },
 ];
@@ -291,21 +293,39 @@ export default function ContentOperations() {
                     <div
                       key={item.id}
                       onClick={() => openDetail(item)}
-                      className="bg-white border border-zinc-200 rounded-xl sm:rounded-2xl p-3 sm:p-4 hover:shadow-md transition-all cursor-pointer"
+                      className="bg-white border border-zinc-200 rounded-xl sm:rounded-2xl p-4 sm:p-5 hover:shadow-md transition-all cursor-pointer"
                     >
-                      {item.thumbnail && (
-                        <img
-                          src={item.thumbnail}
-                          alt={item.title}
-                          className="w-full h-28 sm:h-32 object-cover rounded-lg sm:rounded-xl mb-3 sm:mb-4"
-                        />
-                      )}
                       <div className="font-medium text-sm sm:text-base line-clamp-2 mb-2">
                         {item.title}
                       </div>
-                      <div className="text-xs sm:text-sm text-zinc-500 mb-2 sm:mb-3">
+
+                      <div className="text-xs sm:text-sm text-zinc-500 mb-3">
                         {item.client}
                       </div>
+
+                      {/* Google Drive Links */}
+                      {item.driveLinks && item.driveLinks.length > 0 && (
+                        <div className="mb-4">
+                          <p className="text-[10px] uppercase tracking-widest text-zinc-400 mb-1.5">
+                            Drive Files
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {item.driveLinks.map((link, idx) => (
+                              <a
+                                key={idx}
+                                href={link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="inline-flex items-center gap-1.5 text-xs bg-zinc-100 hover:bg-zinc-200 transition-colors px-3 py-1 rounded-lg text-zinc-700 truncate max-w-full"
+                              >
+                                <span className="text-amber-600">↗</span>
+                                File {idx + 1}
+                              </a>
+                            ))}
+                          </div>
+                        </div>
+                      )}
 
                       <div className="flex items-center justify-between gap-2">
                         <Badge
@@ -427,7 +447,7 @@ export default function ContentOperations() {
                       className="border-b border-zinc-100 hover:bg-zinc-50 cursor-pointer transition-colors"
                       onClick={() => openDetail(item)}
                     >
-                      <td className="py-3 px-3 sm:py-5 sm:px-6 font-medium text-sm sm:text-base whitespace-nowrap">
+                      <td className="py-3 px-3 sm:py-5 sm:px-6 font-medium text-sm sm:text-base">
                         {item.title}
                       </td>
                       <td className="py-3 px-3 sm:py-5 sm:px-6 text-zinc-600 text-xs sm:text-sm whitespace-nowrap">
@@ -485,156 +505,184 @@ export default function ContentOperations() {
         </TabsContent>
       </Tabs>
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-  <DialogContent className="w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-3xl lg:max-w-4xl xl:max-w-5xl h-[100dvh] sm:h-[94vh] overflow-hidden p-0 flex flex-col">
-    {selectedContent && (
-      <div className="flex flex-col h-full min-h-0">
-        {/* Header */}
-        <DialogHeader className="px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-3 sm:pb-5 border-b bg-white z-10 flex-shrink-0 relative">
-          <DialogTitle className="text-xl sm:text-2xl lg:text-3xl leading-tight font-semibold tracking-tight break-words pr-8">
-            {selectedContent.title}
-          </DialogTitle>
+        <DialogContent className="w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-3xl lg:max-w-4xl xl:max-w-5xl h-[100dvh] sm:h-[94vh] overflow-hidden p-0 flex flex-col">
+          {selectedContent && (
+            <div className="flex flex-col h-full min-h-0">
+              {/* Header */}
+              <DialogHeader className="px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-3 sm:pb-5 border-b bg-white z-10 flex-shrink-0 relative">
+                <DialogTitle className="text-xl sm:text-2xl lg:text-3xl leading-tight font-semibold tracking-tight break-words pr-8">
+                  {selectedContent.title}
+                </DialogTitle>
 
-          <div className="flex flex-wrap items-center gap-2 mt-3 sm:mt-4">
-            <Badge
-              className={`${statusColors[selectedContent.status]} text-xs sm:text-sm font-medium px-2.5 sm:px-3 py-0.5 sm:py-1`}
-            >
-              {statusLabels[selectedContent.status]}
-            </Badge>
-            <Badge
-              variant="outline"
-              className="text-xs sm:text-sm font-medium px-2.5 sm:px-3 py-0.5 sm:py-1"
-            >
-              {selectedContent.platform}
-            </Badge>
-          </div>
+                <div className="flex flex-wrap items-center gap-2 mt-3 sm:mt-4">
+                  <Badge
+                    className={`${statusColors[selectedContent.status]} text-xs sm:text-sm font-medium px-2.5 sm:px-3 py-0.5 sm:py-1`}
+                  >
+                    {statusLabels[selectedContent.status]}
+                  </Badge>
+                  <Badge
+                    variant="outline"
+                    className="text-xs sm:text-sm font-medium px-2.5 sm:px-3 py-0.5 sm:py-1"
+                  >
+                    {selectedContent.platform}
+                  </Badge>
+                </div>
 
-          {/* Close Button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute right-4 top-4 sm:right-6 sm:top-6 text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 rounded-full h-8 w-8 sm:h-9 sm:w-9"
-            onClick={() => setIsDetailOpen(false)}
-          >
-            <X className="h-4 w-4 sm:h-5 sm:w-5" />
-            <span className="sr-only">Close</span>
-          </Button>
-        </DialogHeader>
+                {/* Close Button */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-4 top-4 sm:right-6 sm:top-6 text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 rounded-full h-8 w-8 sm:h-9 sm:w-9"
+                  onClick={() => setIsDetailOpen(false)}
+                >
+                  <X className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <span className="sr-only">Close</span>
+                </Button>
+              </DialogHeader>
 
-        {/* Scrollable Content Area */}
-        <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-4 sm:pb-8 space-y-6 sm:space-y-10 min-h-0">
-          {/* Thumbnail */}
-          {selectedContent.thumbnail && (
-            <div className="rounded-lg overflow-hidden -mx-4 sm:-mx-6 lg:-mx-6 sm:mx-0">
-              <img
-                src={selectedContent.thumbnail}
-                alt="Content preview"
-                className="w-full aspect-video object-cover"
-              />
+              {/* Scrollable Content Area */}
+              <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-4 sm:pb-8 space-y-6 sm:space-y-10 min-h-0">
+                {/* Drive Files / Assets */}
+                {selectedContent.driveLinks &&
+                  selectedContent.driveLinks.length > 0 && (
+                    <div>
+                      <h4 className="text-[11px] sm:text-xs font-semibold tracking-widest text-zinc-500 mb-2 sm:mb-3">
+                        GOOGLE DRIVE FILES
+                      </h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {selectedContent.driveLinks.map((link, idx) => (
+                          <a
+                            key={idx}
+                            href={link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-3 p-4 border border-zinc-200 hover:border-zinc-300 rounded-2xl group transition-all hover:shadow-sm"
+                          >
+                            <div className="w-10 h-10 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                              <span className="text-xl">📁</span>
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="font-medium text-sm text-zinc-900 group-hover:text-violet-700 transition-colors line-clamp-1">
+                                Asset File {idx + 1}
+                              </p>
+                              <p className="text-xs text-zinc-500 truncate">
+                                Google Drive Link
+                              </p>
+                            </div>
+                            <div className="text-amber-600 text-xl group-hover:translate-x-0.5 transition-transform">
+                              ↗
+                            </div>
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                {/* Caption */}
+                <div>
+                  <h4 className="text-[11px] sm:text-xs font-semibold tracking-widest text-zinc-500 mb-2 sm:mb-3">
+                    CAPTION
+                  </h4>
+                  <p className="text-sm sm:text-[15px] leading-relaxed text-zinc-700">
+                    {selectedContent.caption}
+                  </p>
+                </div>
+
+                {/* Metadata Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 lg:gap-x-8 gap-y-4 sm:gap-y-6">
+                  <div>
+                    <h4 className="text-[11px] sm:text-xs font-semibold tracking-widest text-zinc-500 mb-1.5 sm:mb-2">
+                      CLIENT
+                    </h4>
+                    <p className="text-sm sm:text-base font-medium text-zinc-900">
+                      {selectedContent.client}
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="text-[11px] sm:text-xs font-semibold tracking-widest text-zinc-500 mb-1.5 sm:mb-2">
+                      PILLAR
+                    </h4>
+                    <p className="text-sm sm:text-base font-medium text-zinc-900">
+                      {selectedContent.pillar}
+                    </p>
+                  </div>
+                </div>
+
+                <Separator className="my-1 sm:my-2" />
+
+                {/* Comments Section */}
+                <div className="flex flex-col min-h-[200px] sm:min-h-0">
+                  <div className="flex items-center justify-between mb-3 sm:mb-5">
+                    <h4 className="font-semibold text-base sm:text-lg flex items-center gap-2">
+                      Comments
+                      <span className="text-xs sm:text-sm font-medium px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-500">
+                        {mockComments.length}
+                      </span>
+                    </h4>
+                  </div>
+
+                  <ScrollArea className="flex-1 pr-2 min-h-0">
+                    <div className="space-y-4 sm:space-y-6 pb-4">
+                      {mockComments.map((comment) => (
+                        <div key={comment.id} className="flex gap-2.5 sm:gap-3">
+                          <Avatar className="h-8 w-8 sm:h-9 sm:w-10 flex-shrink-0">
+                            <AvatarFallback className="text-xs sm:text-sm font-medium">
+                              {comment.user
+                                .split(" ")
+                                .map((n) => n[0])
+                                .join("")}
+                            </AvatarFallback>
+                          </Avatar>
+
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="font-semibold text-sm sm:text-base text-zinc-900 truncate">
+                                {comment.user}
+                              </span>
+                              <span className="text-[11px] sm:text-xs text-zinc-400 whitespace-nowrap flex-shrink-0">
+                                {comment.timestamp}
+                              </span>
+                            </div>
+                            <p className="mt-1 text-sm text-zinc-600 leading-relaxed">
+                              {comment.comment}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </div>
+              </div>
+
+              {/* Footer Actions */}
+              <div className="border-t bg-white p-4 sm:p-6 lg:p-8 z-10 flex-shrink-0">
+                <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="w-full sm:flex-1 h-11 sm:h-12 font-medium text-sm sm:text-base"
+                  >
+                    Request Revision
+                  </Button>
+                  <Button
+                    size="lg"
+                    className="w-full sm:flex-1 h-11 sm:h-12 font-semibold text-white shadow-lg shadow-violet-500/20 hover:shadow-xl hover:shadow-violet-500/30 transition-all active:scale-[0.985] text-sm sm:text-base"
+                    style={{ backgroundColor: brandColor }}
+                    onClick={() => {
+                      if (selectedContent) {
+                        handleStatusChange(selectedContent.id, "approved");
+                        setIsDetailOpen(false);
+                      }
+                    }}
+                  >
+                    Approve & Schedule
+                  </Button>
+                </div>
+              </div>
             </div>
           )}
-
-          {/* Caption */}
-          <div>
-            <h4 className="text-[11px] sm:text-xs font-semibold tracking-widest text-zinc-500 mb-2 sm:mb-3">
-              CAPTION
-            </h4>
-            <p className="text-sm sm:text-[15px] leading-relaxed text-zinc-700">
-              {selectedContent.caption}
-            </p>
-          </div>
-
-          {/* Metadata Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 lg:gap-x-8 gap-y-4 sm:gap-y-6">
-            <div>
-              <h4 className="text-[11px] sm:text-xs font-semibold tracking-widest text-zinc-500 mb-1.5 sm:mb-2">
-                CLIENT
-              </h4>
-              <p className="text-sm sm:text-base font-medium text-zinc-900">
-                {selectedContent.client}
-              </p>
-            </div>
-            <div>
-              <h4 className="text-[11px] sm:text-xs font-semibold tracking-widest text-zinc-500 mb-1.5 sm:mb-2">
-                PILLAR
-              </h4>
-              <p className="text-sm sm:text-base font-medium text-zinc-900">
-                {selectedContent.pillar}
-              </p>
-            </div>
-          </div>
-
-          <Separator className="my-1 sm:my-2" />
-
-          {/* Comments Section */}
-          <div className="flex flex-col min-h-[200px] sm:min-h-0">
-            <div className="flex items-center justify-between mb-3 sm:mb-5">
-              <h4 className="font-semibold text-base sm:text-lg flex items-center gap-2">
-                Comments
-                <span className="text-xs sm:text-sm font-medium px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-500">
-                  {mockComments.length}
-                </span>
-              </h4>
-            </div>
-
-            <ScrollArea className="flex-1 pr-2 min-h-0">
-              <div className="space-y-4 sm:space-y-6 pb-4">
-                {mockComments.map((comment) => (
-                  <div key={comment.id} className="flex gap-2.5 sm:gap-3">
-                    <Avatar className="h-8 w-8 sm:h-9 sm:w-10 flex-shrink-0">
-                      <AvatarFallback className="text-xs sm:text-sm font-medium">
-                        {comment.user.split(" ").map((n) => n[0]).join("")}
-                      </AvatarFallback>
-                    </Avatar>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="font-semibold text-sm sm:text-base text-zinc-900 truncate">
-                          {comment.user}
-                        </span>
-                        <span className="text-[11px] sm:text-xs text-zinc-400 whitespace-nowrap flex-shrink-0">
-                          {comment.timestamp}
-                        </span>
-                      </div>
-                      <p className="mt-1 text-sm text-zinc-600 leading-relaxed">
-                        {comment.comment}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-          </div>
-        </div>
-
-        {/* Footer Actions */}
-        <div className="border-t bg-white p-4 sm:p-6 lg:p-8 z-10 flex-shrink-0">
-          <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3">
-            <Button
-              variant="outline"
-              size="lg"
-              className="w-full sm:flex-1 h-11 sm:h-12 font-medium text-sm sm:text-base"
-            >
-              Request Revision
-            </Button>
-            <Button
-              size="lg"
-              className="w-full sm:flex-1 h-11 sm:h-12 font-semibold text-white shadow-lg shadow-violet-500/20 hover:shadow-xl hover:shadow-violet-500/30 transition-all active:scale-[0.985] text-sm sm:text-base"
-              style={{ backgroundColor: brandColor }}
-              onClick={() => {
-                if (selectedContent) {
-                  handleStatusChange(selectedContent.id, "approved");
-                  setIsDetailOpen(false);
-                }
-              }}
-            >
-              Approve & Schedule
-            </Button>
-          </div>
-        </div>
-      </div>
-    )}
-  </DialogContent>
-</Dialog>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
