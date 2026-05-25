@@ -1,27 +1,61 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { 
-  TrendingUp, TrendingDown, Eye, MousePointer, Heart, 
-  Users, Calendar, Download, Search 
-} from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import React, { useState } from "react";
 import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
-  PieChart, Pie, Cell
-} from 'recharts';
+  TrendingUp,
+  TrendingDown,
+  Eye,
+  MousePointer,
+  Heart,
+  Users,
+  Calendar,
+  Download,
+  Search,
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
 
 // Types
 interface KPICard {
   label: string;
   value: string;
   change: number;
-  trend: 'up' | 'down';
+  trend: "up" | "down";
   icon: React.ReactNode;
 }
 
@@ -47,10 +81,34 @@ interface TrendData {
 
 // Mock Data
 const kpiData: KPICard[] = [
-  { label: "Total Reach", value: "1.24M", change: 14.8, trend: "up", icon: <Eye className="h-5 w-5" /> },
-  { label: "Total Impressions", value: "2.89M", change: 9.3, trend: "up", icon: <Users className="h-5 w-5" /> },
-  { label: "Total Engagement", value: "186.4K", change: 22.1, trend: "up", icon: <Heart className="h-5 w-5" /> },
-  { label: "Total Clicks", value: "47.2K", change: -3.4, trend: "down", icon: <MousePointer className="h-5 w-5" /> },
+  {
+    label: "Total Reach",
+    value: "1.24M",
+    change: 14.8,
+    trend: "up",
+    icon: <Eye className="h-5 w-5" />,
+  },
+  {
+    label: "Total Impressions",
+    value: "2.89M",
+    change: 9.3,
+    trend: "up",
+    icon: <Users className="h-5 w-5" />,
+  },
+  {
+    label: "Total Engagement",
+    value: "186.4K",
+    change: 22.1,
+    trend: "up",
+    icon: <Heart className="h-5 w-5" />,
+  },
+  {
+    label: "Total Clicks",
+    value: "47.2K",
+    change: -3.4,
+    trend: "down",
+    icon: <MousePointer className="h-5 w-5" />,
+  },
 ];
 
 const performanceTrend = [
@@ -81,7 +139,7 @@ const topPosts: Post[] = [
     interactions: 28400,
     engagementRate: 22.8,
     clicks: 6700,
-    publishedAt: "2h ago"
+    publishedAt: "2h ago",
   },
   {
     id: "2",
@@ -93,7 +151,7 @@ const topPosts: Post[] = [
     interactions: 12400,
     engagementRate: 14.2,
     clicks: 5400,
-    publishedAt: "Yesterday"
+    publishedAt: "Yesterday",
   },
   {
     id: "3",
@@ -105,7 +163,7 @@ const topPosts: Post[] = [
     interactions: 9800,
     engagementRate: 14.6,
     clicks: 3200,
-    publishedAt: "May 20"
+    publishedAt: "May 20",
   },
 ];
 
@@ -114,15 +172,21 @@ export default function AnalyticsPage() {
   const [platformFilter, setPlatformFilter] = useState("all");
   const [contentTypeFilter, setContentTypeFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState<"engagement" | "reach" | "clicks">("engagement");
+  const [sortBy, setSortBy] = useState<"engagement" | "reach" | "clicks">(
+    "engagement",
+  );
 
-  const formatNumber = (num: number) => new Intl.NumberFormat('en-US').format(num);
+  const formatNumber = (num: number) =>
+    new Intl.NumberFormat("en-US").format(num);
 
   const filteredPosts = [...topPosts]
-    .filter(post => 
-      post.title.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      (platformFilter === "all" || post.platform.toLowerCase() === platformFilter) &&
-      (contentTypeFilter === "all" || post.type.toLowerCase() === contentTypeFilter.toLowerCase())
+    .filter(
+      (post) =>
+        post.title.toLowerCase().includes(searchTerm.toLowerCase()) &&
+        (platformFilter === "all" ||
+          post.platform.toLowerCase() === platformFilter) &&
+        (contentTypeFilter === "all" ||
+          post.type.toLowerCase() === contentTypeFilter.toLowerCase()),
     )
     .sort((a, b) => {
       if (sortBy === "engagement") return b.interactions - a.interactions;
@@ -132,89 +196,113 @@ export default function AnalyticsPage() {
 
   return (
     <div className="min-h-screen bg-zinc-50">
-      <div className="p-8 space-y-10">
+      <div className="p-4 sm:p-6 lg:p-8 space-y-8 lg:space-y-10">
         {/* Page Header + Filters */}
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+        <div className="flex flex-col gap-6">
           <div>
-            <h1 className="text-3xl font-semibold tracking-tight text-zinc-900">Analytics</h1>
-            <p className="text-zinc-500 mt-1">Live Marketing Performance • May 2026</p>
+            <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-zinc-900">
+              Analytics
+            </h1>
+            <p className="text-zinc-500 mt-1">
+              Live Marketing Performance • May 2026
+            </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-4">
-            {/* <div className="relative w-80">
+          <div className="flex flex-col justify-end sm:flex-row gap-3">
+            {/* <div className="relative flex-1 min-w-0">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
               <Input
                 placeholder="Search content..."
-                className="pl-10 rounded-2xl"
+                className="pl-10 h-11 rounded-2xl w-full"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div> */}
 
-            <Select value={dateRange} onValueChange={setDateRange}>
-              <SelectTrigger className="w-40 rounded-2xl">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="24h">Last 24 hours</SelectItem>
-                <SelectItem value="7d">Last 7 days</SelectItem>
-                <SelectItem value="30d">Last 30 days</SelectItem>
-                <SelectItem value="90d">Last 90 days</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Select value={dateRange} onValueChange={setDateRange}>
+                <SelectTrigger className="h-11 w-full sm:w-40 rounded-2xl">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="24h">Last 24 hours</SelectItem>
+                  <SelectItem value="7d">Last 7 days</SelectItem>
+                  <SelectItem value="30d">Last 30 days</SelectItem>
+                  <SelectItem value="90d">Last 90 days</SelectItem>
+                </SelectContent>
+              </Select>
 
-            <Select value={platformFilter} onValueChange={setPlatformFilter}>
-              <SelectTrigger className="w-40 rounded-2xl">
-                <SelectValue placeholder="Platform" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Platforms</SelectItem>
-                <SelectItem value="instagram">Instagram</SelectItem>
-                <SelectItem value="facebook">Facebook</SelectItem>
-                <SelectItem value="linkedin">LinkedIn</SelectItem>
-                <SelectItem value="tiktok">TikTok</SelectItem>
-              </SelectContent>
-            </Select>
+              <Select value={platformFilter} onValueChange={setPlatformFilter}>
+                <SelectTrigger className="h-11 w-full sm:w-40 rounded-2xl">
+                  <SelectValue placeholder="Platform" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Platforms</SelectItem>
+                  <SelectItem value="instagram">Instagram</SelectItem>
+                  <SelectItem value="facebook">Facebook</SelectItem>
+                  <SelectItem value="linkedin">LinkedIn</SelectItem>
+                  <SelectItem value="tiktok">TikTok</SelectItem>
+                </SelectContent>
+              </Select>
 
-            <Select value={contentTypeFilter} onValueChange={setContentTypeFilter}>
-              <SelectTrigger className="w-40 rounded-2xl">
-                <SelectValue placeholder="Content Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="reel">Reels</SelectItem>
-                <SelectItem value="video">Videos</SelectItem>
-                <SelectItem value="carousel">Carousels</SelectItem>
-                <SelectItem value="post">Static Posts</SelectItem>
-              </SelectContent>
-            </Select>
+              <Select
+                value={contentTypeFilter}
+                onValueChange={setContentTypeFilter}
+              >
+                <SelectTrigger className="h-11 w-full sm:w-40 rounded-2xl">
+                  <SelectValue placeholder="Content Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value="reel">Reels</SelectItem>
+                  <SelectItem value="video">Videos</SelectItem>
+                  <SelectItem value="carousel">Carousels</SelectItem>
+                  <SelectItem value="post">Static Posts</SelectItem>
+                </SelectContent>
+              </Select>
 
-            <Button variant="outline" className="rounded-2xl" onClick={() => alert('Export coming soon')}>
-              <Download className="mr-2 h-4 w-4" />
-              Export
-            </Button>
+              <Button
+                variant="outline"
+                className="rounded-2xl whitespace-nowrap px-6"
+                onClick={() => alert("Export coming soon")}
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Export
+              </Button>
+            </div>
           </div>
         </div>
 
         {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-6">
           {kpiData.map((kpi, index) => (
-            <Card key={index} className="rounded-3xl border border-zinc-100 shadow-sm hover:shadow transition-all">
-              <CardHeader className="pb-3">
-                <div className="flex justify-between">
-                  <div className="text-zinc-500 text-sm font-medium">{kpi.label}</div>
-                  {kpi.icon}
+            <Card
+              key={index}
+              className="rounded-3xl border border-zinc-100 shadow-sm hover:shadow transition-all"
+            >
+              <CardHeader className="pb-3 px-6 pt-6">
+                <div className="flex justify-between items-start">
+                  <div className="text-zinc-500 text-sm font-medium pr-2">
+                    {kpi.label}
+                  </div>
+                  <div className="text-zinc-400">{kpi.icon}</div>
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="text-4xl font-semibold tracking-tighter mb-2">{kpi.value}</div>
-                <div className="flex items-center gap-2 text-sm">
-                  {kpi.trend === 'up' ? (
-                    <TrendingUp className="text-emerald-500 h-4 w-4" />
+              <CardContent className="px-6 pb-6">
+                <div className="text-4xl font-semibold tracking-tighter mb-3">
+                  {kpi.value}
+                </div>
+                <div className="flex items-center gap-2 text-sm flex-wrap">
+                  {kpi.trend === "up" ? (
+                    <TrendingUp className="text-emerald-500 h-4 w-4 flex-shrink-0" />
                   ) : (
-                    <TrendingDown className="text-rose-500 h-4 w-4" />
+                    <TrendingDown className="text-rose-500 h-4 w-4 flex-shrink-0" />
                   )}
-                  <span className={kpi.trend === 'up' ? "text-emerald-600" : "text-rose-600"}>
+                  <span
+                    className={
+                      kpi.trend === "up" ? "text-emerald-600" : "text-rose-600"
+                    }
+                  >
                     {kpi.change}%
                   </span>
                   <span className="text-zinc-400">from last period</span>
@@ -225,30 +313,53 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Main Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-7 gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-7 gap-6">
           {/* Engagement Trend */}
-          <Card className="lg:col-span-4 rounded-3xl border border-zinc-100">
-            <CardHeader>
+          <Card className="xl:col-span-4 rounded-3xl border border-zinc-100">
+            <CardHeader className="px-6 pt-6">
               <CardTitle>Performance Over Time</CardTitle>
-              <CardDescription>Reach, Engagement & Clicks trend</CardDescription>
+              <CardDescription>
+                Reach, Engagement & Clicks trend
+              </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="h-80">
+            <CardContent className="px-6 pb-6">
+              <div className="h-72 sm:h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={performanceTrend}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                     <XAxis dataKey="date" stroke="#64748b" fontSize={12} />
                     <YAxis stroke="#64748b" fontSize={12} />
-                    <RechartsTooltip 
-                      contentStyle={{ 
-                        borderRadius: '12px', 
-                        border: 'none', 
-                        boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' 
-                      }} 
+                    <RechartsTooltip
+                      contentStyle={{
+                        borderRadius: "12px",
+                        border: "none",
+                        boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)",
+                      }}
                     />
-                    <Area type="natural" dataKey="reach" stroke="#430062" fill="#430062" fillOpacity={0.08} strokeWidth={3} />
-                    <Area type="natural" dataKey="engagement" stroke="#a855f7" fill="#a855f7" fillOpacity={0.08} strokeWidth={2.5} />
-                    <Area type="natural" dataKey="clicks" stroke="#eab308" fill="#eab308" fillOpacity={0.08} strokeWidth={2} />
+                    <Area
+                      type="natural"
+                      dataKey="reach"
+                      stroke="#430062"
+                      fill="#430062"
+                      fillOpacity={0.08}
+                      strokeWidth={3}
+                    />
+                    <Area
+                      type="natural"
+                      dataKey="engagement"
+                      stroke="#a855f7"
+                      fill="#a855f7"
+                      fillOpacity={0.08}
+                      strokeWidth={2.5}
+                    />
+                    <Area
+                      type="natural"
+                      dataKey="clicks"
+                      stroke="#eab308"
+                      fill="#eab308"
+                      fillOpacity={0.08}
+                      strokeWidth={2}
+                    />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -256,20 +367,20 @@ export default function AnalyticsPage() {
           </Card>
 
           {/* Platform Breakdown */}
-          <Card className="lg:col-span-3 rounded-3xl border border-zinc-100">
-            <CardHeader>
+          <Card className="xl:col-span-3 rounded-3xl border border-zinc-100">
+            <CardHeader className="px-6 pt-6">
               <CardTitle>Platform Breakdown</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="h-80 flex items-center justify-center">
+            <CardContent className="px-6 pb-6">
+              <div className="h-72 sm:h-80 flex items-center justify-center">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie 
-                      data={platformData} 
-                      cx="50%" 
-                      cy="50%" 
-                      innerRadius={85} 
-                      outerRadius={130} 
+                    <Pie
+                      data={platformData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={72}
+                      outerRadius={110}
                       dataKey="reach"
                     >
                       {platformData.map((entry, index) => (
@@ -281,14 +392,20 @@ export default function AnalyticsPage() {
                 </ResponsiveContainer>
               </div>
 
-              <div className="space-y-4 mt-4">
+              <div className="space-y-3.5 mt-6">
                 {platformData.map((platform) => (
-                  <div key={platform.name} className="flex items-center justify-between">
+                  <div
+                    key={platform.name}
+                    className="flex items-center justify-between text-sm"
+                  >
                     <div className="flex items-center gap-3">
-                      <div className="w-3 h-3 rounded-full" style={{ background: platform.fill }} />
-                      <span>{platform.name}</span>
+                      <div
+                        className="w-3 h-3 rounded-full flex-shrink-0"
+                        style={{ background: platform.fill }}
+                      />
+                      <span className="font-medium">{platform.name}</span>
                     </div>
-                    <span className="font-medium">{platform.reach}%</span>
+                    <span className="font-semibold">{platform.reach}%</span>
                   </div>
                 ))}
               </div>
@@ -298,14 +415,19 @@ export default function AnalyticsPage() {
 
         {/* Top Performing Posts */}
         <Card className="rounded-3xl border border-zinc-100">
-          <CardHeader>
-            <div className="flex items-center justify-between">
+          <CardHeader className="px-6 pt-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <CardTitle>Top Performing Content</CardTitle>
-                <CardDescription>Real-time ranked by engagement</CardDescription>
+                <CardDescription>
+                  Real-time ranked by engagement
+                </CardDescription>
               </div>
-              <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
-                <SelectTrigger className="w-52 rounded-2xl">
+              <Select
+                value={sortBy}
+                onValueChange={(value: any) => setSortBy(value)}
+              >
+                <SelectTrigger className="w-full sm:w-52 h-11 rounded-2xl">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -316,55 +438,78 @@ export default function AnalyticsPage() {
               </Select>
             </div>
           </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Content</TableHead>
-                  <TableHead>Platform</TableHead>
-                  <TableHead className="text-right">Reach</TableHead>
-                  <TableHead className="text-right">Interactions</TableHead>
-                  <TableHead className="text-right">Engagement Rate</TableHead>
-                  <TableHead className="text-right">Clicks</TableHead>
-                  <TableHead>Published</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredPosts.map((post) => (
-                  <TableRow key={post.id} className="hover:bg-zinc-50 cursor-pointer">
-                    <TableCell>
-                      <div className="flex items-center gap-4">
-                        <img 
-                          src={post.thumbnail} 
-                          alt={post.title} 
-                          className="w-14 h-10 object-cover rounded-xl" 
-                        />
-                        <div>
-                          <div className="font-medium line-clamp-1">{post.title}</div>
-                          <div className="text-xs text-zinc-500">{post.type}</div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{post.platform}</Badge>
-                    </TableCell>
-                    <TableCell className="text-right font-mono font-medium">
-                      {formatNumber(post.reach)}
-                    </TableCell>
-                    <TableCell className="text-right font-mono font-medium">
-                      {formatNumber(post.interactions)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <span className="text-emerald-600 font-medium">{post.engagementRate}%</span>
-                    </TableCell>
-                    <TableCell className="text-right font-mono font-medium">
-                      {formatNumber(post.clicks)}
-                    </TableCell>
-                    <TableCell className="text-sm text-zinc-500">{post.publishedAt}</TableCell>
+          <CardContent className="px-0 sm:px-6">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="min-w-[260px]">Content</TableHead>
+                    <TableHead className="w-28">Platform</TableHead>
+                    <TableHead className="text-right min-w-[100px]">
+                      Reach
+                    </TableHead>
+                    <TableHead className="text-right min-w-[110px]">
+                      Interactions
+                    </TableHead>
+                    <TableHead className="text-right min-w-[110px]">
+                      Engagement
+                    </TableHead>
+                    <TableHead className="text-right min-w-[90px]">
+                      Clicks
+                    </TableHead>
+                    <TableHead className="min-w-[90px]">Published</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {filteredPosts.map((post) => (
+                    <TableRow
+                      key={post.id}
+                      className="hover:bg-zinc-50 cursor-pointer"
+                    >
+                      <TableCell>
+                        <div className="flex items-center gap-4">
+                          <img
+                            src={post.thumbnail}
+                            alt={post.title}
+                            className="w-14 h-10 object-cover rounded-xl flex-shrink-0"
+                          />
+                          <div className="min-w-0">
+                            <div className="font-medium line-clamp-2 leading-tight">
+                              {post.title}
+                            </div>
+                            <div className="text-xs text-zinc-500 mt-0.5">
+                              {post.type}
+                            </div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="font-medium">
+                          {post.platform}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right font-mono font-medium">
+                        {formatNumber(post.reach)}
+                      </TableCell>
+                      <TableCell className="text-right font-mono font-medium">
+                        {formatNumber(post.interactions)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <span className="text-emerald-600 font-medium">
+                          {post.engagementRate}%
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right font-mono font-medium">
+                        {formatNumber(post.clicks)}
+                      </TableCell>
+                      <TableCell className="text-sm text-zinc-500 whitespace-nowrap">
+                        {post.publishedAt}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
 
             {filteredPosts.length === 0 && (
               <div className="text-center py-16 text-zinc-400">
