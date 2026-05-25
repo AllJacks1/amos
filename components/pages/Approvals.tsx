@@ -38,6 +38,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import AddContentModal from "../sections/AddContentModal";
+import RequestRevisionModal from "../sections/RequestRevisionModal";
 
 const brandColor = "#430062";
 
@@ -180,6 +181,7 @@ export default function ApprovalsModule() {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [isAddContentOpen, setIsAddContentOpen] = useState(false);
+  const [isRevisionOpen, setIsRevisionOpen] = useState(false);
 
   const filteredApprovals = approvals.filter((item) => {
     const matchesSearch =
@@ -202,7 +204,7 @@ export default function ApprovalsModule() {
   };
 
   const handleRequestRevision = () => {
-    alert("Revision request sent to team.");
+    setIsRevisionOpen(true);
     setIsDetailOpen(false);
   };
 
@@ -670,12 +672,12 @@ export default function ApprovalsModule() {
               <div className="border-t bg-white p-6 sm:p-8 z-10 flex-shrink-0">
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Button
-                    variant="outline"
-                    className="flex-1 h-12 p-2"
-                    onClick={handleRequestRevision}
-                  >
-                    Request Revision
-                  </Button>
+  variant="outline"
+  className="flex-1 h-12"
+  onClick={handleRequestRevision}
+>
+  Request Revision
+</Button>
                   <Button
                     className="flex-1 h-12 text-white p-2"
                     style={{ backgroundColor: brandColor }}
@@ -710,6 +712,23 @@ export default function ApprovalsModule() {
         }}
         brandColor={brandColor}
       />
+      <RequestRevisionModal
+  isOpen={isRevisionOpen}
+  onClose={() => setIsRevisionOpen(false)}
+  onSubmit={(request) => {
+    // Handle the revision request
+    console.log('Revision requested:', request);
+    // Update content status to "revision"
+    if (selectedApproval) {
+      handleStatusChange(selectedApproval.id, 'revision');
+    }
+    // You could also append to revision history here
+  }}
+  contentTitle={selectedApproval?.title}
+  contentPlatform={selectedApproval?.platform}
+  assignedTo={selectedApproval?.assignedTo || 'Team Member'}
+  brandColor={brandColor}
+/>
     </div>
   );
 }

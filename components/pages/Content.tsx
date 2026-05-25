@@ -27,6 +27,7 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import AddContentModal from "../sections/AddContentModal";
+import RequestRevisionModal from "../sections/RequestRevisionModal";
 
 const brandColor = "#430062";
 
@@ -157,6 +158,8 @@ export default function ContentOperations() {
       statusFilter === "all" || item.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  const [isRevisionOpen, setIsRevisionOpen] = useState(false);
 
   const kanbanColumns = [
     {
@@ -664,6 +667,10 @@ export default function ContentOperations() {
                     variant="outline"
                     size="lg"
                     className="w-full sm:flex-1 h-11 sm:h-12 font-medium text-sm sm:text-base"
+                    onClick={() => {
+                      setIsDetailOpen(false);
+                      setIsRevisionOpen(true);
+                    }}
                   >
                     Request Revision
                   </Button>
@@ -705,6 +712,21 @@ export default function ContentOperations() {
           };
           setContents((prev) => [...prev, newContent]);
         }}
+        brandColor={brandColor}
+      />
+      <RequestRevisionModal
+        isOpen={isRevisionOpen}
+        onClose={() => setIsRevisionOpen(false)}
+        onSubmit={(request) => {
+          console.log("Revision requested:", request);
+
+          if (selectedContent) {
+            handleStatusChange(selectedContent.id, "review");
+          }
+        }}
+        contentTitle={selectedContent?.title}
+        contentPlatform={selectedContent?.platform}
+        assignedTo={selectedContent?.assignedTo || "Team Member"}
         brandColor={brandColor}
       />
     </div>
