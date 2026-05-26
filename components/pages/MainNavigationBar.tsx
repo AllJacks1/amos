@@ -28,7 +28,11 @@ import {
   SheetFooter,
 } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
+import { useUsersStore } from "@/store/useUsersStore";
+import { useContentStore } from "@/store/useContentStore";
+import { useClientStore } from "@/store/clientStore";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useRouter } from "next/navigation";
 
 import GlobalHeader from "./Header";
 
@@ -100,6 +104,28 @@ export default function AMOSLayout({
 
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+  const logout = useUsersStore((state) => state.logout);
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+      });
+
+      logout();
+      useClientStore.getState().logout();
+      useContentStore.getState().clearContents();
+      useAuthStore.getState().clearUser();
+
+      localStorage.removeItem("auth-storage");
+
+      router.push("/");
+    } catch (err) {
+      console.error("Logout failed", err);
+    }
+  };
 
   return (
     <div className="h-[100dvh] overflow-hidden bg-zinc-50">
