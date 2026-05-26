@@ -72,6 +72,9 @@ export default function Clients() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [isAddClientOpen, setIsAddClientOpen] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
   const { clients, loading, fetchClients, addClient } = useClientStore();
 
@@ -106,6 +109,49 @@ export default function Clients() {
         Paused
       </Badge>
     );
+  };
+
+  const handleUpdatePassword = async () => {
+    if (!selectedClient) return;
+
+    if (!newPassword || !confirmPassword) {
+      alert("Please fill in all fields");
+      return;
+    }
+
+    try {
+      setIsUpdatingPassword(true);
+
+      const res = await fetch("/api/accounts/update-password", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: selectedClient.id,
+          newPassword,
+          confirmPassword,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || "Failed to update password");
+        return;
+      }
+
+      alert("Password updated successfully");
+
+      // clear fields
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err) {
+      console.error(err);
+      alert("Something went wrong");
+    } finally {
+      setIsUpdatingPassword(false);
+    }
   };
 
   return (
@@ -189,7 +235,9 @@ export default function Clients() {
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <div className="font-semibold">{client.primary_contact_name}</div>
+                          <div className="font-semibold">
+                            {client.primary_contact_name}
+                          </div>
                           <div className="text-xs text-zinc-500">
                             Since {client.createdAt}
                           </div>
@@ -478,6 +526,8 @@ export default function Clients() {
                               type="password"
                               placeholder="Enter new password"
                               className="rounded-2xl h-11"
+                              value={newPassword}
+                              onChange={(e) => setNewPassword(e.target.value)}
                             />
                           </div>
 
@@ -490,21 +540,29 @@ export default function Clients() {
                               type="password"
                               placeholder="Confirm new password"
                               className="rounded-2xl h-11"
+                              value={confirmPassword}
+                              onChange={(e) =>
+                                setConfirmPassword(e.target.value)
+                              }
                             />
                           </div>
 
                           <Button
+                            onClick={handleUpdatePassword}
+                            disabled={isUpdatingPassword}
                             className="
-                        w-full
-                        h-11
-                        sm:h-12
-                        rounded-2xl
-                        text-sm
-                        sm:text-base
-                        font-medium
-                      "
+    w-full
+    h-11
+    sm:h-12
+    rounded-2xl
+    text-sm
+    sm:text-base
+    font-medium
+  "
                           >
-                            Update Password
+                            {isUpdatingPassword
+                              ? "Updating..."
+                              : "Update Password"}
                           </Button>
                         </div>
                       </div>
@@ -536,7 +594,10 @@ export default function Clients() {
 
             formData.append("company_name", client.company_name);
             formData.append("industry", client.industry);
-            formData.append("primary_contact_name", client.primary_contact_name);
+            formData.append(
+              "primary_contact_name",
+              client.primary_contact_name,
+            );
             formData.append("email", client.email);
             formData.append("password", client.password);
 

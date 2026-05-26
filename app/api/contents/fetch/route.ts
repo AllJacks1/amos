@@ -54,7 +54,7 @@ export async function GET(req: NextRequest) {
     else if (type === "client") {
       const { data: client } = await supabase
         .from("amos_clients")
-        .select("company_name")
+        .select("id")
         .eq("email", email)
         .single();
 
@@ -62,7 +62,7 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: "Client not found" }, { status: 404 });
       }
 
-      query = query.eq("client.company_name", client.company_name);
+      query = query.eq("client", client.id);
     }
 
     // optional filters (still apply for both roles)

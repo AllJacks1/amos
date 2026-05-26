@@ -30,8 +30,8 @@ interface AddClientModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAdd: (client: {
-    name: string;
-    companyName: string;
+    primary_contact_name: string;
+    company_name: string;
     industry: string;
     logoPreview: string | null;
     logoFile: File | null;
@@ -61,8 +61,8 @@ export default function AddClientModal({
   brandColor = "#430062",
 }: AddClientModalProps) {
   const [formData, setFormData] = useState({
-    name: "",
-    companyName: "",
+    primary_contact_name: "",
+    company_name: "",
     industry: "",
     logoPreview: null as string | null,
     logoFile: null as File | null,
@@ -78,12 +78,12 @@ export default function AddClientModal({
   const validate = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.name.trim()) newErrors.name = "Contact name is required";
+    if (!formData.primary_contact_name.trim()) newErrors.name = "Contact name is required";
     if (!formData.logoFile) {
       newErrors.logo = "Company logo is required";
     }
-    if (!formData.companyName.trim())
-      newErrors.companyName = "Company name is required";
+    if (!formData.company_name.trim())
+      newErrors.company_name = "Company name is required";
     if (!formData.industry) newErrors.industry = "Please select an industry";
     if (!formData.email.trim()) {
       newErrors.email = "Email is required";
@@ -121,8 +121,8 @@ export default function AddClientModal({
 
   const resetForm = () => {
     setFormData({
-      name: "",
-      companyName: "",
+      primary_contact_name: "",
+      company_name: "",
       industry: "",
       logoPreview: null,
       logoFile: null,
@@ -321,7 +321,7 @@ export default function AddClientModal({
           {/* Company Name */}
           <div className="space-y-2">
             <Label
-              htmlFor="companyName"
+              htmlFor="company_name"
               className="text-sm font-medium text-zinc-700"
             >
               Company Name
@@ -329,22 +329,22 @@ export default function AddClientModal({
             <div className="relative">
               <Building2 className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
               <Input
-                id="companyName"
+                id="company_name"
                 placeholder="e.g. Velora Beauty"
-                value={formData.companyName}
+                value={formData.company_name}
                 onChange={(e) => {
                   setFormData((prev) => ({
                     ...prev,
-                    companyName: e.target.value,
+                    company_name: e.target.value,
                   }));
-                  if (errors.companyName)
-                    setErrors((prev) => ({ ...prev, companyName: "" }));
+                  if (errors.company_name)
+                    setErrors((prev) => ({ ...prev, company_name: "" }));
                 }}
-                className={`pl-10 rounded-2xl h-11 ${errors.companyName ? "border-red-300 focus-visible:ring-red-200" : ""}`}
+                className={`pl-10 rounded-2xl h-11 ${errors.company_name ? "border-red-300 focus-visible:ring-red-200" : ""}`}
               />
             </div>
-            {errors.companyName && (
-              <p className="text-xs text-red-500 ml-1">{errors.companyName}</p>
+            {errors.company_name && (
+              <p className="text-xs text-red-500 ml-1">{errors.company_name}</p>
             )}
           </div>
 
@@ -402,16 +402,16 @@ export default function AddClientModal({
               <Input
                 id="name"
                 placeholder="e.g. Rachel Green"
-                value={formData.name}
+                value={formData.primary_contact_name}
                 onChange={(e) => {
-                  setFormData((prev) => ({ ...prev, name: e.target.value }));
-                  if (errors.name) setErrors((prev) => ({ ...prev, name: "" }));
+                  setFormData((prev) => ({ ...prev, primary_contact_name: e.target.value }));
+                  if (errors.primary_contact_name) setErrors((prev) => ({ ...prev, primary_contact_name: "" }));
                 }}
-                className={`pl-10 rounded-2xl h-11 ${errors.name ? "border-red-300 focus-visible:ring-red-200" : ""}`}
+                className={`pl-10 rounded-2xl h-11 ${errors.primary_contact_name ? "border-red-300 focus-visible:ring-red-200" : ""}`}
               />
             </div>
-            {errors.name && (
-              <p className="text-xs text-red-500 ml-1">{errors.name}</p>
+            {errors.primary_contact_name && (
+              <p className="text-xs text-red-500 ml-1">{errors.primary_contact_name}</p>
             )}
           </div>
 
@@ -505,7 +505,7 @@ export default function AddClientModal({
           </div>
 
           {/* Live Preview Card */}
-          {(formData.companyName || formData.name) && (
+          {(formData.company_name || formData.primary_contact_name) && (
             <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
               <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">
                 Preview
@@ -522,12 +522,12 @@ export default function AddClientModal({
                     className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-lg flex-shrink-0"
                     style={{ backgroundColor: brandColor }}
                   >
-                    {formData.companyName?.slice(0, 2).toUpperCase() || "CL"}
+                    {formData.company_name?.slice(0, 2).toUpperCase() || "CL"}
                   </div>
                 )}
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold text-zinc-900 truncate">
-                    {formData.companyName || "New Client"}
+                    {formData.company_name || "New Client"}
                   </p>
                   <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                     {formData.industry && (
@@ -541,9 +541,9 @@ export default function AddClientModal({
                         }
                       </Badge>
                     )}
-                    {formData.name && (
+                    {formData.primary_contact_name && (
                       <span className="text-xs text-zinc-500">
-                        {formData.name}
+                        {formData.primary_contact_name}
                       </span>
                     )}
                   </div>

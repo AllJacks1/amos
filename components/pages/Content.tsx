@@ -283,10 +283,13 @@ export default function ContentOperations() {
                         </Badge>
                         <Avatar className="h-6 w-6 flex-shrink-0">
                           <AvatarFallback className="text-xs">
-                            {item.assignedTo
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")}
+                            {typeof item.assignedTo === "string"
+                              ? item.assignedTo
+                                  .split(" ")
+                                  .map((n) => n[0])
+                                  .join("")
+                                  .toUpperCase()
+                              : "NA"}
                           </AvatarFallback>
                         </Avatar>
                       </div>
