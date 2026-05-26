@@ -79,7 +79,7 @@ const statusLabels = {
 
 export default function ContentOperations() {
   const user = useAuthStore((state) => state.user);
-  const role = user.role;
+  const role = user?.role || "";
 
   const [activeView, setActiveView] = useState<"kanban" | "calendar" | "table">(
     "kanban",

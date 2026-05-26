@@ -13,13 +13,23 @@ export default function GlobalHeader() {
   const logout = useUsersStore((state) => state.logout);
   const router = useRouter();
 
-  const handleLogout = () => {
-    logout();
-    useClientStore.getState().logout();
-    useContentStore.getState().clearContents();
-    useAuthStore.getState().clearUser();
-    localStorage.removeItem("auth-storage");
-    router.push("/");
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+      });
+
+      logout();
+      useClientStore.getState().logout();
+      useContentStore.getState().clearContents();
+      useAuthStore.getState().clearUser();
+
+      localStorage.removeItem("auth-storage");
+
+      router.push("/");
+    } catch (err) {
+      console.error("Logout failed", err);
+    }
   };
 
   return (

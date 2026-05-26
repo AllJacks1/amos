@@ -94,8 +94,8 @@ export default function AMOSLayout({
   children: React.ReactNode;
 }) {
   const user = useAuthStore((state) => state.user);
-  const role = user.role;
-  
+  const role = user?.role || "";
+
   const pathname = usePathname();
 
   const [isCollapsed, setIsCollapsed] = useState(false);

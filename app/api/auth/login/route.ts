@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -18,12 +19,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 1. Try CLIENTS table first
+    let foundUser: {
+      id: string;
+      email: string;
+      secret: string;
+      role?: string | null;
+      [key: string]: unknown;
+    } | null = null;
+    let type: "client" | "user" | null = null;
+
+    // 1. Try CLIENTS table
     const { data: client } = await supabase
       .from("amos_clients")
       .select("*")
       .eq("email", email)
-      .single();
+      .maybeSingle();
 
     if (client) {
       const isValid = await bcrypt.compare(password, client.secret);
@@ -35,39 +45,69 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      return NextResponse.json({
-        message: "Login successful",
-        type: "client",
-        user: client,
-      });
+      foundUser = client;
+      type = "client";
     }
 
-    // 2. If not found, try USERS table
-    const { data: user } = await supabase
-      .from("amos_users")
-      .select("*")
-      .eq("email", email)
-      .single();
+    // 2. Try USERS table
+    if (!foundUser) {
+      const { data: user } = await supabase
+        .from("amos_users")
+        .select("*")
+        .eq("email", email)
+        .maybeSingle();
 
-    if (user) {
-      const isValid = await bcrypt.compare(password, user.secret);
+      if (user) {
+        const isValid = await bcrypt.compare(password, user.secret);
 
-      if (!isValid) {
-        return NextResponse.json(
-          { error: "Invalid credentials" },
-          { status: 401 },
-        );
+        if (!isValid) {
+          return NextResponse.json(
+            { error: "Invalid credentials" },
+            { status: 401 },
+          );
+        }
+
+        foundUser = user;
+        type = "user";
       }
-
-      return NextResponse.json({
-        message: "Login successful",
-        type: "user",
-        user,
-      });
     }
 
-    // 3. Not found in both tables
-    return NextResponse.json({ error: "Account not found" }, { status: 404 });
+    // 3. Not found
+    if (!foundUser || !type) {
+      return NextResponse.json({ error: "Account not found" }, { status: 404 });
+    }
+
+    // 🔐 CREATE JWT
+    const token = jwt.sign(
+      {
+        id: foundUser.id,
+        email: foundUser.email,
+        role: foundUser.role ?? null,
+        type,
+      },
+      process.env.JWT_SECRET!,
+      { expiresIn: "7d" },
+    );
+
+    // 🍪 SET HTTP-ONLY COOKIE
+    const response = NextResponse.json({
+      message: "Login successful",
+      type,
+      user: {
+        ...foundUser,
+        secret: undefined, // 🚨 never expose password hash
+      },
+    });
+
+    response.cookies.set("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+    });
+
+    return response;
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
