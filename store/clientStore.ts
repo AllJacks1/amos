@@ -11,6 +11,7 @@ export interface Client {
   email: string;
   status: "active" | "onboarding" | "paused";
   first_login: boolean;
+  role: string;
 }
 
 interface ClientStore {

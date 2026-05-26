@@ -20,7 +20,8 @@ export async function GET() {
         primary_contact_name,
         email,
         status,
-        first_login
+        first_login,
+        role
       `,
       )
       .order("created_at", { ascending: false });
