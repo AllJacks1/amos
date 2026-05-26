@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -27,6 +27,7 @@ import {
   SheetTrigger,
   SheetFooter,
 } from "@/components/ui/sheet";
+import ChangePasswordModal from "@/components/sections/ChangePasswordModal";
 import { Separator } from "@/components/ui/separator";
 import { useUsersStore } from "@/store/useUsersStore";
 import { useContentStore } from "@/store/useContentStore";
@@ -115,6 +116,13 @@ export default function AMOSLayout({
 
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
+
+  useEffect(() => {
+    if (user?.first_login) {
+      setIsChangePasswordOpen(true);
+    }
+  }, [user?.first_login]);
 
   const logout = useUsersStore((state) => state.logout);
   const router = useRouter();
@@ -505,6 +513,12 @@ export default function AMOSLayout({
           </main>
         </div>
       </div>
+      <ChangePasswordModal
+        isOpen={isChangePasswordOpen}
+        onClose={() => setIsChangePasswordOpen(false)}
+        userId={user?.id} // Required: pass the user's ID
+        userEmail={user?.email}
+      />
     </div>
   );
 }
