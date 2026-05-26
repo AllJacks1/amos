@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useClientStore } from "@/store/clientStore";
 import {
   Search,
   Plus,
@@ -52,9 +53,9 @@ import AddClientModal from "../sections/AddClientModal";
 // Types
 interface Client {
   id: string;
-  name: string;
-  companyName: string;
-  logo: string;
+  primary_contact_name: string;
+  company_name: string;
+  company_logo: string;
   industry: string;
   brandColor: string;
   activeCampaigns: number;
@@ -66,140 +67,21 @@ interface Client {
   email?: string;
 }
 
-interface PlatformConnection {
-  platform: string;
-  accountName: string;
-  status: "connected" | "error" | "pending";
-  lastSynced: string;
-  icon: React.ReactNode;
-}
-
-interface TeamMember {
-  name: string;
-  email: string;
-  role: string;
-  lastActive: string;
-  avatar: string;
-}
-
-// Mock Data
-const initialClients: Client[] = [
-  {
-    id: "1",
-    name: "Rachel Green",
-    companyName: "Velora Beauty",
-    logo: "https://picsum.photos/id/64/128/128",
-    industry: "Beauty & Cosmetics",
-    brandColor: "#c026d3",
-    activeCampaigns: 6,
-    status: "active",
-    createdAt: "Mar 12, 2025",
-    monthlyReach: "1.2M",
-    engagementRate: 18.4,
-    teamMembers: 4,
-  },
-  {
-    id: "2",
-    name: "David Lee",
-    companyName: "Nexus Dynamics",
-    logo: "https://picsum.photos/id/201/128/128",
-    industry: "SaaS Technology",
-    brandColor: "#2563eb",
-    activeCampaigns: 4,
-    status: "active",
-    createdAt: "Jan 08, 2025",
-    monthlyReach: "892K",
-    engagementRate: 12.7,
-    teamMembers: 7,
-  },
-  {
-    id: "3",
-    name: "Priya Sharma",
-    companyName: "Acme Retail",
-    logo: "https://picsum.photos/id/106/128/128",
-    industry: "Fashion & Retail",
-    brandColor: "#ea580c",
-    activeCampaigns: 3,
-    status: "onboarding",
-    createdAt: "May 01, 2026",
-    monthlyReach: "245K",
-    engagementRate: 9.8,
-    teamMembers: 3,
-  },
-];
-
-const platformConnections: PlatformConnection[] = [
-  {
-    platform: "Instagram",
-    accountName: "@velorabeauty",
-    status: "connected",
-    lastSynced: "2 hours ago",
-    icon: <Globe className="h-5 w-5" />,
-  },
-  {
-    platform: "Facebook",
-    accountName: "Velora Beauty",
-    status: "connected",
-    lastSynced: "Yesterday",
-    icon: <Globe className="h-5 w-5" />,
-  },
-  {
-    platform: "LinkedIn",
-    accountName: "Velora Beauty Co.",
-    status: "connected",
-    lastSynced: "3 days ago",
-    icon: <Globe className="h-5 w-5" />,
-  },
-];
-
-const teamMembers: TeamMember[] = [
-  {
-    name: "Sarah Chen",
-    email: "sarah@velora.com",
-    role: "Marketing Lead",
-    lastActive: "Today",
-    avatar: "https://picsum.photos/id/64/128/128",
-  },
-  {
-    name: "Marcus Torres",
-    email: "marcus@velora.com",
-    role: "Content Creator",
-    lastActive: "2 days ago",
-    avatar: "https://picsum.photos/id/201/128/128",
-  },
-  {
-    name: "Priya Sharma",
-    email: "priya@velora.com",
-    role: "Client Owner",
-    lastActive: "Today",
-    avatar: "https://picsum.photos/id/106/128/128",
-  },
-];
-
-const industries = [
-  { value: "beauty_cosmetics", label: "Beauty & Cosmetics" },
-  { value: "saas_technology", label: "SaaS Technology" },
-  { value: "fashion_retail", label: "Fashion & Retail" },
-  { value: "food_beverage", label: "Food & Beverage" },
-  { value: "health_wellness", label: "Health & Wellness" },
-  { value: "finance", label: "Finance & Banking" },
-  { value: "education", label: "Education" },
-  { value: "entertainment", label: "Entertainment" },
-  { value: "real_estate", label: "Real Estate" },
-  { value: "automotive", label: "Automotive" },
-];
-
 export default function Clients() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [isAddClientOpen, setIsAddClientOpen] = useState(false);
 
-  const [clients, setClients] = useState<Client[]>(initialClients);
+  const { clients, loading, fetchClients, addClient } = useClientStore();
+
+  useEffect(() => {
+    fetchClients();
+  }, [fetchClients]);
 
   const filteredClients = clients.filter((client) => {
     const matchesSearch =
-      client.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      client.company_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       client.industry.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus =
       statusFilter === "all" || client.status === statusFilter;
@@ -301,13 +183,13 @@ export default function Clients() {
                     <TableCell>
                       <div className="flex items-center gap-4">
                         <Avatar className="h-10 w-10 border">
-                          <AvatarImage src={client.logo} />
+                          <AvatarImage src={client.company_logo} />
                           <AvatarFallback>
-                            {client.name.substring(0, 2)}
+                            {client.primary_contact_name.substring(0, 2)}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <div className="font-semibold">{client.name}</div>
+                          <div className="font-semibold">{client.primary_contact_name}</div>
                           <div className="text-xs text-zinc-500">
                             Since {client.createdAt}
                           </div>
@@ -315,7 +197,7 @@ export default function Clients() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="font-medium">{client.companyName}</div>
+                      <div className="font-medium">{client.company_name}</div>
                     </TableCell>
                     <TableCell>
                       <div className="text-sm text-zinc-600">
@@ -383,15 +265,15 @@ export default function Clients() {
               <DialogHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4 border-b">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4 text-center sm:text-left">
                   <Avatar className=" h-14 w-14 sm:h-16 sm:w-16 border-4 border-white shadow-md mx-auto sm:mx-0">
-                    <AvatarImage src={selectedClient.logo} />
+                    <AvatarImage src={selectedClient.company_logo} />
                     <AvatarFallback className="text-xl sm:text-2xl">
-                      {selectedClient.companyName?.slice(0, 2).toUpperCase()}
+                      {selectedClient.company_name?.slice(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
 
                   <div className="min-w-0 flex-1">
                     <DialogTitle className="text-xl sm:text-2xl font-semibold tracking-tight break-words">
-                      {selectedClient.companyName}
+                      {selectedClient.company_name}
                     </DialogTitle>
 
                     <p className="text-sm sm:text-base text-zinc-500 mt-1">
@@ -492,7 +374,7 @@ export default function Clients() {
                         break-words
                       "
                           >
-                            {selectedClient.companyName}
+                            {selectedClient.company_name}
                           </p>
                         </div>
 
@@ -652,9 +534,9 @@ export default function Clients() {
           try {
             const formData = new FormData();
 
-            formData.append("company_name", client.companyName);
+            formData.append("company_name", client.company_name);
             formData.append("industry", client.industry);
-            formData.append("primary_contact_name", client.name);
+            formData.append("primary_contact_name", client.primary_contact_name);
             formData.append("email", client.email);
             formData.append("password", client.password);
 
@@ -678,24 +560,17 @@ export default function Clients() {
             // your API returns an ARRAY because of insert([...]).select()
             const createdClient = data.client[0];
 
-            setClients((prev) => [
-              ...prev,
-              {
-                id: createdClient.id,
-                name: createdClient.primary_contact_name,
-                companyName: createdClient.company_name,
-                logo: createdClient.company_logo,
-                industry: createdClient.industry,
-                brandColor: "#430062",
-                activeCampaigns: 0,
-                status: "active",
-                createdAt: new Date().toLocaleDateString(),
-                monthlyReach: "0",
-                engagementRate: 0,
-                teamMembers: 1,
-                email: createdClient.email,
-              },
-            ]);
+            addClient({
+              id: createdClient.id,
+              created_at: createdClient.created_at,
+              company_logo: createdClient.company_logo,
+              company_name: createdClient.company_name,
+              industry: createdClient.industry,
+              primary_contact_name: createdClient.primary_contact_name,
+              email: createdClient.email,
+              status: createdClient.status,
+              first_login: createdClient.first_login,
+            });
 
             setIsAddClientOpen(false);
           } catch (err) {
