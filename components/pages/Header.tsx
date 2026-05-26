@@ -1,10 +1,8 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { Search, Bell, Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {  LogOut } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function GlobalHeader() {
   return (
@@ -32,10 +30,28 @@ export default function GlobalHeader() {
           </div>
         </Button> */}
 
-        <Avatar className="h-8 w-8 cursor-pointer">
-          <AvatarImage src="https://github.com/shadcn.png" />
-          <AvatarFallback>AR</AvatarFallback>
-        </Avatar>
+        <div className="shrink-0 border-t border-zinc-200 p-4">
+          <div className="flex items-center gap-3 rounded-2xl p-2  min-w-0">
+            <Avatar className="h-9 w-9 border border-zinc-100 shrink-0">
+              <AvatarImage src="https://github.com/shadcn.png" />
+              <AvatarFallback>AR</AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-medium truncate">Alex Rivera</div>
+
+              <div className="text-xs text-emerald-600 truncate">
+                Admin • Marketing
+              </div>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 shrink-0 hover:bg-zinc-100 transition-colors cursor-pointer"
+            >
+              <LogOut className="h-4 w-4 text-zinc-400" />
+            </Button>
+          </div>
+        </div>
       </div>
     </header>
   );

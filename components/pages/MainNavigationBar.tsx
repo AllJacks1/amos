@@ -21,7 +21,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetFooter,
+} from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 
 import GlobalHeader from "./Header";
@@ -327,10 +332,7 @@ export default function AMOSLayout({
                   <Bell className="h-5 w-5" />
                 </Button> */}
 
-                <Sheet
-                  open={isMobileOpen}
-                  onOpenChange={setIsMobileOpen}
-                >
+                <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
                   <SheetTrigger asChild>
                     <Button variant="ghost" size="icon">
                       <Menu className="h-5 w-5" />
@@ -349,9 +351,7 @@ export default function AMOSLayout({
                           </div>
 
                           <div>
-                            <div className="font-semibold text-xl">
-                              AMOS
-                            </div>
+                            <div className="font-semibold text-xl">AMOS</div>
 
                             <div className="text-xs text-zinc-500">
                               Marketing OS
@@ -396,8 +396,41 @@ export default function AMOSLayout({
                           })}
                         </nav>
                       </div>
+                    </div><SheetFooter>
+                    {/* Footer */}
+                    <div className="shrink-0 border-t border-zinc-200 p-4">
+                      <div className="flex items-center gap-3 rounded-2xl p-2 hover:bg-zinc-100 transition-colors cursor-pointer min-w-0">
+                        <Avatar className="h-9 w-9 border border-zinc-100 shrink-0">
+                          <AvatarImage src="https://github.com/shadcn.png" />
+                          <AvatarFallback>AR</AvatarFallback>
+                        </Avatar>
+
+                        {!isCollapsed && (
+                          <>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm font-medium truncate">
+                                Alex Rivera
+                              </div>
+
+                              <div className="text-xs text-emerald-600 truncate">
+                                Admin • Marketing
+                              </div>
+                            </div>
+
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 shrink-0"
+                            >
+                              <LogOut className="h-4 w-4 text-zinc-400" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
                     </div>
+                  </SheetFooter>
                   </SheetContent>
+                  
                 </Sheet>
               </div>
             </div>
@@ -417,9 +450,7 @@ export default function AMOSLayout({
           >
             <GlobalHeader />
 
-            <div className="min-h-full">
-              {children}
-            </div>
+            <div className="min-h-full">{children}</div>
           </main>
         </div>
       </div>

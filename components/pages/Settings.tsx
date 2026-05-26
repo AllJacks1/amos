@@ -106,12 +106,51 @@ export default function SettingsModule() {
   const [teamMembers, setTeamMembers] = useState(users);
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
 
-  const handleSave = () => {
-    alert("Settings saved successfully!");
-  };
+  const handleAddMember = async (member: {
+    name: string;
+    email: string;
+    role: string;
+    password: string;
+  }) => {
+    try {
+      const response = await fetch("/api/auth/register-user", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fullName: member.name,
+          email: member.email,
+          role: member.role,
+          password: member.password,
+        }),
+      });
 
-  const inviteUser = () => {
-    alert("User invitation sent! (Demo)");
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.error || "Failed to create user");
+        return;
+      }
+
+      const newUser: User = {
+        id: data.user[0].id,
+        name: member.name,
+        email: member.email,
+        role: member.role,
+        status: "invited",
+        lastActive: "Just invited",
+        avatar: "",
+      };
+
+      setTeamMembers((prev) => [...prev, newUser]);
+
+      alert("Member added successfully!");
+      setIsAddMemberOpen(false);
+    } catch (error) {
+      console.error(error);
+      alert("Something went wrong");
+    }
   };
 
   return (
@@ -125,13 +164,13 @@ export default function SettingsModule() {
               Workspace configuration and administration
             </p>
           </div>
-          <Button
+          {/* <Button
             onClick={handleSave}
             className="rounded-2xl bg-[#430062] hover:bg-[#430062]/90"
           >
             <Save className="mr-2 h-4 w-4" />
             Save Changes
-          </Button>
+          </Button> */}
         </div>
 
         <div className="flex gap-10">
@@ -474,19 +513,7 @@ export default function SettingsModule() {
       <AddMemberModal
         isOpen={isAddMemberOpen}
         onClose={() => setIsAddMemberOpen(false)}
-        onAdd={(member) => {
-          // Add to your teamMembers state
-          const newUser: User = {
-            id: Math.random().toString(36).slice(2),
-            name: member.name,
-            email: member.email,
-            role: member.role,
-            status: "invited",
-            lastActive: "Just invited",
-            avatar: "",
-          };
-          setTeamMembers((prev) => [...prev, newUser]);
-        }}
+        onAdd={handleAddMember}
         brandColor={brandColor}
       />
     </div>
