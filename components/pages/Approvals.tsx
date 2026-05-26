@@ -39,9 +39,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import AddContentModal from "../sections/AddContentModal";
 import RequestRevisionModal from "../sections/RequestRevisionModal";
+import SubmitRevisionModal from "../sections/SubmitRevisionModal";
 import { useContentStore } from "@/store/useContentStore";
 
 const brandColor = "#430062";
+const role = "client";
 
 // ==================== TYPES ====================
 interface ApprovalItem {
@@ -50,75 +52,27 @@ interface ApprovalItem {
   caption: string;
   platform: string;
   contentType: string;
+  status: "review" | "revise" | "approved" | "scheduled" | "posted";
+  publishDate: string;
   client: string;
-  thumbnail: string;
-  status: "pending" | "revision" | "approved";
-  dueDate: string;
-  submittedAt: string;
-  revisionCount: number;
-  driveLinks?: string[];
+  assignedTo: string;
+  driveLinks: string[];
+  pillar: string;
+
+  priority?: string | null;
+  revisionDueDate?: string | null;
+  revisionCount?: number;
+  revisionNotes?: {
+    commenter: string;
+    comment: string;
+    created_at: string;
+  }[];
 }
-
-interface Comment {
-  id: string;
-  user: string;
-  role: string;
-  comment: string;
-  timestamp: string;
-}
-
-interface HistoryEntry {
-  id: string;
-  action: string;
-  user: string;
-  timestamp: string;
-  comment?: string;
-}
-
-// ==================== MOCK DATA ===================
-const mockComments: Comment[] = [
-  {
-    id: "c1",
-    user: "Elena Voss",
-    role: "Client",
-    comment: "I love the visuals but can we make the CTA button larger?",
-    timestamp: "4 hours ago",
-  },
-  {
-    id: "c2",
-    user: "Sarah Chen",
-    role: "Marketing",
-    comment: "Updated the button size and contrast. Ready for review.",
-    timestamp: "2 hours ago",
-  },
-];
-
-const mockHistory: HistoryEntry[] = [
-  {
-    id: "h1",
-    action: "Submitted for Approval",
-    user: "Sarah Chen",
-    timestamp: "May 18, 2026",
-  },
-  {
-    id: "h2",
-    action: "Revision Requested",
-    user: "Elena Voss",
-    timestamp: "May 19, 2026",
-    comment: "Make CTA button more prominent",
-  },
-  {
-    id: "h3",
-    action: "Resubmitted",
-    user: "Sarah Chen",
-    timestamp: "May 20, 2026",
-  },
-];
 
 export default function ApprovalsModule() {
-  const [activeTab, setActiveTab] = useState<
-    "review" | "revision" | "approved"
-  >("review");
+  const [activeTab, setActiveTab] = useState<"review" | "revise" | "approved">(
+    "review",
+  );
   const [searchTerm, setSearchTerm] = useState("");
   const [clientFilter, setClientFilter] = useState("all");
   const [selectedApproval, setSelectedApproval] = useState<ApprovalItem | null>(
@@ -128,6 +82,7 @@ export default function ApprovalsModule() {
   const [newComment, setNewComment] = useState("");
   const [isAddContentOpen, setIsAddContentOpen] = useState(false);
   const [isRevisionOpen, setIsRevisionOpen] = useState(false);
+  const [isSubmitRevisionOpen, setIsSubmitRevisionOpen] = useState(false);
 
   const { contents, loading, error, fetchContents, addContent, updateStatus } =
     useContentStore();
@@ -161,6 +116,11 @@ export default function ApprovalsModule() {
     setIsDetailOpen(false);
   };
 
+  const handleSubmitRevision = () => {
+    setIsSubmitRevisionOpen(true);
+    setIsDetailOpen(false);
+  };
+
   function formatDueDate(dateStr: string): string {
     const date = new Date(dateStr);
     const now = new Date();
@@ -185,7 +145,7 @@ export default function ApprovalsModule() {
 
   const pendingCount = contents.filter((a) => a.status === "review").length;
 
-  const revisionCount = contents.filter((a) => a.status === "revision").length;
+  const revisionCount = contents.filter((a) => a.status === "revise").length;
 
   const approvedCount = contents.filter((a) => a.status === "approved").length;
 
@@ -246,7 +206,9 @@ export default function ApprovalsModule() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-4xl font-semibold tracking-tighter">{pendingCount}</div>
+              <div className="text-4xl font-semibold tracking-tighter">
+                {pendingCount}
+              </div>
               {/* <p className="text-sm text-zinc-500 mt-2">Due this week</p> */}
             </CardContent>
           </Card>
@@ -259,7 +221,9 @@ export default function ApprovalsModule() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-4xl font-semibold tracking-tighter">{revisionCount}</div>
+              <div className="text-4xl font-semibold tracking-tighter">
+                {revisionCount}
+              </div>
               {/* <p className="text-sm text-zinc-500 mt-2">Action required</p> */}
             </CardContent>
           </Card>
@@ -272,7 +236,9 @@ export default function ApprovalsModule() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-4xl font-semibold tracking-tighter">{approvedCount}</div>
+              <div className="text-4xl font-semibold tracking-tighter">
+                {approvedCount}
+              </div>
               {/* <p className="text-sm text-emerald-600 mt-2">
                 +4 from last month
               </p> */}
@@ -284,7 +250,7 @@ export default function ApprovalsModule() {
         <Tabs
           value={activeTab}
           onValueChange={(v) =>
-            setActiveTab(v as "review" | "revision" | "approved")
+            setActiveTab(v as "review" | "revise" | "approved")
           }
           className="w-full"
         >
@@ -297,7 +263,7 @@ export default function ApprovalsModule() {
                 count: pendingCount,
               },
               {
-                value: "revision",
+                value: "revise",
                 label: "Needs Revision",
                 icon: AlertCircle,
                 count: revisionCount,
@@ -328,7 +294,7 @@ export default function ApprovalsModule() {
             ))}
           </TabsList>
 
-          {["review", "revision", "approved"].map((tab) => (
+          {["review", "revise", "approved"].map((tab) => (
             <TabsContent
               key={tab}
               value={tab}
@@ -430,7 +396,7 @@ export default function ApprovalsModule() {
                           className={`h-1 w-full ${
                             item.status === "review"
                               ? "bg-amber-400"
-                              : item.status === "revision"
+                              : item.status === "revise"
                                 ? "bg-rose-400"
                                 : "bg-emerald-400"
                           }`}
@@ -444,7 +410,7 @@ export default function ApprovalsModule() {
                   <div className="mx-auto w-14 h-14 sm:w-16 sm:h-16 bg-zinc-50 border border-zinc-100 rounded-2xl flex items-center justify-center mb-5">
                     {tab === "review" ? (
                       <Inbox className="h-7 w-7 text-zinc-300" />
-                    ) : tab === "revision" ? (
+                    ) : tab === "revise" ? (
                       <CheckCircle2 className="h-7 w-7 text-zinc-300" />
                     ) : (
                       <PartyPopper className="h-7 w-7 text-zinc-300" />
@@ -453,14 +419,14 @@ export default function ApprovalsModule() {
                   <h3 className="text-lg sm:text-xl font-semibold text-zinc-900">
                     {tab === "review"
                       ? "All caught up!"
-                      : tab === "revision"
+                      : tab === "revise"
                         ? "No revisions needed"
                         : "Nothing approved yet"}
                   </h3>
                   <p className="text-sm sm:text-base text-zinc-500 mt-2 max-w-sm mx-auto">
                     {tab === "review"
                       ? "There are no items waiting for your review right now."
-                      : tab === "revision"
+                      : tab === "revise"
                         ? "Great work! No content needs revision at the moment."
                         : "Approved items will appear here once you review them."}
                   </p>
@@ -550,94 +516,116 @@ export default function ApprovalsModule() {
 
                 <Separator className="my-8" />
 
-                {/* Revision History */}
-                <div>
-                  <h4 className="font-semibold mb-5">Revision History</h4>
-                  <div className="space-y-8 pl-5 border-l-2 border-zinc-200">
-                    {mockHistory.map((entry, index) => (
-                      <div key={entry.id} className="relative">
-                        {index !== mockHistory.length - 1 && (
-                          <div className="absolute left-[-9px] top-7 w-0.5 h-8 bg-zinc-200" />
-                        )}
-                        <div className="flex gap-5">
-                          <div className="text-xs w-20 text-right text-zinc-400 font-mono pt-0.5 shrink-0">
-                            {entry.timestamp}
-                          </div>
-                          <div className="flex-1">
-                            <div className="font-medium">{entry.action}</div>
-                            <div className="text-sm text-zinc-500">
-                              by {entry.user}
-                            </div>
-                            {entry.comment && (
-                              <p className="text-sm text-zinc-600 mt-2 italic">
-                                &quot;{entry.comment}&quot;
+                {/* Revision Details */}
+
+                {(selectedApproval.revisionNotes?.length > 0 ||
+                  selectedApproval.revisionDueDate ||
+                  selectedApproval.priority ||
+                  selectedApproval.revisionCount) && (
+                  <div className="space-y-5 rounded-2xl border border-amber-200 bg-amber-50/50 p-4 sm:p-6">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm sm:text-base font-semibold text-amber-900">
+                        Revision Details
+                      </h4>
+
+                      {selectedApproval.priority && (
+                        <Badge className="bg-amber-100 text-amber-700 border border-amber-200">
+                          {selectedApproval.priority} Priority
+                        </Badge>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {selectedApproval.revisionDueDate && (
+                        <div>
+                          <p className="text-[11px] uppercase tracking-widest text-zinc-500 mb-1">
+                            Due Date
+                          </p>
+                          <p className="text-sm font-medium text-zinc-900">
+                            {selectedApproval.revisionDueDate}
+                          </p>
+                        </div>
+                      )}
+
+                      {selectedApproval.revisionCount !== null && (
+                        <div>
+                          <p className="text-[11px] uppercase tracking-widest text-zinc-500 mb-1">
+                            Revision Count
+                          </p>
+                          <p className="text-sm font-medium text-zinc-900">
+                            {selectedApproval.revisionCount}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Revision Notes */}
+                    {selectedApproval.revisionNotes?.length > 0 && (
+                      <div>
+                        <p className="text-[11px] uppercase tracking-widest text-zinc-500 mb-3">
+                          Revision Notes
+                        </p>
+
+                        <div className="space-y-3">
+                          {selectedApproval.revisionNotes.map((note, idx) => (
+                            <div
+                              key={idx}
+                              className="rounded-xl border border-zinc-200 bg-white p-4"
+                            >
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="font-medium text-sm text-zinc-900">
+                                  {note.commenter}
+                                </span>
+
+                                <span className="text-xs text-zinc-400">
+                                  {new Date(note.created_at).toLocaleString()}
+                                </span>
+                              </div>
+
+                              <p className="text-sm text-zinc-700 leading-relaxed">
+                                {note.comment}
                               </p>
-                            )}
-                          </div>
+                            </div>
+                          ))}
                         </div>
                       </div>
-                    ))}
+                    )}
                   </div>
-                </div>
-
-                {/* Comments */}
-                <div>
-                  <h4 className="font-semibold mb-5 flex items-center gap-2">
-                    Comments
-                    <span className="text-sm px-2.5 py-0.5 bg-zinc-100 rounded-full text-zinc-500">
-                      {mockComments.length}
-                    </span>
-                  </h4>
-
-                  <ScrollArea className="h-72 sm:h-80 pr-4">
-                    <div className="space-y-6">
-                      {mockComments.map((comment) => (
-                        <div key={comment.id} className="flex gap-4">
-                          <Avatar className="h-9 w-9 shrink-0">
-                            <AvatarFallback>
-                              {comment.user
-                                .split(" ")
-                                .map((n) => n[0])
-                                .join("")}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between">
-                              <span className="font-medium">
-                                {comment.user}
-                              </span>
-                              <span className="text-xs text-zinc-400 whitespace-nowrap">
-                                {comment.timestamp}
-                              </span>
-                            </div>
-                            <p className="mt-1 text-zinc-600 leading-relaxed">
-                              {comment.comment}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </ScrollArea>
-                </div>
+                )}
               </div>
 
               {/* Sticky Action Bar */}
               <div className="border-t bg-white p-6 sm:p-8 z-10 flex-shrink-0">
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <Button
-                    variant="outline"
-                    className="flex-1 h-12"
-                    onClick={handleRequestRevision}
-                  >
-                    Request Revision
-                  </Button>
-                  <Button
-                    className="flex-1 h-12 text-white p-2"
-                    style={{ backgroundColor: brandColor }}
-                    onClick={handleApprove}
-                  >
-                    Approve Content
-                  </Button>
+                  {role === "admin" && selectedApproval.status === "revise" && (
+                    <Button
+                      variant="outline"
+                      className="flex-1 h-12"
+                      onClick={handleSubmitRevision}
+                    >
+                      Submit Revision
+                    </Button>
+                  )}
+                  {role === "client" &&
+                    selectedApproval.status === "review" && (
+                      <>
+                        <Button
+                          variant="outline"
+                          className="flex-1 h-12"
+                          onClick={handleRequestRevision}
+                        >
+                          Request Revision
+                        </Button>
+
+                        <Button
+                          className="flex-1 h-12 text-white p-2"
+                          style={{ backgroundColor: brandColor }}
+                          onClick={handleApprove}
+                        >
+                          Approve Content
+                        </Button>
+                      </>
+                    )}
                 </div>
               </div>
             </div>
@@ -669,19 +657,79 @@ export default function ApprovalsModule() {
       <RequestRevisionModal
         isOpen={isRevisionOpen}
         onClose={() => setIsRevisionOpen(false)}
-        onSubmit={(request) => {
-          // Handle the revision request
-          console.log("Revision requested:", request);
-          // Update content status to "revision"
-          if (selectedApproval) {
-            handleStatusChange(selectedApproval.id, "revision");
+        onSubmit={async (request) => {
+          if (!selectedApproval) return;
+
+          try {
+            const revisionNote = {
+              commenter: "Client", // replace with actual user
+              comment: request.comment,
+              created_at: new Date().toISOString(),
+            };
+
+            const res = await fetch("/api/contents/revise", {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                id: selectedApproval.id,
+                status: "revise",
+                priority: request.priority,
+                revision_due_date: request.dueDate,
+                revision_count: (selectedApproval.revisionCount || 0) + 1,
+                revision_notes: [
+                  ...(selectedApproval.revisionNotes || []),
+                  revisionNote,
+                ],
+              }),
+            });
+
+            const data = await res.json();
+            if (!res.ok)
+              throw new Error(data.error || "Failed to request revision");
+
+            updateStatus(selectedApproval.id, "revise");
+            fetchContents();
+            setIsRevisionOpen(false);
+          } catch (error) {
+            console.error(error);
+            alert(
+              error instanceof Error ? error.message : "Something went wrong",
+            );
           }
-          // You could also append to revision history here
         }}
         contentTitle={selectedApproval?.title}
         contentPlatform={selectedApproval?.platform}
         assignedTo={selectedApproval?.assignedTo || "Team Member"}
         brandColor={brandColor}
+      />
+      <SubmitRevisionModal
+        isOpen={isSubmitRevisionOpen}
+        onClose={() => setIsSubmitRevisionOpen(false)}
+        content={selectedApproval}
+        adminName="Admin"
+        brandColor={brandColor}
+        onSubmit={async (update) => {
+          try {
+            const res = await fetch("/api/contents/submit-revision", {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(update),
+            });
+
+            const data = await res.json();
+            if (!res.ok)
+              throw new Error(data.error || "Failed to submit revision");
+
+            updateStatus(update.id, "review");
+            fetchContents();
+            setIsSubmitRevisionOpen(false);
+          } catch (error) {
+            console.error(error);
+            alert(
+              error instanceof Error ? error.message : "Something went wrong",
+            );
+          }
+        }}
       />
     </div>
   );
