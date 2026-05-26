@@ -102,6 +102,17 @@ export default function AMOSLayout({
 
   const pathname = usePathname();
 
+  const userDisplay = {
+    name:
+      role === "client"
+        ? user?.primary_contact_name
+        : user?.fullname || "Unknown User",
+
+    avatar: role === "client" ? user?.company_logo || "" : "", // admins have no image
+
+    roleLabel: role === "client" ? user?.company_name || "Client" : "Admin",
+  };
+
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
@@ -432,19 +443,28 @@ export default function AMOSLayout({
                       <div className="shrink-0 border-t border-zinc-200 p-4">
                         <div className="flex items-center gap-3 rounded-2xl p-2 hover:bg-zinc-100 transition-colors cursor-pointer min-w-0">
                           <Avatar className="h-9 w-9 border border-zinc-100 shrink-0">
-                            <AvatarImage src="https://github.com/shadcn.png" />
-                            <AvatarFallback>AR</AvatarFallback>
+                            {userDisplay.avatar && (
+                              <AvatarImage src={userDisplay.avatar} />
+                            )}
+
+                            <AvatarFallback>
+                              {userDisplay.name
+                                .split(" ")
+                                .map((n) => n[0])
+                                .join("")
+                                .toUpperCase()}
+                            </AvatarFallback>
                           </Avatar>
 
                           {!isCollapsed && (
                             <>
                               <div className="flex-1 min-w-0">
                                 <div className="text-sm font-medium truncate">
-                                  Alex Rivera
+                                  {userDisplay.name}
                                 </div>
 
                                 <div className="text-xs text-emerald-600 truncate">
-                                  Admin • Marketing
+                                  {userDisplay.roleLabel}
                                 </div>
                               </div>
 
@@ -452,6 +472,7 @@ export default function AMOSLayout({
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8 shrink-0"
+                                onClick={handleLogout}
                               >
                                 <LogOut className="h-4 w-4 text-zinc-400" />
                               </Button>

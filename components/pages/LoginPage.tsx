@@ -142,9 +142,9 @@ export default function LoginPage() {
 
           <div className="text-center lg:text-left">
             <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
-              Sign in to your account
+              Sign in to your AMOS Account
             </h1>
-            <p className="mt-2 text-gray-600">
+            {/* <p className="mt-2 text-gray-600">
               Don&apos;t have an account?{" "}
               <Link
                 href="/signup"
@@ -153,7 +153,7 @@ export default function LoginPage() {
               >
                 Get started
               </Link>
-            </p>
+            </p> */}
           </div>
 
           {/* Social Login */}
@@ -248,7 +248,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
+            {/* <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <input
                   id="remember-me"
@@ -272,7 +272,7 @@ export default function LoginPage() {
               >
                 Forgot password?
               </Link>
-            </div>
+            </div> */}
 
             <button
               type="submit"
@@ -296,7 +296,7 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p className="text-center text-xs text-gray-500">
+          {/* <p className="text-center text-xs text-gray-500">
             By signing in, you agree to our{" "}
             <Link
               href="/terms"
@@ -313,7 +313,7 @@ export default function LoginPage() {
             >
               Privacy Policy
             </Link>
-          </p>
+          </p> */}
         </div>
       </div>
     </div>

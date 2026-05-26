@@ -11,6 +11,8 @@ import { useRouter } from "next/navigation";
 
 export default function GlobalHeader() {
   const logout = useUsersStore((state) => state.logout);
+  const user = useAuthStore((state) => state.user);
+
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -31,6 +33,18 @@ export default function GlobalHeader() {
       console.error("Logout failed", err);
     }
   };
+
+  const displayName =
+    user?.role === "admin" ? user?.fullname : user?.primary_contact_name;
+
+  const avatarSrc = user?.role === "client" ? user?.company_logo : undefined;
+
+  const initials =
+    displayName
+      ?.split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase() || "U";
 
   return (
     <header className="h-16 border-b border-zinc-200 bg-white/95 backdrop-blur-lg sticky top-0 z-40 hidden lg:flex items-center justify-end px-8">
@@ -58,18 +72,21 @@ export default function GlobalHeader() {
         </Button> */}
 
         <div className="shrink-0 border-t border-zinc-200 p-4">
-          <div className="flex items-center gap-3 rounded-2xl p-2  min-w-0">
+          <div className="flex items-center gap-3 rounded-2xl p-2 min-w-0">
             <Avatar className="h-9 w-9 border border-zinc-100 shrink-0">
-              <AvatarImage src="https://github.com/shadcn.png" />
-              <AvatarFallback>AR</AvatarFallback>
+              {avatarSrc && <AvatarImage src={avatarSrc} alt={displayName} />}
+
+              <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
+
             <div className="flex-1 min-w-0">
-              <div className="text-sm font-medium truncate">Alex Rivera</div>
+              <div className="text-sm font-medium truncate">{displayName}</div>
 
               <div className="text-xs text-emerald-600 truncate">
-                Admin • Marketing
+                {user?.role === "admin" ? "Admin" : user?.company_name || "Client"}
               </div>
             </div>
+
             <Button
               variant="ghost"
               size="icon"
