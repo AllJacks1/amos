@@ -167,17 +167,18 @@ export default function AMOSLayout({
           {/* Brand */}
           <div className="h-16 shrink-0 border-b border-zinc-200 flex items-center px-6">
             <div className="flex items-center gap-3 min-w-0">
-              <div
-                className="h-9 w-9 rounded-2xl flex items-center justify-center text-white font-bold text-2xl shrink-0"
-                style={{ backgroundColor: brandColor }}
-              >
-                A
-              </div>
+              <Avatar className="h-9 w-9 rounded-2xl border border-zinc-200">
+                <AvatarImage src="/logos/axis_logo.png" alt="Brand" />
+                <AvatarFallback>A</AvatarFallback>
+              </Avatar>
 
               {!isCollapsed && (
                 <div className="min-w-0">
-                  <div className="font-semibold text-xl tracking-tight truncate">
-                    AMOS
+                  <div
+                    className={`font-semibold text-xl tracking-tight truncate`}
+                  >
+                    <strong className={`text-[${brandColor}]`}>Axis</strong>{" "}
+                    Command
                   </div>
 
                   <div className="text-xs text-zinc-500 -mt-1 truncate">
@@ -369,14 +370,25 @@ export default function AMOSLayout({
           >
             <div className="flex h-full items-center px-6">
               <div className="flex items-center gap-3">
-                <div
-                  className="h-8 w-8 rounded-xl flex items-center justify-center text-white font-bold text-xl"
-                  style={{ backgroundColor: brandColor }}
-                >
-                  A
-                </div>
+                <Avatar className="h-9 w-9 rounded-2xl border border-zinc-200">
+                  <AvatarImage src="/logos/axis_logo.png" alt="Brand" />
+                  <AvatarFallback>A</AvatarFallback>
+                </Avatar>
 
-                <span className="font-semibold tracking-tight">AMOS</span>
+                {!isCollapsed && (
+                  <div className="min-w-0">
+                    <div
+                      className={`font-semibold text-xl tracking-tight truncate`}
+                    >
+                      <strong className={`text-[${brandColor}]`}>Axis</strong>{" "}
+                      Command
+                    </div>
+
+                    <div className="text-xs text-zinc-500 -mt-1 truncate">
+                      Marketing OS
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="ml-auto flex items-center gap-2">
@@ -395,20 +407,25 @@ export default function AMOSLayout({
                     <div className="flex h-full flex-col bg-white">
                       <div className="shrink-0 p-6 border-b border-zinc-100">
                         <div className="flex items-center gap-3">
-                          <div
-                            className="h-9 w-9 rounded-2xl flex items-center justify-center text-white font-bold text-2xl"
-                            style={{ backgroundColor: brandColor }}
-                          >
-                            A
-                          </div>
+                          <Avatar className="h-9 w-9 rounded-2xl border border-zinc-200">
+                <AvatarImage src="/logos/axis_logo.png" alt="Brand" />
+                <AvatarFallback>A</AvatarFallback>
+              </Avatar>
 
-                          <div>
-                            <div className="font-semibold text-xl">AMOS</div>
+              {!isCollapsed && (
+                <div className="min-w-0">
+                  <div
+                    className={`font-semibold text-xl tracking-tight truncate`}
+                  >
+                    <strong className={`text-[${brandColor}]`}>Axis</strong>{" "}
+                    Command
+                  </div>
 
-                            <div className="text-xs text-zinc-500">
-                              Marketing OS
-                            </div>
-                          </div>
+                  <div className="text-xs text-zinc-500 -mt-1 truncate">
+                    Marketing OS
+                  </div>
+                </div>
+              )}
                         </div>
                       </div>
 
