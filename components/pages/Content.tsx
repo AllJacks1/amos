@@ -30,6 +30,8 @@ import AddContentModal from "../sections/AddContentModal";
 import RequestRevisionModal from "../sections/RequestRevisionModal";
 import SubmitRevisionModal from "../sections/SubmitRevisionModal";
 import ApproveConfirmDialog from "../sections/ApproveConfirmDialog";
+
+import CalendarView  from "../sections/CalendarView";
 import { useContentStore } from "@/store/useContentStore";
 
 const brandColor = "#430062";
@@ -124,11 +126,6 @@ export default function ContentOperations() {
       title: "Approved",
       items: filteredContents.filter((c) => c.status === "approved"),
     },
-    {
-      id: "scheduled",
-      title: "Scheduled",
-      items: filteredContents.filter((c) => c.status === "scheduled"),
-    },
   ];
 
   const handleStatusChange = async (
@@ -174,7 +171,7 @@ export default function ContentOperations() {
               <SelectItem value="review">In Review</SelectItem>
               <SelectItem value="revise">For Revision</SelectItem>
               <SelectItem value="approved">Approved</SelectItem>
-              <SelectItem value="scheduled">Scheduled</SelectItem>
+              {/* <SelectItem value="scheduled">Scheduled</SelectItem> */}
             </SelectContent>
           </Select>
 
@@ -303,58 +300,11 @@ export default function ContentOperations() {
         </TabsContent>
 
         <TabsContent value="calendar" className="mt-4 sm:mt-6">
-          <Card className="bg-white border border-zinc-200 rounded-2xl sm:rounded-3xl">
-            <CardHeader className="px-4 sm:px-6 py-4 sm:py-6">
-              <CardTitle className="text-base sm:text-lg">
-                May 2026 Content Calendar
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
-              <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
-                <div className="grid grid-cols-7 gap-px bg-zinc-200 rounded-2xl overflow-hidden min-w-[640px]">
-                  {Array.from({ length: 35 }).map((_, i) => {
-                    const day = i - 2;
-                    const date = day > 0 ? `May ${day}` : "";
-                    const dayContent = filteredContents.filter((c) =>
-                      c.publishDate.includes(
-                        `2026-05-${day.toString().padStart(2, "0")}`,
-                      ),
-                    );
-
-                    return (
-                      <div
-                        key={i}
-                        className="bg-white min-h-[100px] sm:min-h-[140px] p-2 sm:p-3 hover:bg-zinc-50 transition-colors"
-                      >
-                        {date && (
-                          <div className="text-[10px] sm:text-xs font-mono text-zinc-400 mb-1 sm:mb-2">
-                            {date}
-                          </div>
-                        )}
-                        <div className="space-y-1 sm:space-y-2">
-                          {dayContent.slice(0, 2).map((item) => (
-                            <div
-                              key={item.id}
-                              onClick={() => openDetail(item)}
-                              className="text-[10px] sm:text-xs p-1.5 sm:p-2 bg-zinc-50 rounded-md sm:rounded-lg cursor-pointer hover:bg-white border border-transparent hover:border-zinc-200"
-                            >
-                              <div className="font-medium line-clamp-1">
-                                {item.title}
-                              </div>
-                              <div className="text-[10px] text-zinc-500 mt-0.5">
-                                {item.platform}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+  <CalendarView
+    contents={filteredContents} 
+    onOpenDetail={openDetail} 
+  />
+</TabsContent>
 
         <TabsContent value="table" className="mt-4 sm:mt-6">
           <div className="bg-white rounded-2xl sm:rounded-3xl border border-zinc-200 overflow-hidden">
