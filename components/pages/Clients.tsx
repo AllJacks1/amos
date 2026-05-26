@@ -177,16 +177,16 @@ const teamMembers: TeamMember[] = [
 ];
 
 const industries = [
-  { value: 'beauty_cosmetics', label: 'Beauty & Cosmetics' },
-  { value: 'saas_technology', label: 'SaaS Technology' },
-  { value: 'fashion_retail', label: 'Fashion & Retail' },
-  { value: 'food_beverage', label: 'Food & Beverage' },
-  { value: 'health_wellness', label: 'Health & Wellness' },
-  { value: 'finance', label: 'Finance & Banking' },
-  { value: 'education', label: 'Education' },
-  { value: 'entertainment', label: 'Entertainment' },
-  { value: 'real_estate', label: 'Real Estate' },
-  { value: 'automotive', label: 'Automotive' },
+  { value: "beauty_cosmetics", label: "Beauty & Cosmetics" },
+  { value: "saas_technology", label: "SaaS Technology" },
+  { value: "fashion_retail", label: "Fashion & Retail" },
+  { value: "food_beverage", label: "Food & Beverage" },
+  { value: "health_wellness", label: "Health & Wellness" },
+  { value: "finance", label: "Finance & Banking" },
+  { value: "education", label: "Education" },
+  { value: "entertainment", label: "Entertainment" },
+  { value: "real_estate", label: "Real Estate" },
+  { value: "automotive", label: "Automotive" },
 ];
 
 export default function Clients() {
@@ -371,7 +371,6 @@ export default function Clients() {
           </CardContent>
         </Card>
       </div>
-
       {/* Client Detail Sheet */}
       <Dialog
         open={!!selectedClient}
@@ -573,6 +572,7 @@ export default function Clients() {
                         <Input
                           value={selectedClient.email || "admin@company.com"}
                           className="rounded-2xl h-11"
+                          disabled
                         />
 
                         <p className="text-xs text-zinc-400 mt-1.5">
@@ -648,32 +648,61 @@ export default function Clients() {
       <AddClientModal
         isOpen={isAddClientOpen}
         onClose={() => setIsAddClientOpen(false)}
-        onAdd={(client) => {
-          const newClient: Client = {
-            id: Math.random().toString(36).slice(2),
-            name: client.name,
-            companyName: client.companyName,
-            logo:
-              client.logo ||
-              `https://picsum.photos/id/${Math.floor(Math.random() * 200)}/128/128`,
-            industry:
-              industries.find((i) => i.value === client.industry)?.label ||
-              client.industry,
-            brandColor: "#430062",
-            activeCampaigns: 0,
-            status: "active",
-            createdAt: new Date().toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            }),
-            monthlyReach: "0",
-            engagementRate: 0,
-            teamMembers: 1,
-          };
-          setClients((prev) => [...prev, newClient]);
+        onAdd={async (client) => {
+          try {
+            const formData = new FormData();
+
+            formData.append("company_name", client.companyName);
+            formData.append("industry", client.industry);
+            formData.append("primary_contact_name", client.name);
+            formData.append("email", client.email);
+            formData.append("password", client.password);
+
+            // upload file
+            if (client.logoFile) {
+              formData.append("company_logo", client.logoFile);
+            }
+
+            const res = await fetch("/api/auth/register-client", {
+              method: "POST",
+              body: formData,
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+              alert(data.error || "Failed to create client");
+              return;
+            }
+
+            // your API returns an ARRAY because of insert([...]).select()
+            const createdClient = data.client[0];
+
+            setClients((prev) => [
+              ...prev,
+              {
+                id: createdClient.id,
+                name: createdClient.primary_contact_name,
+                companyName: createdClient.company_name,
+                logo: createdClient.company_logo,
+                industry: createdClient.industry,
+                brandColor: "#430062",
+                activeCampaigns: 0,
+                status: "active",
+                createdAt: new Date().toLocaleDateString(),
+                monthlyReach: "0",
+                engagementRate: 0,
+                teamMembers: 1,
+                email: createdClient.email,
+              },
+            ]);
+
+            setIsAddClientOpen(false);
+          } catch (err) {
+            console.error(err);
+            alert("Something went wrong");
+          }
         }}
-        brandColor="#430062"
       />
     </div>
   );

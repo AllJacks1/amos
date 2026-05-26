@@ -306,7 +306,7 @@ export default function SettingsModule() {
                                 </AvatarFallback>
                               </Avatar>
                               <div>
-                                <div className="font-medium">{user.name}</div>
+                                <div className="font-medium">{user.fullname}</div>
                                 <div className="text-sm text-zinc-500">
                                   {user.email}
                                 </div>

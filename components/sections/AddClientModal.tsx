@@ -33,10 +33,11 @@ interface AddClientModalProps {
     name: string;
     companyName: string;
     industry: string;
-    logo: string | null;
+    logoPreview: string | null;
+    logoFile: File | null;
     email: string;
     password: string;
-  }) => void;
+  }) => Promise<void>;
   brandColor?: string;
 }
 
@@ -63,7 +64,8 @@ export default function AddClientModal({
     name: "",
     companyName: "",
     industry: "",
-    logo: null as string | null,
+    logoPreview: null as string | null,
+    logoFile: null as File | null,
     email: "",
     password: "",
   });
@@ -77,6 +79,9 @@ export default function AddClientModal({
     const newErrors: Record<string, string> = {};
 
     if (!formData.name.trim()) newErrors.name = "Contact name is required";
+    if (!formData.logoFile) {
+      newErrors.logo = "Company logo is required";
+    }
     if (!formData.companyName.trim())
       newErrors.companyName = "Company name is required";
     if (!formData.industry) newErrors.industry = "Please select an industry";
@@ -97,14 +102,21 @@ export default function AddClientModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!validate()) return;
 
-    setIsSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    onAdd(formData);
-    setIsSubmitting(false);
-    resetForm();
-    onClose();
+    try {
+      setIsSubmitting(true);
+
+      await onAdd(formData);
+
+      resetForm();
+      onClose();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const resetForm = () => {
@@ -112,7 +124,8 @@ export default function AddClientModal({
       name: "",
       companyName: "",
       industry: "",
-      logo: null,
+      logoPreview: null,
+      logoFile: null,
       email: "",
       password: "",
     });
@@ -130,20 +143,36 @@ export default function AddClientModal({
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      setErrors((prev) => ({ ...prev, logo: "Please upload an image file" }));
+      setErrors((prev) => ({
+        ...prev,
+        logo: "Please upload an image file",
+      }));
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      setErrors((prev) => ({ ...prev, logo: "Image must be under 5MB" }));
+      setErrors((prev) => ({
+        ...prev,
+        logo: "Image must be under 5MB",
+      }));
       return;
     }
 
     const reader = new FileReader();
+
     reader.onloadend = () => {
-      setFormData((prev) => ({ ...prev, logo: reader.result as string }));
-      setErrors((prev) => ({ ...prev, logo: "" }));
+      setFormData((prev) => ({
+        ...prev,
+        logoPreview: reader.result as string,
+        logoFile: file,
+      }));
+
+      setErrors((prev) => ({
+        ...prev,
+        logo: "",
+      }));
     };
+
     reader.readAsDataURL(file);
   };
 
@@ -155,7 +184,11 @@ export default function AddClientModal({
   };
 
   const removeLogo = () => {
-    setFormData((prev) => ({ ...prev, logo: null }));
+    setFormData((prev) => ({
+      ...prev,
+      logoPreview: null,
+      logoFile: null,
+    }));
   };
 
   if (!isOpen) return null;
@@ -220,7 +253,7 @@ export default function AddClientModal({
               className={`
                 relative border-2 border-dashed rounded-2xl p-6 transition-all cursor-pointer
                 ${isDragging ? "border-violet-400 bg-violet-50" : "border-zinc-200 hover:border-zinc-300 bg-zinc-50/50"}
-                ${formData.logo ? "bg-white border-solid border-zinc-200" : ""}
+                ${formData.logoPreview ? "bg-white border-solid border-zinc-200" : ""}
               `}
             >
               <input
@@ -231,11 +264,11 @@ export default function AddClientModal({
                 className="hidden"
               />
 
-              {formData.logo ? (
+              {formData.logoPreview ? (
                 <div className="flex items-center gap-4">
                   <div className="relative">
                     <img
-                      src={formData.logo}
+                      src={formData.logoPreview}
                       alt="Logo preview"
                       className="w-16 h-16 rounded-xl object-cover border border-zinc-200"
                     />
@@ -478,9 +511,9 @@ export default function AddClientModal({
                 Preview
               </p>
               <div className="flex items-center gap-3">
-                {formData.logo ? (
+                {formData.logoPreview ? (
                   <img
-                    src={formData.logo}
+                    src={formData.logoPreview}
                     alt=""
                     className="w-12 h-12 rounded-xl object-cover border border-zinc-200 flex-shrink-0"
                   />
