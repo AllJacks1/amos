@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Settings,
   Users,
@@ -41,6 +41,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useUsersStore } from "@/store/useUsersStore";
 import AddMemberModal from "../sections/AddMemberModal";
 
 interface User {
@@ -48,7 +49,7 @@ interface User {
   name: string;
   email: string;
   role: string;
-  status: "active" | "invited";
+  status: "active" | "deactivated";
   lastActive: string;
   avatar: string;
 }
@@ -62,36 +63,6 @@ const sidebarItems = [
   // { id: 'appearance', label: 'Appearance', icon: Palette },
 ];
 
-const users: User[] = [
-  {
-    id: "1",
-    name: "Alex Rivera",
-    email: "alex@agency.com",
-    role: "Admin",
-    status: "active",
-    lastActive: "Just now",
-    avatar: "https://picsum.photos/id/64/128/128",
-  },
-  {
-    id: "2",
-    name: "Priya Patel",
-    email: "priya@agency.com",
-    role: "Marketing Lead",
-    status: "active",
-    lastActive: "2h ago",
-    avatar: "https://picsum.photos/id/201/128/128",
-  },
-  {
-    id: "3",
-    name: "Jordan Kim",
-    email: "jordan@agency.com",
-    role: "Creative Director",
-    status: "active",
-    lastActive: "Yesterday",
-    avatar: "https://picsum.photos/id/106/128/128",
-  },
-];
-
 export default function SettingsModule() {
   const [activeTab, setActiveTab] = useState("users");
   const [workspaceName, setWorkspaceName] = useState("AMOS Agency");
@@ -103,8 +74,12 @@ export default function SettingsModule() {
     weeklyReport: true,
   });
 
-  const [teamMembers, setTeamMembers] = useState(users);
+  const { users, fetchUsers, loading } = useUsersStore();
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
   const handleAddMember = async (member: {
     name: string;
@@ -133,20 +108,37 @@ export default function SettingsModule() {
         return;
       }
 
-      const newUser: User = {
-        id: data.user[0].id,
-        name: member.name,
-        email: member.email,
-        role: member.role,
-        status: "invited",
-        lastActive: "Just invited",
-        avatar: "",
-      };
-
-      setTeamMembers((prev) => [...prev, newUser]);
+      fetchUsers({ force: true });
 
       alert("Member added successfully!");
       setIsAddMemberOpen(false);
+    } catch (error) {
+      console.error(error);
+      alert("Something went wrong");
+    }
+  };
+
+  const handleDeactivateUser = async (id: string) => {
+    try {
+      const response = await fetch("/api/accounts/deactivate-user", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.error || "Failed to deactivate user");
+        return;
+      }
+
+      // Update local state
+      fetchUsers({ force: true });
+
+      alert("User deactivated successfully");
     } catch (error) {
       console.error(error);
       alert("Something went wrong");
@@ -296,17 +288,21 @@ export default function SettingsModule() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {teamMembers.map((user) => (
+                      {users.map((user) => (
                         <TableRow key={user.id}>
                           <TableCell>
                             <div className="flex items-center gap-4">
                               <Avatar>
                                 <AvatarImage src={user.avatar} />
                                 <AvatarFallback>
-                                  {user.name
-                                    .split(" ")
-                                    .map((n) => n[0])
-                                    .join("")}
+                                  {user.fullname
+                                    ? user.fullname
+                                        .trim()
+                                        .split(/\s+/)
+                                        .map((n) => n[0])
+                                        .join("")
+                                        .toUpperCase()
+                                    : "?"}
                                 </AvatarFallback>
                               </Avatar>
                               <div>
@@ -322,8 +318,16 @@ export default function SettingsModule() {
                           </TableCell>
                           {/* <TableCell className="text-sm text-zinc-500">{user.lastActive}</TableCell> */}
                           <TableCell>
-                            <Badge className="bg-emerald-100 text-emerald-700 rounded-full">
-                              Active
+                            <Badge
+                              className={`rounded-full ${
+                                user.status === "active"
+                                  ? "bg-emerald-100 text-emerald-700"
+                                  : "bg-red-100 text-red-700"
+                              }`}
+                            >
+                              {user.status === "active"
+                                ? "Active"
+                                : "Deactivated"}
                             </Badge>
                           </TableCell>
                           <TableCell>
@@ -331,6 +335,7 @@ export default function SettingsModule() {
                               variant="ghost"
                               size="icon"
                               className="text-red-500 hover:bg-red-50"
+                              onClick={() => handleDeactivateUser(user.id)}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
