@@ -29,6 +29,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import AddContentModal from "../sections/AddContentModal";
 import RequestRevisionModal from "../sections/RequestRevisionModal";
 import SubmitRevisionModal from "../sections/SubmitRevisionModal";
+import ApproveConfirmDialog from "../sections/ApproveConfirmDialog";
 import { useContentStore } from "@/store/useContentStore";
 
 const brandColor = "#430062";
@@ -101,6 +102,7 @@ export default function ContentOperations() {
 
   const [isRevisionOpen, setIsRevisionOpen] = useState(false);
   const [isSubmitRevisionOpen, setIsSubmitRevisionOpen] = useState(false);
+  const [isApproveOpen, setIsApproveOpen] = useState(false);
 
   useEffect(() => {
     fetchContents();
@@ -635,7 +637,7 @@ export default function ContentOperations() {
               {/* Footer Actions */}
               <div className="border-t bg-white p-4 sm:p-6 lg:p-8 z-10 flex-shrink-0">
                 <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3">
-                 {role === "admin" && selectedContent.status === "revise" && (
+                  {role === "admin" && selectedContent.status === "revise" && (
                     <Button
                       variant="outline"
                       size="lg"
@@ -667,10 +669,8 @@ export default function ContentOperations() {
                       className="w-full sm:flex-1 h-11 sm:h-12 font-semibold text-white shadow-lg shadow-violet-500/20 hover:shadow-xl hover:shadow-violet-500/30 transition-all active:scale-[0.985] text-sm sm:text-base"
                       style={{ backgroundColor: brandColor }}
                       onClick={() => {
-                        if (selectedContent) {
-                          handleStatusChange(selectedContent.id, "approved");
-                          setIsDetailOpen(false);
-                        }
+                        setIsDetailOpen(false);
+                        setIsApproveOpen(true);
                       }}
                     >
                       Approve
@@ -823,6 +823,32 @@ export default function ContentOperations() {
         content={selectedContent}
         brandColor={brandColor}
         adminName="Admin" // or from auth context
+      />
+      <ApproveConfirmDialog
+        isOpen={isApproveOpen}
+        onClose={() => setIsApproveOpen(false)}
+        onConfirm={async () => {
+          if (!selectedContent) return;
+
+          const res = await fetch("/api/contents/approve", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: selectedContent.id }),
+          });
+
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Failed to approve");
+
+          // Update local state
+          handleStatusChange(selectedContent.id, "approved");
+          fetchContents();
+
+          setIsApproveOpen(false);
+        }}
+        contentTitle={selectedContent?.title}
+        contentPlatform={selectedContent?.platform}
+        clientName={selectedContent?.client}
+        brandColor={brandColor}
       />
     </div>
   );

@@ -40,6 +40,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import AddContentModal from "../sections/AddContentModal";
 import RequestRevisionModal from "../sections/RequestRevisionModal";
 import SubmitRevisionModal from "../sections/SubmitRevisionModal";
+import ApproveConfirmDialog from "../sections/ApproveConfirmDialog";
 import { useContentStore } from "@/store/useContentStore";
 
 const brandColor = "#430062";
@@ -83,6 +84,7 @@ export default function ApprovalsModule() {
   const [isAddContentOpen, setIsAddContentOpen] = useState(false);
   const [isRevisionOpen, setIsRevisionOpen] = useState(false);
   const [isSubmitRevisionOpen, setIsSubmitRevisionOpen] = useState(false);
+  const [isApproveOpen, setIsApproveOpen] = useState(false);
 
   const { contents, loading, error, fetchContents, addContent, updateStatus } =
     useContentStore();
@@ -107,8 +109,8 @@ export default function ApprovalsModule() {
   };
 
   const handleApprove = () => {
-    alert("Content approved successfully! 🎉");
     setIsDetailOpen(false);
+    setIsApproveOpen(true);
   };
 
   const handleRequestRevision = () => {
@@ -622,6 +624,7 @@ export default function ApprovalsModule() {
                           style={{ backgroundColor: brandColor }}
                           onClick={handleApprove}
                         >
+                          <CheckCircle2 className="mr-2 h-4 w-4" />
                           Approve Content
                         </Button>
                       </>
@@ -730,6 +733,32 @@ export default function ApprovalsModule() {
             );
           }
         }}
+      />
+      <ApproveConfirmDialog
+        isOpen={isApproveOpen}
+        onClose={() => setIsApproveOpen(false)}
+        onConfirm={async () => {
+          if (!selectedApproval) return;
+
+          const res = await fetch("/api/contents/approve", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: selectedApproval.id }),
+          });
+
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Failed to approve");
+
+          // Update local store + refresh
+          updateStatus(selectedApproval.id, "approved");
+          fetchContents();
+
+          setIsApproveOpen(false);
+        }}
+        contentTitle={selectedApproval?.title}
+        contentPlatform={selectedApproval?.platform}
+        clientName={selectedApproval?.client}
+        brandColor={brandColor}
       />
     </div>
   );
