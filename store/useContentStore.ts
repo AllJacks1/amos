@@ -32,6 +32,8 @@ interface ContentState {
   fetchContents: () => Promise<void>;
   addContent: (content: ContentItem) => void;
   updateStatus: (id: string, status: ContentItem["status"]) => void;
+
+  clearContents: () => void;
 }
 
 export const useContentStore = create<ContentState>((set, get) => ({
@@ -68,5 +70,13 @@ export const useContentStore = create<ContentState>((set, get) => ({
     set((state) => ({
       contents: state.contents.map((c) => (c.id === id ? { ...c, status } : c)),
     }));
+  },
+
+  clearContents: () => {
+    set({
+      contents: [],
+      loading: false,
+      error: null,
+    });
   },
 }));

@@ -32,6 +32,8 @@ interface UsersStore {
   removeUser: (id: string) => void;
 
   clearUsers: () => void;
+
+  logout: () => void;
 }
 
 export const useUsersStore = create<UsersStore>()(
@@ -130,6 +132,16 @@ export const useUsersStore = create<UsersStore>()(
           error: null,
           lastFetched: null,
         });
+      },
+
+      logout: () => {
+        get().clearUsers();
+
+        set({
+          loading: false,
+        });
+
+        localStorage.removeItem("users-storage");
       },
     }),
     {

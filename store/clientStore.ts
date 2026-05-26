@@ -24,6 +24,8 @@ interface ClientStore {
   addClient: (client: Client) => void;
 
   clearClients: () => void;
+
+  logout: () => void;
 }
 
 export const useClientStore = create<ClientStore>()(
@@ -68,8 +70,14 @@ export const useClientStore = create<ClientStore>()(
       clearClients: () => {
         set({
           clients: [],
+          loading: false,
           fetched: false,
         });
+      },
+
+      logout: () => {
+        get().clearClients();
+        localStorage.removeItem("client-store");
       },
     }),
     {

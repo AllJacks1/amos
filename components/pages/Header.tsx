@@ -1,10 +1,24 @@
 "use client";
 
-import {  LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useUsersStore } from "@/store/useUsersStore";
+import { useContentStore } from "@/store/useContentStore";
+import { useClientStore } from "@/store/clientStore";
+import { useRouter } from "next/navigation";
 
 export default function GlobalHeader() {
+  const logout = useUsersStore((state) => state.logout);
+  const router = useRouter();
+
+  const handleLogout = () => {
+    logout();
+    useClientStore.getState().logout();
+    useContentStore.getState().clearContents();
+    router.push("/");
+  };
+
   return (
     <header className="h-16 border-b border-zinc-200 bg-white/95 backdrop-blur-lg sticky top-0 z-40 hidden lg:flex items-center justify-end px-8">
       {/* <div className="flex-1 flex items-center gap-4">
@@ -47,6 +61,7 @@ export default function GlobalHeader() {
               variant="ghost"
               size="icon"
               className="h-8 w-8 shrink-0 hover:bg-zinc-100 transition-colors cursor-pointer"
+              onClick={handleLogout}
             >
               <LogOut className="h-4 w-4 text-zinc-400" />
             </Button>
