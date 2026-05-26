@@ -72,7 +72,7 @@ interface ApprovalItem {
 
 export default function ApprovalsModule() {
   const user = useAuthStore((state) => state.user);
-  const role = user.role;
+  const role = user?.role || "";
 
   const [activeTab, setActiveTab] = useState<"review" | "revise" | "approved">(
     "review",
