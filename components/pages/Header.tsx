@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useUsersStore } from "@/store/useUsersStore";
 import { useContentStore } from "@/store/useContentStore";
 import { useClientStore } from "@/store/clientStore";
+import { useAuthStore } from "@/store/useAuthStore";
 import { useRouter } from "next/navigation";
 
 export default function GlobalHeader() {
@@ -16,6 +17,8 @@ export default function GlobalHeader() {
     logout();
     useClientStore.getState().logout();
     useContentStore.getState().clearContents();
+    useAuthStore.getState().clearUser();
+    localStorage.removeItem("auth-storage");
     router.push("/");
   };
 

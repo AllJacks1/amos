@@ -33,9 +33,9 @@ import ApproveConfirmDialog from "../sections/ApproveConfirmDialog";
 
 import CalendarView from "../sections/CalendarView";
 import { useContentStore } from "@/store/useContentStore";
+import { useAuthStore } from "@/store/useAuthStore";
 
 const brandColor = "#430062";
-const role = "client";
 
 // ==================== TYPES ====================
 interface ContentItem {
@@ -78,6 +78,9 @@ const statusLabels = {
 };
 
 export default function ContentOperations() {
+  const user = useAuthStore((state) => state.user);
+  const role = user.role;
+
   const [activeView, setActiveView] = useState<"kanban" | "calendar" | "table">(
     "kanban",
   );

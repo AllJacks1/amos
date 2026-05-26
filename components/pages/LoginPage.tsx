@@ -13,8 +13,10 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
@@ -51,7 +53,7 @@ export default function LoginPage() {
         type: data.type,
       });
 
-      window.location.href = "/content";
+      router.push("/content");
     } catch (err) {
       alert("Something went wrong");
     } finally {

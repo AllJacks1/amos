@@ -28,11 +28,11 @@ import {
   SheetFooter,
 } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
+import { useAuthStore } from "@/store/useAuthStore";
 
 import GlobalHeader from "./Header";
 
 const brandColor = "#430062";
-const role = "client";
 
 interface NavItem {
   label: string;
@@ -93,6 +93,9 @@ export default function AMOSLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const user = useAuthStore((state) => state.user);
+  const role = user.role;
+  
   const pathname = usePathname();
 
   const [isCollapsed, setIsCollapsed] = useState(false);

@@ -42,9 +42,9 @@ import RequestRevisionModal from "../sections/RequestRevisionModal";
 import SubmitRevisionModal from "../sections/SubmitRevisionModal";
 import ApproveConfirmDialog from "../sections/ApproveConfirmDialog";
 import { useContentStore } from "@/store/useContentStore";
+import { useAuthStore } from "@/store/useAuthStore";
 
 const brandColor = "#430062";
-const role = "client";
 
 // ==================== TYPES ====================
 interface ApprovalItem {
@@ -71,6 +71,9 @@ interface ApprovalItem {
 }
 
 export default function ApprovalsModule() {
+  const user = useAuthStore((state) => state.user);
+  const role = user.role;
+  
   const [activeTab, setActiveTab] = useState<"review" | "revise" | "approved">(
     "review",
   );
