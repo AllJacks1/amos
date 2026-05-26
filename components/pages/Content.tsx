@@ -696,21 +696,57 @@ export default function ContentOperations() {
       <AddContentModal
         isOpen={isAddContentOpen}
         onClose={() => setIsAddContentOpen(false)}
-        onAdd={(content) => {
-          const newContent: ContentItem = {
-            id: `c${Date.now()}`,
-            title: content.title,
-            caption: content.caption,
-            platform: content.platform,
-            contentType: content.contentType,
-            status: content.status as ContentItem["status"],
-            publishDate: content.publishDate,
-            client: content.client,
-            assignedTo: content.assignedTo,
-            driveLinks: content.driveLinks,
-            pillar: content.pillar,
-          };
-          setContents((prev) => [...prev, newContent]);
+        onAdd={async (content) => {
+          try {
+            const res = await fetch("/api/contents/create", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                content_title: content.title,
+                caption: content.caption,
+                platform: content.platform,
+                content_type: content.contentType,
+                client: content.client,
+                assigned_to: content.assignedTo,
+                content_pillar: content.pillar,
+                publish_date: content.publishDate,
+                gdrive_links: content.driveLinks,
+              }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+              throw new Error(data.error || "Failed to create content");
+            }
+
+            const created = data.content;
+
+            const newContent: ContentItem = {
+              id: created.id,
+              title: created.content_title,
+              caption: created.caption,
+              platform: created.platform,
+              contentType: created.content_type,
+              status: "draft",
+              publishDate: created.publish_date,
+              client: created.client,
+              assignedTo: created.assigned_to,
+              driveLinks: created.gdrive_links || [],
+              pillar: created.content_pillar,
+            };
+
+            setContents((prev) => [newContent, ...prev]);
+
+            setIsAddContentOpen(false);
+          } catch (error) {
+            console.error(error);
+            alert(
+              error instanceof Error ? error.message : "Something went wrong",
+            );
+          }
         }}
         brandColor={brandColor}
       />
