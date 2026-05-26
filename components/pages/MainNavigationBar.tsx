@@ -32,6 +32,7 @@ import { Separator } from "@/components/ui/separator";
 import GlobalHeader from "./Header";
 
 const brandColor = "#430062";
+const role = "client";
 
 interface NavItem {
   label: string;
@@ -195,25 +196,26 @@ export default function AMOSLayout({
                 </nav>
               </div>
 
-              <Separator />
-
               {/* Management */}
-              <div>
-                {!isCollapsed && (
-                  <div className="px-3 mb-3 text-xs font-semibold tracking-wide text-zinc-500">
-                    MANAGEMENT
-                  </div>
-                )}
+              {role === "admin" && (
+                <>
+                  <Separator />
+                  <div>
+                    {!isCollapsed && (
+                      <div className="px-3 mb-3 text-xs font-semibold tracking-wide text-zinc-500">
+                        MANAGEMENT
+                      </div>
+                    )}
 
-                <nav className="space-y-1">
-                  {managementNav.map((item) => {
-                    const active = pathname === item.href;
+                    <nav className="space-y-1">
+                      {managementNav.map((item) => {
+                        const active = pathname === item.href;
 
-                    return (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        className={`
+                        return (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            className={`
                           group
                           flex items-center gap-3
                           rounded-2xl
@@ -226,17 +228,19 @@ export default function AMOSLayout({
                               : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950"
                           }
                         `}
-                      >
-                        <div className="shrink-0">{item.icon}</div>
+                          >
+                            <div className="shrink-0">{item.icon}</div>
 
-                        {!isCollapsed && (
-                          <span className="truncate">{item.label}</span>
-                        )}
-                      </Link>
-                    );
-                  })}
-                </nav>
-              </div>
+                            {!isCollapsed && (
+                              <span className="truncate">{item.label}</span>
+                            )}
+                          </Link>
+                        );
+                      })}
+                    </nav>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -362,7 +366,10 @@ export default function AMOSLayout({
 
                       <div className="flex-1 overflow-y-auto overflow-x-hidden p-4">
                         <nav className="space-y-1">
-                          {[...mainNav, ...managementNav].map((item) => {
+                          {[
+                            ...mainNav,
+                            ...(role === "client" ? [] : managementNav),
+                          ].map((item) => {
                             const active = pathname === item.href;
 
                             return (
@@ -371,21 +378,15 @@ export default function AMOSLayout({
                                 href={item.href}
                                 onClick={() => setIsMobileOpen(false)}
                                 className={`
-                                  flex items-center gap-3
-                                  rounded-2xl
-                                  px-4 py-3
-                                  transition-all
-                                  ${
-                                    active
-                                      ? "bg-zinc-100 font-medium"
-                                      : "hover:bg-zinc-100"
-                                  }
-                                `}
+            flex items-center gap-3
+            rounded-2xl
+            px-4 py-3
+            transition-all
+            ${active ? "bg-zinc-100 font-medium" : "hover:bg-zinc-100"}
+          `}
                               >
                                 {item.icon}
-
                                 <span>{item.label}</span>
-
                                 {item.badge && (
                                   <Badge className="ml-auto">
                                     {item.badge}
@@ -396,41 +397,41 @@ export default function AMOSLayout({
                           })}
                         </nav>
                       </div>
-                    </div><SheetFooter>
-                    {/* Footer */}
-                    <div className="shrink-0 border-t border-zinc-200 p-4">
-                      <div className="flex items-center gap-3 rounded-2xl p-2 hover:bg-zinc-100 transition-colors cursor-pointer min-w-0">
-                        <Avatar className="h-9 w-9 border border-zinc-100 shrink-0">
-                          <AvatarImage src="https://github.com/shadcn.png" />
-                          <AvatarFallback>AR</AvatarFallback>
-                        </Avatar>
-
-                        {!isCollapsed && (
-                          <>
-                            <div className="flex-1 min-w-0">
-                              <div className="text-sm font-medium truncate">
-                                Alex Rivera
-                              </div>
-
-                              <div className="text-xs text-emerald-600 truncate">
-                                Admin • Marketing
-                              </div>
-                            </div>
-
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 shrink-0"
-                            >
-                              <LogOut className="h-4 w-4 text-zinc-400" />
-                            </Button>
-                          </>
-                        )}
-                      </div>
                     </div>
-                  </SheetFooter>
+                    <SheetFooter>
+                      {/* Footer */}
+                      <div className="shrink-0 border-t border-zinc-200 p-4">
+                        <div className="flex items-center gap-3 rounded-2xl p-2 hover:bg-zinc-100 transition-colors cursor-pointer min-w-0">
+                          <Avatar className="h-9 w-9 border border-zinc-100 shrink-0">
+                            <AvatarImage src="https://github.com/shadcn.png" />
+                            <AvatarFallback>AR</AvatarFallback>
+                          </Avatar>
+
+                          {!isCollapsed && (
+                            <>
+                              <div className="flex-1 min-w-0">
+                                <div className="text-sm font-medium truncate">
+                                  Alex Rivera
+                                </div>
+
+                                <div className="text-xs text-emerald-600 truncate">
+                                  Admin • Marketing
+                                </div>
+                              </div>
+
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 shrink-0"
+                              >
+                                <LogOut className="h-4 w-4 text-zinc-400" />
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </SheetFooter>
                   </SheetContent>
-                  
                 </Sheet>
               </div>
             </div>

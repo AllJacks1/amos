@@ -31,7 +31,7 @@ import RequestRevisionModal from "../sections/RequestRevisionModal";
 import SubmitRevisionModal from "../sections/SubmitRevisionModal";
 import ApproveConfirmDialog from "../sections/ApproveConfirmDialog";
 
-import CalendarView  from "../sections/CalendarView";
+import CalendarView from "../sections/CalendarView";
 import { useContentStore } from "@/store/useContentStore";
 
 const brandColor = "#430062";
@@ -175,14 +175,16 @@ export default function ContentOperations() {
             </SelectContent>
           </Select>
 
-          <Button
-            style={{ backgroundColor: brandColor }}
-            className="text-white w-full sm:w-auto"
-            onClick={() => setIsAddContentOpen(true)}
-          >
-            <Plus className="mr-2 h-4 w-4 flex-shrink-0" />
-            New Content
-          </Button>
+          {role === "admin" && (
+            <Button
+              style={{ backgroundColor: brandColor }}
+              className="text-white w-full sm:w-auto"
+              onClick={() => setIsAddContentOpen(true)}
+            >
+              <Plus className="mr-2 h-4 w-4 flex-shrink-0" />
+              New Content
+            </Button>
+          )}
         </div>
       </div>
       <Tabs
@@ -300,11 +302,8 @@ export default function ContentOperations() {
         </TabsContent>
 
         <TabsContent value="calendar" className="mt-4 sm:mt-6">
-  <CalendarView
-    contents={filteredContents} 
-    onOpenDetail={openDetail} 
-  />
-</TabsContent>
+          <CalendarView contents={filteredContents} onOpenDetail={openDetail} />
+        </TabsContent>
 
         <TabsContent value="table" className="mt-4 sm:mt-6">
           <div className="bg-white rounded-2xl sm:rounded-3xl border border-zinc-200 overflow-hidden">

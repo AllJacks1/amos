@@ -187,14 +187,16 @@ export default function ApprovalsModule() {
             </Select>
 
             {/* Upload Button */}
-            <Button
-              style={{ backgroundColor: brandColor }}
-              className="text-white w-full sm:w-auto"
-              onClick={() => setIsAddContentOpen(true)}
-            >
-              <Plus className="mr-2 h-4 w-4 flex-shrink-0" />
-              New Content
-            </Button>
+            {role === "admin" && (
+              <Button
+                style={{ backgroundColor: brandColor }}
+                className="text-white w-full sm:w-auto"
+                onClick={() => setIsAddContentOpen(true)}
+              >
+                <Plus className="mr-2 h-4 w-4 flex-shrink-0" />
+                New Content
+              </Button>
+            )}
           </div>
         </div>
 
