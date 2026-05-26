@@ -16,6 +16,17 @@ type DbContent = {
   publish_date: string;
   gdrive_links: string[];
   content_pillar: string;
+
+  // NEW
+  priority?: string;
+  revision_due_date?: string;
+  revision_count?: number;
+  revision_notes?: {
+    commenter: string;
+    comment: string;
+    created_at: string;
+  }[];
+
   client: { company_name: string } | null;
   assigned_to: { fullname: string } | null;
 };
@@ -72,6 +83,12 @@ export async function GET(req: NextRequest) {
       assignedTo: item.assigned_to?.fullname ?? "",
       driveLinks: item.gdrive_links ?? [],
       pillar: item.content_pillar,
+
+      // NEW
+      priority: item.priority ?? null,
+      revisionDueDate: item.revision_due_date ?? null,
+      revisionCount: item.revision_count ?? null,
+      revisionNotes: item.revision_notes ?? null,
     }));
 
     return NextResponse.json({ contents }, { status: 200 });

@@ -39,12 +39,21 @@ interface ContentItem {
   caption: string;
   platform: string;
   contentType: string;
-  status: "review" | "approval" | "approved" | "scheduled" | "posted";
+  status: "review" | "revise" | "approved" | "scheduled" | "posted";
   publishDate: string;
   client: string;
   assignedTo: string;
   driveLinks: string[];
   pillar: string;
+
+  priority?: string | null;
+  revisionDueDate?: string | null;
+  revisionCount?: number;
+  revisionNotes?: {
+    commenter: string;
+    comment: string;
+    created_at: string;
+  }[];
 }
 
 interface Comment {
@@ -71,7 +80,7 @@ const mockComments: Comment[] = [
 
 const statusColors = {
   review: "bg-amber-100 text-amber-700",
-  approval: "bg-rose-100 text-rose-700",
+  revise: "bg-rose-100 text-rose-700",
   approved: "bg-emerald-100 text-emerald-700",
   scheduled: "bg-blue-100 text-blue-700",
   posted: "bg-purple-100 text-purple-700",
@@ -79,7 +88,7 @@ const statusColors = {
 
 const statusLabels = {
   review: "Internal Review",
-  approval: "For Approval",
+  revise: "For Revision",
   approved: "Approved",
   scheduled: "Scheduled",
   posted: "Posted",
@@ -113,8 +122,8 @@ export default function ContentOperations() {
   const [isRevisionOpen, setIsRevisionOpen] = useState(false);
 
   useEffect(() => {
-  fetchContents();
-}, [fetchContents]);
+    fetchContents();
+  }, [fetchContents]);
 
   const kanbanColumns = [
     {
@@ -123,9 +132,9 @@ export default function ContentOperations() {
       items: filteredContents.filter((c) => c.status === "review"),
     },
     {
-      id: "approval",
-      title: "For Approval",
-      items: filteredContents.filter((c) => c.status === "approval"),
+      id: "revise",
+      title: "For Revision",
+      items: filteredContents.filter((c) => c.status === "revise"),
     },
     {
       id: "approved",
@@ -139,12 +148,11 @@ export default function ContentOperations() {
     },
   ];
 
-  const handleStatusChange = (id: string, newStatus: ContentItem["status"]) => {
-    setContents((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, status: newStatus } : item,
-      ),
-    );
+  const handleStatusChange = async (
+    id: string,
+    newStatus: ContentItem["status"],
+  ) => {
+    await updateStatus(id, newStatus);
   };
 
   const openDetail = (content: ContentItem) => {
@@ -181,7 +189,7 @@ export default function ContentOperations() {
             <SelectContent>
               <SelectItem value="all">All Statuses</SelectItem>
               <SelectItem value="review">In Review</SelectItem>
-              <SelectItem value="approval">For Approval</SelectItem>
+              <SelectItem value="revise">For Revision</SelectItem>
               <SelectItem value="approved">Approved</SelectItem>
               <SelectItem value="scheduled">Scheduled</SelectItem>
             </SelectContent>
@@ -565,48 +573,82 @@ export default function ContentOperations() {
 
                 <Separator className="my-1 sm:my-2" />
 
-                {/* Comments Section */}
-                <div className="flex flex-col min-h-[200px] sm:min-h-0">
-                  <div className="flex items-center justify-between mb-3 sm:mb-5">
-                    <h4 className="font-semibold text-base sm:text-lg flex items-center gap-2">
-                      Comments
-                      <span className="text-xs sm:text-sm font-medium px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-500">
-                        {mockComments.length}
-                      </span>
-                    </h4>
-                  </div>
+                {/* Revision Details */}
 
-                  <ScrollArea className="flex-1 pr-2 min-h-0">
-                    <div className="space-y-4 sm:space-y-6 pb-4">
-                      {mockComments.map((comment) => (
-                        <div key={comment.id} className="flex gap-2.5 sm:gap-3">
-                          <Avatar className="h-8 w-8 sm:h-9 sm:w-10 flex-shrink-0">
-                            <AvatarFallback className="text-xs sm:text-sm font-medium">
-                              {comment.user
-                                .split(" ")
-                                .map((n) => n[0])
-                                .join("")}
-                            </AvatarFallback>
-                          </Avatar>
+                {(selectedContent.revisionNotes?.length > 0 ||
+                  selectedContent.revisionDueDate ||
+                  selectedContent.priority ||
+                  selectedContent.revisionCount) && (
+                  <div className="space-y-5 rounded-2xl border border-amber-200 bg-amber-50/50 p-4 sm:p-6">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm sm:text-base font-semibold text-amber-900">
+                        Revision Details
+                      </h4>
 
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between gap-2">
-                              <span className="font-semibold text-sm sm:text-base text-zinc-900 truncate">
-                                {comment.user}
-                              </span>
-                              <span className="text-[11px] sm:text-xs text-zinc-400 whitespace-nowrap flex-shrink-0">
-                                {comment.timestamp}
-                              </span>
-                            </div>
-                            <p className="mt-1 text-sm text-zinc-600 leading-relaxed">
-                              {comment.comment}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
+                      {selectedContent.priority && (
+                        <Badge className="bg-amber-100 text-amber-700 border border-amber-200">
+                          {selectedContent.priority} Priority
+                        </Badge>
+                      )}
                     </div>
-                  </ScrollArea>
-                </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {selectedContent.revisionDueDate  && (
+                        <div>
+                          <p className="text-[11px] uppercase tracking-widest text-zinc-500 mb-1">
+                            Due Date
+                          </p>
+                          <p className="text-sm font-medium text-zinc-900">
+                            {selectedContent.revisionDueDate }
+                          </p>
+                        </div>
+                      )}
+
+                      {selectedContent.revisionCount !== null && (
+                        <div>
+                          <p className="text-[11px] uppercase tracking-widest text-zinc-500 mb-1">
+                            Revision Count
+                          </p>
+                          <p className="text-sm font-medium text-zinc-900">
+                            {selectedContent.revisionCount}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Revision Notes */}
+                    {selectedContent.revisionNotes?.length > 0 && (
+                      <div>
+                        <p className="text-[11px] uppercase tracking-widest text-zinc-500 mb-3">
+                          Revision Notes
+                        </p>
+
+                        <div className="space-y-3">
+                          {selectedContent.revisionNotes.map((note, idx) => (
+                            <div
+                              key={idx}
+                              className="rounded-xl border border-zinc-200 bg-white p-4"
+                            >
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="font-medium text-sm text-zinc-900">
+                                  {note.commenter}
+                                </span>
+
+                                <span className="text-xs text-zinc-400">
+                                  {new Date(note.created_at).toLocaleString()}
+                                </span>
+                              </div>
+
+                              <p className="text-sm text-zinc-700 leading-relaxed">
+                                {note.comment}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Footer Actions */}
@@ -701,11 +743,52 @@ export default function ContentOperations() {
       <RequestRevisionModal
         isOpen={isRevisionOpen}
         onClose={() => setIsRevisionOpen(false)}
-        onSubmit={(request) => {
-          console.log("Revision requested:", request);
+        onSubmit={async (request) => {
+          try {
+            if (!selectedContent) return;
 
-          if (selectedContent) {
-            handleStatusChange(selectedContent.id, "review");
+            const revisionNote = {
+              commenter: "Karl Tan", // replace with logged in user later
+              comment: request.comment,
+              created_at: new Date().toISOString(),
+            };
+
+            const res = await fetch("/api/contents/revise", {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                id: selectedContent.id,
+                status: "revise",
+                priority: request.priority,
+                revision_due_date: request.dueDate,
+                revision_count: 1, // or increment dynamically
+                revision_notes: [revisionNote],
+              }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+              throw new Error(data.error || "Failed to update content");
+            }
+
+            console.log("Updated:", data);
+
+            // optional local UI update
+            handleStatusChange(selectedContent.id, "revise");
+
+            setIsRevisionOpen(false);
+
+            // refetch latest data
+            fetchContents();
+          } catch (error) {
+            console.error(error);
+
+            alert(
+              error instanceof Error ? error.message : "Something went wrong",
+            );
           }
         }}
         contentTitle={selectedContent?.title}

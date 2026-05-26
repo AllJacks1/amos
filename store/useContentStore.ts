@@ -6,12 +6,22 @@ export interface ContentItem {
   caption: string;
   platform: string;
   contentType: string;
-  status: "review" | "approval" | "approved" | "scheduled" | "posted";
+  status: "review" | "revise" | "approved" | "scheduled" | "posted";
   publishDate: string;
   client: string;
   assignedTo: string;
   driveLinks: string[];
   pillar: string;
+
+  priority?: string | null;
+  revisionDueDate?: string | null;
+  revisionCount?: number;
+
+  revisionNotes?: {
+    commenter: string;
+    comment: string;
+    created_at: string;
+  }[];
 }
 
 interface ContentState {
