@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   CheckCircle,
   Clock,
@@ -39,6 +39,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import AddContentModal from "../sections/AddContentModal";
 import RequestRevisionModal from "../sections/RequestRevisionModal";
+import { useContentStore } from "@/store/useContentStore";
 
 const brandColor = "#430062";
 
@@ -74,62 +75,7 @@ interface HistoryEntry {
   comment?: string;
 }
 
-// ==================== MOCK DATA ====================
-const approvals: ApprovalItem[] = [
-  {
-    id: "app1",
-    title: "Summer Collection Launch Reel",
-    caption:
-      "Get ready for our boldest summer drop yet. Shop the new arrivals now.",
-    platform: "Instagram",
-    contentType: "Reel",
-    client: "Lumina Fashion",
-    thumbnail: "https://picsum.photos/id/1015/600/400",
-    status: "pending",
-    dueDate: "May 24, 2026",
-    submittedAt: "2 days ago",
-    driveLinks: [
-      "https://drive.google.com/file/d/3y8wL5qM2nPrS9uZvXkW5yA7bC9dE1fH/view",
-      "https://drive.google.com/file/d/4z9xM6rN3oQsT0vAwYlX6zB8cD0eF2gI/view",
-    ],
-    revisionCount: 1,
-  },
-  {
-    id: "app2",
-    title: "Q2 Performance Report Carousel",
-    caption: "Real results from real campaigns. See how we helped Nexus grow.",
-    platform: "LinkedIn",
-    contentType: "Carousel",
-    client: "Nexus Tech",
-    thumbnail: "https://picsum.photos/id/201/600/400",
-    status: "revision",
-    dueDate: "May 23, 2026",
-    submittedAt: "Yesterday",
-    driveLinks: [
-      "https://drive.google.com/file/d/3y8wL5qM2nPrS9uZvXkW5yA7bC9dE1fH/view",
-      "https://drive.google.com/file/d/4z9xM6rN3oQsT0vAwYlX6zB8cD0eF2gI/view",
-    ],
-    revisionCount: 2,
-  },
-  {
-    id: "app3",
-    title: "Mindful Monday Tip Graphic",
-    caption: "One small change can transform your week.",
-    platform: "Instagram",
-    contentType: "Static",
-    client: "Bloom Wellness",
-    thumbnail: "https://picsum.photos/id/237/600/400",
-    status: "approved",
-    dueDate: "May 20, 2026",
-    submittedAt: "3 days ago",
-    driveLinks: [
-      "https://drive.google.com/file/d/3y8wL5qM2nPrS9uZvXkW5yA7bC9dE1fH/view",
-      "https://drive.google.com/file/d/4z9xM6rN3oQsT0vAwYlX6zB8cD0eF2gI/view",
-    ],
-    revisionCount: 0,
-  },
-];
-
+// ==================== MOCK DATA ===================
 const mockComments: Comment[] = [
   {
     id: "c1",
@@ -171,8 +117,8 @@ const mockHistory: HistoryEntry[] = [
 
 export default function ApprovalsModule() {
   const [activeTab, setActiveTab] = useState<
-    "pending" | "revision" | "approved"
-  >("pending");
+    "review" | "revision" | "approved"
+  >("review");
   const [searchTerm, setSearchTerm] = useState("");
   const [clientFilter, setClientFilter] = useState("all");
   const [selectedApproval, setSelectedApproval] = useState<ApprovalItem | null>(
@@ -183,7 +129,14 @@ export default function ApprovalsModule() {
   const [isAddContentOpen, setIsAddContentOpen] = useState(false);
   const [isRevisionOpen, setIsRevisionOpen] = useState(false);
 
-  const filteredApprovals = approvals.filter((item) => {
+  const { contents, loading, error, fetchContents, addContent, updateStatus } =
+    useContentStore();
+
+  useEffect(() => {
+    fetchContents();
+  }, [fetchContents]);
+
+  const filteredApprovals = contents.filter((item) => {
     const matchesSearch =
       item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.client.toLowerCase().includes(searchTerm.toLowerCase());
@@ -230,11 +183,11 @@ export default function ApprovalsModule() {
     return due < new Date();
   }
 
-  const pendingCount = approvals.filter((a) => a.status === "pending").length;
+  const pendingCount = contents.filter((a) => a.status === "review").length;
 
-  const revisionCount = approvals.filter((a) => a.status === "revision").length;
+  const revisionCount = contents.filter((a) => a.status === "revision").length;
 
-  const approvedCount = approvals.filter((a) => a.status === "approved").length;
+  const approvedCount = contents.filter((a) => a.status === "approved").length;
 
   return (
     <div className="p-6 lg:p-8 space-y-8">
@@ -293,8 +246,8 @@ export default function ApprovalsModule() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-4xl font-semibold tracking-tighter">7</div>
-              <p className="text-sm text-zinc-500 mt-2">Due this week</p>
+              <div className="text-4xl font-semibold tracking-tighter">{pendingCount}</div>
+              {/* <p className="text-sm text-zinc-500 mt-2">Due this week</p> */}
             </CardContent>
           </Card>
 
@@ -306,23 +259,23 @@ export default function ApprovalsModule() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-4xl font-semibold tracking-tighter">3</div>
-              <p className="text-sm text-zinc-500 mt-2">Action required</p>
+              <div className="text-4xl font-semibold tracking-tighter">{revisionCount}</div>
+              {/* <p className="text-sm text-zinc-500 mt-2">Action required</p> */}
             </CardContent>
           </Card>
 
           <Card className="bg-white border border-zinc-200 rounded-3xl shadow-sm">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">Approved This Month</CardTitle>
+                <CardTitle className="text-lg">Approved</CardTitle>
                 <CheckCircle className="h-5 w-5 text-emerald-600" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-4xl font-semibold tracking-tighter">24</div>
-              <p className="text-sm text-emerald-600 mt-2">
+              <div className="text-4xl font-semibold tracking-tighter">{approvedCount}</div>
+              {/* <p className="text-sm text-emerald-600 mt-2">
                 +4 from last month
-              </p>
+              </p> */}
             </CardContent>
           </Card>
         </div>
@@ -331,14 +284,14 @@ export default function ApprovalsModule() {
         <Tabs
           value={activeTab}
           onValueChange={(v) =>
-            setActiveTab(v as "pending" | "revision" | "approved")
+            setActiveTab(v as "review" | "revision" | "approved")
           }
           className="w-full"
         >
           <TabsList className="bg-white border border-zinc-200 flex flex-wrap h-auto w-full md:w-fit p-1 gap-1">
             {[
               {
-                value: "pending",
+                value: "review",
                 label: "Pending Review",
                 icon: Clock,
                 count: pendingCount,
@@ -375,7 +328,7 @@ export default function ApprovalsModule() {
             ))}
           </TabsList>
 
-          {["pending", "revision", "approved"].map((tab) => (
+          {["review", "revision", "approved"].map((tab) => (
             <TabsContent
               key={tab}
               value={tab}
@@ -475,7 +428,7 @@ export default function ApprovalsModule() {
                       {!item.thumbnail && (
                         <div
                           className={`h-1 w-full ${
-                            item.status === "pending"
+                            item.status === "review"
                               ? "bg-amber-400"
                               : item.status === "revision"
                                 ? "bg-rose-400"
@@ -489,7 +442,7 @@ export default function ApprovalsModule() {
               ) : (
                 <div className="text-center py-16 sm:py-24 animate-in fade-in duration-500">
                   <div className="mx-auto w-14 h-14 sm:w-16 sm:h-16 bg-zinc-50 border border-zinc-100 rounded-2xl flex items-center justify-center mb-5">
-                    {tab === "pending" ? (
+                    {tab === "review" ? (
                       <Inbox className="h-7 w-7 text-zinc-300" />
                     ) : tab === "revision" ? (
                       <CheckCircle2 className="h-7 w-7 text-zinc-300" />
@@ -498,14 +451,14 @@ export default function ApprovalsModule() {
                     )}
                   </div>
                   <h3 className="text-lg sm:text-xl font-semibold text-zinc-900">
-                    {tab === "pending"
+                    {tab === "review"
                       ? "All caught up!"
                       : tab === "revision"
                         ? "No revisions needed"
                         : "Nothing approved yet"}
                   </h3>
                   <p className="text-sm sm:text-base text-zinc-500 mt-2 max-w-sm mx-auto">
-                    {tab === "pending"
+                    {tab === "review"
                       ? "There are no items waiting for your review right now."
                       : tab === "revision"
                         ? "Great work! No content needs revision at the moment."
@@ -672,12 +625,12 @@ export default function ApprovalsModule() {
               <div className="border-t bg-white p-6 sm:p-8 z-10 flex-shrink-0">
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Button
-  variant="outline"
-  className="flex-1 h-12"
-  onClick={handleRequestRevision}
->
-  Request Revision
-</Button>
+                    variant="outline"
+                    className="flex-1 h-12"
+                    onClick={handleRequestRevision}
+                  >
+                    Request Revision
+                  </Button>
                   <Button
                     className="flex-1 h-12 text-white p-2"
                     style={{ backgroundColor: brandColor }}
@@ -708,27 +661,28 @@ export default function ApprovalsModule() {
             driveLinks: content.driveLinks,
             pillar: content.pillar,
           };
-          setContents((prev) => [...prev, newContent]);
+
+          addContent(newContent);
         }}
         brandColor={brandColor}
       />
       <RequestRevisionModal
-  isOpen={isRevisionOpen}
-  onClose={() => setIsRevisionOpen(false)}
-  onSubmit={(request) => {
-    // Handle the revision request
-    console.log('Revision requested:', request);
-    // Update content status to "revision"
-    if (selectedApproval) {
-      handleStatusChange(selectedApproval.id, 'revision');
-    }
-    // You could also append to revision history here
-  }}
-  contentTitle={selectedApproval?.title}
-  contentPlatform={selectedApproval?.platform}
-  assignedTo={selectedApproval?.assignedTo || 'Team Member'}
-  brandColor={brandColor}
-/>
+        isOpen={isRevisionOpen}
+        onClose={() => setIsRevisionOpen(false)}
+        onSubmit={(request) => {
+          // Handle the revision request
+          console.log("Revision requested:", request);
+          // Update content status to "revision"
+          if (selectedApproval) {
+            handleStatusChange(selectedApproval.id, "revision");
+          }
+          // You could also append to revision history here
+        }}
+        contentTitle={selectedApproval?.title}
+        contentPlatform={selectedApproval?.platform}
+        assignedTo={selectedApproval?.assignedTo || "Team Member"}
+        brandColor={brandColor}
+      />
     </div>
   );
 }

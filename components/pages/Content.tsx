@@ -28,6 +28,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import AddContentModal from "../sections/AddContentModal";
 import RequestRevisionModal from "../sections/RequestRevisionModal";
+import { useContentStore } from "@/store/useContentStore";
 
 const brandColor = "#430062";
 
@@ -89,9 +90,8 @@ export default function ContentOperations() {
     "kanban",
   );
 
-  const [contents, setContents] = useState<ContentItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { contents, fetchContents, updateStatus, addContent, loading } =
+    useContentStore();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -112,30 +112,9 @@ export default function ContentOperations() {
 
   const [isRevisionOpen, setIsRevisionOpen] = useState(false);
 
-  const fetchContents = async () => {
-    try {
-      setLoading(true);
-
-      const params = new URLSearchParams();
-      if (statusFilter !== "all") params.append("status", statusFilter);
-      if (searchTerm) params.append("search", searchTerm);
-
-      const res = await fetch(`/api/contents/fetch?${params.toString()}`);
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.error || "Failed to fetch contents");
-
-      setContents(data.contents);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchContents();
-  }, []);
+  fetchContents();
+}, [fetchContents]);
 
   const kanbanColumns = [
     {
@@ -707,7 +686,7 @@ export default function ContentOperations() {
               pillar: created.content_pillar,
             };
 
-            setContents((prev) => [newContent, ...prev]);
+            addContent(newContent);
 
             setIsAddContentOpen(false);
           } catch (error) {
