@@ -73,7 +73,7 @@ interface ApprovalItem {
 export default function ApprovalsModule() {
   const user = useAuthStore((state) => state.user);
   const role = user.role;
-  
+
   const [activeTab, setActiveTab] = useState<"review" | "revise" | "approved">(
     "review",
   );
@@ -148,11 +148,27 @@ export default function ApprovalsModule() {
     return due < new Date();
   }
 
-  const pendingCount = contents.filter((a) => a.status === "review").length;
+  const filteredByClient =
+    clientFilter === "all"
+      ? contents
+      : contents.filter((item) => item.client === clientFilter);
 
-  const revisionCount = contents.filter((a) => a.status === "revise").length;
+  // Counts now react to selected client
+  const pendingCount = filteredByClient.filter(
+    (a) => a.status === "review",
+  ).length;
 
-  const approvedCount = contents.filter((a) => a.status === "approved").length;
+  const revisionCount = filteredByClient.filter(
+    (a) => a.status === "revise",
+  ).length;
+
+  const approvedCount = filteredByClient.filter(
+    (a) => a.status === "approved",
+  ).length;
+
+  const uniqueClients = [
+    ...new Set(contents.map((item) => item.client).filter(Boolean)),
+  ];
 
   return (
     <div className="p-6 lg:p-8 space-y-8">
@@ -177,17 +193,23 @@ export default function ApprovalsModule() {
             </div>
 
             {/* Client Filter */}
-            <Select value={clientFilter} onValueChange={setClientFilter}>
-              <SelectTrigger className="h-11 w-full sm:w-52">
-                <SelectValue placeholder="All Clients" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Clients</SelectItem>
-                <SelectItem value="Lumina Fashion">Lumina Fashion</SelectItem>
-                <SelectItem value="Nexus Tech">Nexus Tech</SelectItem>
-                <SelectItem value="Bloom Wellness">Bloom Wellness</SelectItem>
-              </SelectContent>
-            </Select>
+            {role === "admin" && (
+              <Select value={clientFilter} onValueChange={setClientFilter}>
+                <SelectTrigger className="h-11 w-full sm:w-52">
+                  <SelectValue placeholder="All Clients" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value="all">All Clients</SelectItem>
+
+                  {uniqueClients.map((client) => (
+                    <SelectItem key={client} value={client}>
+                      {client}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
 
             {/* Upload Button */}
             {role === "admin" && (
