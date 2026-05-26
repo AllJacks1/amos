@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Calendar as CalendarIcon,
   LayoutDashboard,
@@ -38,7 +38,7 @@ interface ContentItem {
   caption: string;
   platform: string;
   contentType: string;
-  status: "draft" | "review" | "approval" | "approved" | "scheduled" | "posted";
+  status: "review" | "approval" | "approved" | "scheduled" | "posted";
   publishDate: string;
   client: string;
   assignedTo: string;
@@ -52,57 +52,6 @@ interface Comment {
   comment: string;
   timestamp: string;
 }
-
-// ==================== MOCK DATA ====================
-const mockContents: ContentItem[] = [
-  {
-    id: "c1",
-    title: "Summer Collection Launch Reel",
-    caption: "Get ready for our boldest summer yet 🌞",
-    platform: "Instagram",
-    contentType: "Reel",
-    status: "scheduled",
-    publishDate: "2026-05-24",
-    client: "Lumina Fashion",
-    assignedTo: "Sarah Chen",
-    driveLinks: [
-      "https://drive.google.com/file/d/1x7vK9pL2mNqR8tYvUjW3xZ5aB7cD9eF/view",
-      "https://drive.google.com/file/d/1aB2cD3eF4gH5iJ6kL7mN8oP9qR0sT1u/view",
-    ],
-    pillar: "Product Launch",
-  },
-  {
-    id: "c2",
-    title: "Q2 Performance Report Teaser",
-    caption: "Numbers don't lie. Results do.",
-    platform: "LinkedIn",
-    contentType: "Carousel",
-    status: "posted",
-    publishDate: "2026-05-27",
-    client: "Nexus Tech",
-    assignedTo: "Marcus Rivera",
-    driveLinks: [
-      "https://drive.google.com/file/d/1odwTxBNBZOOaRJfxgmCPC4eJzm-n7pQR/view?usp=sharing",
-    ],
-    pillar: "Thought Leadership",
-  },
-  {
-    id: "c3",
-    title: "Wellness Tips Monday",
-    caption: "Small habits. Big impact.",
-    platform: "Instagram",
-    contentType: "Static",
-    status: "review",
-    publishDate: "2026-05-26",
-    client: "Bloom Wellness",
-    assignedTo: "Aisha Patel",
-    driveLinks: [
-      "https://drive.google.com/file/d/3y8wL5qM2nPrS9uZvXkW5yA7bC9dE1fH/view",
-      "https://drive.google.com/file/d/4z9xM6rN3oQsT0vAwYlX6zB8cD0eF2gI/view",
-    ],
-    pillar: "Educational",
-  },
-];
 
 const mockComments: Comment[] = [
   {
@@ -120,7 +69,6 @@ const mockComments: Comment[] = [
 ];
 
 const statusColors = {
-  draft: "bg-zinc-100 text-zinc-700",
   review: "bg-amber-100 text-amber-700",
   approval: "bg-rose-100 text-rose-700",
   approved: "bg-emerald-100 text-emerald-700",
@@ -129,7 +77,6 @@ const statusColors = {
 };
 
 const statusLabels = {
-  draft: "Draft",
   review: "Internal Review",
   approval: "For Approval",
   approved: "Approved",
@@ -141,7 +88,11 @@ export default function ContentOperations() {
   const [activeView, setActiveView] = useState<"kanban" | "calendar" | "table">(
     "kanban",
   );
-  const [contents, setContents] = useState(mockContents);
+
+  const [contents, setContents] = useState<ContentItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedContent, setSelectedContent] = useState<ContentItem | null>(
@@ -161,12 +112,32 @@ export default function ContentOperations() {
 
   const [isRevisionOpen, setIsRevisionOpen] = useState(false);
 
+  const fetchContents = async () => {
+    try {
+      setLoading(true);
+
+      const params = new URLSearchParams();
+      if (statusFilter !== "all") params.append("status", statusFilter);
+      if (searchTerm) params.append("search", searchTerm);
+
+      const res = await fetch(`/api/contents/fetch?${params.toString()}`);
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error || "Failed to fetch contents");
+
+      setContents(data.contents);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unknown error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchContents();
+  }, []);
+
   const kanbanColumns = [
-    {
-      id: "draft",
-      title: "Draft",
-      items: filteredContents.filter((c) => c.status === "draft"),
-    },
     {
       id: "review",
       title: "Internal Review",
@@ -230,7 +201,6 @@ export default function ContentOperations() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="draft">Draft</SelectItem>
               <SelectItem value="review">In Review</SelectItem>
               <SelectItem value="approval">For Approval</SelectItem>
               <SelectItem value="approved">Approved</SelectItem>
@@ -730,7 +700,6 @@ export default function ContentOperations() {
               caption: created.caption,
               platform: created.platform,
               contentType: created.content_type,
-              status: "draft",
               publishDate: created.publish_date,
               client: created.client,
               assignedTo: created.assigned_to,
