@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { useAuthStore } from "@/store/useAuthStore";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -19,15 +20,43 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const setUser = useAuthStore((state) => state.setUser);
 
   const brandColor = "#430062";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setIsLoading(false);
+
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || "Login failed");
+        setIsLoading(false);
+        return;
+      }
+
+      // store user globally in Zustand
+      setUser({
+        ...data.user,
+        type: data.type,
+      });
+
+      window.location.href = "/content";
+    } catch (err) {
+      alert("Something went wrong");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -61,7 +90,8 @@ export default function LoginPage() {
               Welcome back to Axis Command
             </h2>
             <p className="text-lg text-white/80 leading-relaxed mb-8">
-              Manage content, campaigns, reporting, and approvals in one streamlined marketing workspace.
+              Manage content, campaigns, reporting, and approvals in one
+              streamlined marketing workspace.
             </p>
 
             <div className="space-y-4">
@@ -79,9 +109,16 @@ export default function LoginPage() {
           </div>
 
           <div className="text-sm text-white/60">
-            © 2026 <a href="https://www.astragroupph.com" target="_blank" rel="noopener noreferrer" className="hover:underline">
+            © 2026{" "}
+            <a
+              href="https://www.astragroupph.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:underline"
+            >
               Astra Group of Companies, Inc.
-            </a> All rights reserved.
+            </a>{" "}
+            All rights reserved.
           </div>
         </div>
       </div>
@@ -92,13 +129,13 @@ export default function LoginPage() {
           {/* Mobile Logo */}
           <div className="lg:hidden flex items-center justify-center gap-3 mb-8">
             <Image
-                src="/logos/axiscommand_primary.png"
-                alt="Axis Command Logo"
-                width={242}
-                height={82}
-                className="object-contain"
-                priority
-              />
+              src="/logos/axiscommand_primary.png"
+              alt="Axis Command Logo"
+              width={242}
+              height={82}
+              className="object-contain"
+              priority
+            />
           </div>
 
           <div className="text-center lg:text-left">
@@ -106,7 +143,7 @@ export default function LoginPage() {
               Sign in to your account
             </h1>
             <p className="mt-2 text-gray-600">
-              Don't have an account?{" "}
+              Don&apos;t have an account?{" "}
               <Link
                 href="/signup"
                 className="font-semibold hover:underline transition-colors"
@@ -124,8 +161,8 @@ export default function LoginPage() {
               className="flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 hover:shadow-sm hover:cursor-pointer"
               style={{ "--tw-ring-color": brandColor } as React.CSSProperties}
             > */}
-              {/* <Chrome className="w-5 h-5" /> */}
-              {/* <span>Google</span>
+          {/* <Chrome className="w-5 h-5" /> */}
+          {/* <span>Google</span>
             </button>
           </div>
 
