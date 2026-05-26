@@ -90,19 +90,29 @@ export default function ContentOperations() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [clientFilter, setClientFilter] = useState<string>("all");
   const [selectedContent, setSelectedContent] = useState<ContentItem | null>(
     null,
   );
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isAddContentOpen, setIsAddContentOpen] = useState(false);
 
+  const uniqueClients = [
+    ...new Set(contents.map((item) => item.client).filter(Boolean)),
+  ];
+
   const filteredContents = contents.filter((item) => {
     const matchesSearch =
       item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.client.toLowerCase().includes(searchTerm.toLowerCase());
+
     const matchesStatus =
       statusFilter === "all" || item.status === statusFilter;
-    return matchesSearch && matchesStatus;
+
+    const matchesClient =
+      clientFilter === "all" || item.client === clientFilter;
+
+    return matchesSearch && matchesStatus && matchesClient;
   });
 
   const [isRevisionOpen, setIsRevisionOpen] = useState(false);
@@ -151,7 +161,8 @@ export default function ContentOperations() {
             Content Operations
           </h1>
           <p className="text-zinc-600 mt-1 text-sm sm:text-base">
-            Unified workspace • 87 total pieces
+            Unified workspace • {filteredContents.length} total piece
+            {filteredContents.length !== 1 ? "s" : ""}
           </p>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
@@ -177,6 +188,24 @@ export default function ContentOperations() {
               {/* <SelectItem value="scheduled">Scheduled</SelectItem> */}
             </SelectContent>
           </Select>
+
+          {role === "admin" && (
+            <Select value={clientFilter} onValueChange={setClientFilter}>
+              <SelectTrigger className="w-full sm:w-44 md:w-52">
+                <SelectValue placeholder="All Clients" />
+              </SelectTrigger>
+
+              <SelectContent>
+                <SelectItem value="all">All Clients</SelectItem>
+
+                {uniqueClients.map((client) => (
+                  <SelectItem key={client} value={client}>
+                    {client}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
 
           {role === "admin" && (
             <Button
