@@ -28,9 +28,11 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import AddContentModal from "../sections/AddContentModal";
 import RequestRevisionModal from "../sections/RequestRevisionModal";
+import SubmitRevisionModal from "../sections/SubmitRevisionModal";
 import { useContentStore } from "@/store/useContentStore";
 
 const brandColor = "#430062";
+const role = "client";
 
 // ==================== TYPES ====================
 interface ContentItem {
@@ -56,28 +58,6 @@ interface ContentItem {
   }[];
 }
 
-interface Comment {
-  id: string;
-  user: string;
-  comment: string;
-  timestamp: string;
-}
-
-const mockComments: Comment[] = [
-  {
-    id: "com1",
-    user: "Sarah Chen",
-    comment: "Looks great! Just add brand logo at the end.",
-    timestamp: "2 hours ago",
-  },
-  {
-    id: "com2",
-    user: "David Kim",
-    comment: "Approved from client side.",
-    timestamp: "Yesterday",
-  },
-];
-
 const statusColors = {
   review: "bg-amber-100 text-amber-700",
   revise: "bg-rose-100 text-rose-700",
@@ -87,7 +67,7 @@ const statusColors = {
 };
 
 const statusLabels = {
-  review: "Internal Review",
+  review: "For Review",
   revise: "For Revision",
   approved: "Approved",
   scheduled: "Scheduled",
@@ -120,6 +100,7 @@ export default function ContentOperations() {
   });
 
   const [isRevisionOpen, setIsRevisionOpen] = useState(false);
+  const [isSubmitRevisionOpen, setIsSubmitRevisionOpen] = useState(false);
 
   useEffect(() => {
     fetchContents();
@@ -128,7 +109,7 @@ export default function ContentOperations() {
   const kanbanColumns = [
     {
       id: "review",
-      title: "Internal Review",
+      title: "For Review",
       items: filteredContents.filter((c) => c.status === "review"),
     },
     {
@@ -593,13 +574,13 @@ export default function ContentOperations() {
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {selectedContent.revisionDueDate  && (
+                      {selectedContent.revisionDueDate && (
                         <div>
                           <p className="text-[11px] uppercase tracking-widest text-zinc-500 mb-1">
                             Due Date
                           </p>
                           <p className="text-sm font-medium text-zinc-900">
-                            {selectedContent.revisionDueDate }
+                            {selectedContent.revisionDueDate}
                           </p>
                         </div>
                       )}
@@ -654,30 +635,47 @@ export default function ContentOperations() {
               {/* Footer Actions */}
               <div className="border-t bg-white p-4 sm:p-6 lg:p-8 z-10 flex-shrink-0">
                 <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3">
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="w-full sm:flex-1 h-11 sm:h-12 font-medium text-sm sm:text-base"
-                    onClick={() => {
-                      setIsDetailOpen(false);
-                      setIsRevisionOpen(true);
-                    }}
-                  >
-                    Request Revision
-                  </Button>
-                  <Button
-                    size="lg"
-                    className="w-full sm:flex-1 h-11 sm:h-12 font-semibold text-white shadow-lg shadow-violet-500/20 hover:shadow-xl hover:shadow-violet-500/30 transition-all active:scale-[0.985] text-sm sm:text-base"
-                    style={{ backgroundColor: brandColor }}
-                    onClick={() => {
-                      if (selectedContent) {
-                        handleStatusChange(selectedContent.id, "approved");
+                 {role === "admin" && selectedContent.status === "revise" && (
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className="w-full sm:flex-1 h-11 sm:h-12 font-medium text-sm sm:text-base"
+                      onClick={() => {
                         setIsDetailOpen(false);
-                      }
-                    }}
-                  >
-                    Approve & Schedule
-                  </Button>
+                        setIsSubmitRevisionOpen(true);
+                      }}
+                    >
+                      Submit Revision
+                    </Button>
+                  )}
+                  {role === "client" && selectedContent.status === "review" && (
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className="w-full sm:flex-1 h-11 sm:h-12 font-medium text-sm sm:text-base"
+                      onClick={() => {
+                        setIsDetailOpen(false);
+                        setIsRevisionOpen(true);
+                      }}
+                    >
+                      Request Revision
+                    </Button>
+                  )}
+                  {role === "client" && selectedContent.status === "review" && (
+                    <Button
+                      size="lg"
+                      className="w-full sm:flex-1 h-11 sm:h-12 font-semibold text-white shadow-lg shadow-violet-500/20 hover:shadow-xl hover:shadow-violet-500/30 transition-all active:scale-[0.985] text-sm sm:text-base"
+                      style={{ backgroundColor: brandColor }}
+                      onClick={() => {
+                        if (selectedContent) {
+                          handleStatusChange(selectedContent.id, "approved");
+                          setIsDetailOpen(false);
+                        }
+                      }}
+                    >
+                      Approve
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
@@ -795,6 +793,36 @@ export default function ContentOperations() {
         contentPlatform={selectedContent?.platform}
         assignedTo={selectedContent?.assignedTo || "Team Member"}
         brandColor={brandColor}
+      />
+      <SubmitRevisionModal
+        isOpen={isSubmitRevisionOpen}
+        onClose={() => setIsSubmitRevisionOpen(false)}
+        onSubmit={async (update) => {
+          try {
+            const res = await fetch("/api/contents/submit-revision", {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(update),
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Failed to update");
+
+            // Update local store
+            handleStatusChange(update.id, "review");
+            fetchContents(); // Refresh to get updated data
+
+            setIsSubmitRevisionOpen(false);
+          } catch (error) {
+            console.error(error);
+            alert(
+              error instanceof Error ? error.message : "Something went wrong",
+            );
+          }
+        }}
+        content={selectedContent}
+        brandColor={brandColor}
+        adminName="Admin" // or from auth context
       />
     </div>
   );
