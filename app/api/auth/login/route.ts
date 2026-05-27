@@ -107,6 +107,12 @@ export async function POST(req: NextRequest) {
       maxAge: 60 * 60 * 24 * 7, // 7 days
     });
 
+    await supabase.from("amos_logs").insert([
+      {
+        activity: `${email} logged in`,
+      },
+    ]);
+
     return response;
   } catch (error) {
     const errorMessage =
