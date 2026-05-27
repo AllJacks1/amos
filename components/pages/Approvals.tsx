@@ -639,6 +639,8 @@ export default function ApprovalsModule() {
                   new Date().toISOString().split("T")[0],
                 // SubmitRevisionModal expects ContentItem['assignedTo'] to be a string (not undefined)
                 assignedTo: selectedApproval.assignedTo || "",
+                // SubmitRevisionModal expects ContentItem['driveLinks'] to be string[] (never undefined)
+                driveLinks: selectedApproval.driveLinks ?? [],
               }
             : null
         }
