@@ -53,20 +53,20 @@ interface ApprovalItem {
   platform: string;
   contentType: string;
   status: "review" | "revise" | "approved" | "scheduled" | "posted";
-  publishDate?: string;
+  publishDate: string;
   client: string;
-  assignedTo?: string;
-  driveLinks?: string[];
-  pillar?: string;
+  assignedTo: string;
+  driveLinks: string[];
+  pillar: string;
+
   priority?: string | null;
   revisionDueDate?: string | null;
   revisionCount?: number;
-  revisionNotes?: Array<{
+  revisionNotes?: {
     commenter: string;
     comment: string;
     created_at: string;
-  }>;
-  thumbnail?: string;
+  }[];
 }
 
 export default function ApprovalsModule() {
@@ -644,7 +644,7 @@ export default function ApprovalsModule() {
               }
             : null
         }
-        adminName={user?.fullname || "Admin"}
+        adminName={user?.fullname?.toString() || "Admin"}
 
         onSubmit={async (update) => {
           try {

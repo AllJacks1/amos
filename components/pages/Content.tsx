@@ -542,7 +542,7 @@ export default function ContentOperations() {
 
                 {/* Revision Details */}
 
-                {(selectedContent.revisionNotes?.length > 0 ||
+                {((selectedContent.revisionNotes?.length ?? 0) > 0 ||
                   selectedContent.revisionDueDate ||
                   selectedContent.priority ||
                   selectedContent.revisionCount) && (
@@ -584,14 +584,14 @@ export default function ContentOperations() {
                     </div>
 
                     {/* Revision Notes */}
-                    {selectedContent.revisionNotes?.length > 0 && (
+                    {(selectedContent.revisionNotes?.length ?? 0) > 0 && (
                       <div>
                         <p className="text-[11px] uppercase tracking-widest text-zinc-500 mb-3">
                           Revision Notes
                         </p>
 
                         <div className="space-y-3">
-                          {selectedContent.revisionNotes.map((note, idx) => (
+                          {selectedContent.revisionNotes?.map((note, idx) => (
                             <div
                               key={idx}
                               className="rounded-xl border border-zinc-200 bg-white p-4"
@@ -705,6 +705,7 @@ export default function ContentOperations() {
               contentType: created.content_type,
               publishDate: created.publish_date,
               client: created.client,
+              status: "review",
               assignedTo: created.assigned_to,
               driveLinks: created.gdrive_links || [],
               pillar: created.content_pillar,
