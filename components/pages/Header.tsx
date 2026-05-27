@@ -39,12 +39,19 @@ export default function GlobalHeader() {
 
   const avatarSrc = user?.role === "client" ? user?.company_logo : undefined;
 
-  const initials =
-    displayName
-      ?.split(" ")
-      .map((n) => n[0])
+  const getInitials = (name?: string | number | boolean | null): string => {
+    if (typeof name !== "string" || !name.trim()) return "U";
+
+    return name
+      .trim()
+      .split(" ")
+      .map((word) => word[0])
       .join("")
-      .toUpperCase() || "U";
+      .toUpperCase()
+      .slice(0, 2); // Max 2 letters
+  };
+
+  const initials = getInitials(displayName);
 
   return (
     <header className="h-16 border-b border-zinc-200 bg-white/95 backdrop-blur-lg sticky top-0 z-40 hidden lg:flex items-center justify-end px-8">
@@ -74,7 +81,7 @@ export default function GlobalHeader() {
         <div className="shrink-0 border-t border-zinc-200 p-4">
           <div className="flex items-center gap-3 rounded-2xl p-2 min-w-0">
             <Avatar className="h-9 w-9 border border-zinc-100 shrink-0">
-              {avatarSrc && <AvatarImage src={avatarSrc} alt={displayName} />}
+              {avatarSrc && <AvatarImage src={avatarSrc.toString()} alt={displayName?.toString()} />}
 
               <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
@@ -83,7 +90,9 @@ export default function GlobalHeader() {
               <div className="text-sm font-medium truncate">{displayName}</div>
 
               <div className="text-xs text-emerald-600 truncate">
-                {user?.role === "admin" ? "Admin" : user?.company_name || "Client"}
+                {user?.role === "admin"
+                  ? "Admin"
+                  : user?.company_name || "Client"}
               </div>
             </div>
 
