@@ -129,7 +129,7 @@ export default function SettingsModule() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ id }),
+        body: JSON.stringify({ id, actor: user?.fullname || "Admin" }),
       });
 
       const data = await response.json();
@@ -309,7 +309,9 @@ export default function SettingsModule() {
                                 </AvatarFallback>
                               </Avatar>
                               <div>
-                                <div className="font-medium">{user.fullname}</div>
+                                <div className="font-medium">
+                                  {user.fullname}
+                                </div>
                                 <div className="text-sm text-zinc-500">
                                   {user.email}
                                 </div>
