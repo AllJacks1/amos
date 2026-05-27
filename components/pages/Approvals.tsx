@@ -402,7 +402,7 @@ export default function ApprovalsModule() {
                                     : "text-zinc-500"
                                 }`}
                               >
-                                {formatDueDate(item.revisionDueDate || "")}
+                                {formatDueDate(item.revisionDueDate)}
                               </p>
                             </div>
                           </div>
