@@ -42,6 +42,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import AddClientModal from "../sections/AddClientModal";
+import { useAuthStore } from "@/store/useAuthStore";
 
 export default function Clients() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -53,6 +54,8 @@ export default function Clients() {
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
   const { clients, loading, fetchClients, addClient } = useClientStore();
+
+  const user = useAuthStore((state) => state.user);
 
   useEffect(() => {
     fetchClients();
@@ -581,6 +584,9 @@ export default function Clients() {
             if (client.logoFile) {
               formData.append("company_logo", client.logoFile);
             }
+
+            //logs
+            formData.append("actor", user?.fullname?.toString() || "Admin");
 
             const res = await fetch("/api/auth/register-client", {
               method: "POST",

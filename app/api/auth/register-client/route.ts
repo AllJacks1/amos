@@ -17,6 +17,7 @@ export async function POST(req: NextRequest) {
     const primaryContactName = formData.get("primary_contact_name") as string;
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
+    const actor = formData.get("actor") as string | null;
 
     // Validation
     if (
@@ -90,6 +91,12 @@ export async function POST(req: NextRequest) {
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+    await supabase.from("amos_logs").insert([
+      {
+        activity: `${actor || "SYSTEM"} created client ${companyName} (${email})`,
+      },
+    ]);
 
     return NextResponse.json(
       {
