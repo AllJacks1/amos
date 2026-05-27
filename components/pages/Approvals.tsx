@@ -599,7 +599,7 @@ export default function ApprovalsModule() {
                 id: selectedApproval.id,
                 status: "revise",
                 priority: request.priority,
-                revision_due_date: request.revisionDueDate,
+                revision_due_date: request.dueDate, // ← Fixed: use .dueDate
                 revision_count: (selectedApproval.revisionCount || 0) + 1,
                 revision_notes: [
                   ...(selectedApproval.revisionNotes || []),
