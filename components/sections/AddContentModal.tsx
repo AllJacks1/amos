@@ -101,8 +101,8 @@ export default function AddContentModal({
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const { clients, fetchClients, isLoading: clientsLoading } = useClientStore();
-  const { users, fetchUsers, isLoading: usersLoading } = useUsersStore();
+  const { clients, fetchClients } = useClientStore();
+  const { users, fetchUsers } = useUsersStore();
   const [step, setStep] = useState(1);
 
   useEffect(() => {
@@ -441,17 +441,11 @@ export default function AddContentModal({
                     </div>
                   </SelectTrigger>
                   <SelectContent>
-                    {clientsLoading ? (
-                      <div className="px-3 py-2 text-sm text-zinc-500">
-                        Loading clients...
-                      </div>
-                    ) : (
-                      clientsList.map((client) => (
-                        <SelectItem key={client.id} value={String(client.id)}>
-                          {client.company_name}
-                        </SelectItem>
-                      ))
-                    )}
+                    {clientsList.map((client) => (
+                      <SelectItem key={client.id} value={String(client.id)}>
+                        {client.company_name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 {errors.client && (
@@ -485,17 +479,11 @@ export default function AddContentModal({
                     </div>
                   </SelectTrigger>
                   <SelectContent>
-                    {usersLoading ? (
-                      <div className="px-3 py-2 text-sm text-zinc-500">
-                        Loading team members...
-                      </div>
-                    ) : (
-                      usersList.map((user) => (
-                        <SelectItem key={user.id} value={String(user.id)}>
-                          {user.fullname}
-                        </SelectItem>
-                      ))
-                    )}
+                    {usersList.map((user) => (
+                      <SelectItem key={user.id} value={String(user.id)}>
+                        {user.fullname}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 {errors.assignedTo && (
