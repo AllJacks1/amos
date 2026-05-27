@@ -38,7 +38,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 const brandColor = "#430062";
 
 // ==================== TYPES ====================
-interface ContentItem {
+export interface ContentItem {
   id: string;
   title: string;
   caption: string;
