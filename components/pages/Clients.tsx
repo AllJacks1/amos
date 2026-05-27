@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useClientStore } from "@/store/clientStore";
+import { Client, useClientStore } from "@/store/clientStore";
 import {
   Search,
   Plus,
@@ -38,34 +38,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import AddClientModal from "../sections/AddClientModal";
-
-// Types
-interface Client {
-  id: string;
-  primary_contact_name: string;
-  company_name: string;
-  company_logo: string;
-  industry: string;
-  brandColor: string;
-  activeCampaigns: number;
-  status: "active" | "onboarding" | "paused";
-  createdAt: string;
-  monthlyReach: string;
-  engagementRate: number;
-  teamMembers: number;
-  email?: string;
-}
 
 export default function Clients() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -239,7 +215,7 @@ export default function Clients() {
                             {client.primary_contact_name}
                           </div>
                           <div className="text-xs text-zinc-500">
-                            Since {client.createdAt}
+                            Since {client.created_at}
                           </div>
                         </div>
                       </div>
@@ -454,7 +430,7 @@ export default function Clients() {
                           <p className="text-xs text-zinc-500">Member Since</p>
 
                           <p className="font-medium mt-1 text-sm sm:text-base">
-                            {selectedClient.createdAt}
+                            {selectedClient.created_at}
                           </p>
                         </div>
                       </div>
@@ -628,6 +604,7 @@ export default function Clients() {
               company_name: createdClient.company_name,
               industry: createdClient.industry,
               primary_contact_name: createdClient.primary_contact_name,
+              role: "client",
               email: createdClient.email,
               status: createdClient.status,
               first_login: createdClient.first_login,
