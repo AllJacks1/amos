@@ -33,6 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAuthStore } from "@/store/useAuthStore";
 
 interface ContentItem {
   id: string;
@@ -120,6 +121,8 @@ export default function SubmitRevisionModal({
   brandColor = "#430062",
   adminName = "Admin",
 }: SubmitRevisionModalProps) {
+  const user = useAuthStore((state) => state.user);
+
   const [title, setTitle] = useState("");
   const [caption, setCaption] = useState("");
   const [platform, setPlatform] = useState("");
@@ -215,6 +218,7 @@ export default function SubmitRevisionModal({
       gdrive_links: driveLinks.filter((l) => l.trim() !== ""),
       status: "review" as const,
       revision_notes: [...existingNotes, newNote],
+      adminName: user?.fullname || "Admin",
     };
 
     try {

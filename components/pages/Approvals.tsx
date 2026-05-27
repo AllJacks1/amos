@@ -610,6 +610,7 @@ export default function ApprovalsModule() {
                   ...(selectedApproval.revisionNotes || []),
                   revisionNote,
                 ],
+                clientName: user?.primary_contact_name || "Client",
               }),
             });
 

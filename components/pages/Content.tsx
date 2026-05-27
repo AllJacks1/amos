@@ -786,7 +786,6 @@ export default function ContentOperations() {
         onSubmit={async (request) => {
           try {
             if (!selectedContent) return;
-
             const revisionNote = {
               commenter: user?.primary_contact_name, // replace with logged in user later
               comment: request.comment,
@@ -805,6 +804,7 @@ export default function ContentOperations() {
                 revision_due_date: request.dueDate,
                 revision_count: 1, // or increment dynamically
                 revision_notes: [revisionNote],
+                clientName: user?.primary_contact_name || "Client",
               }),
             });
 

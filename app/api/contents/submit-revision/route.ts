@@ -21,6 +21,7 @@ export async function PUT(req: NextRequest) {
       gdrive_links,
       status,
       revision_notes,
+      adminName,
     } = body;
 
     if (!id) {
@@ -53,6 +54,12 @@ export async function PUT(req: NextRequest) {
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+    await supabase.from("amos_logs").insert([
+      {
+        activity: `${adminName} submitted a revision for content ${data.id}`,
+      },
+    ]);
 
     return NextResponse.json(
       {

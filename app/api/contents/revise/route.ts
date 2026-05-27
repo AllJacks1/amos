@@ -30,12 +30,14 @@ export async function PUT(req: NextRequest) {
       priority,
       revision_notes,
       revision_due_date,
+      clientName,
     }: {
       id?: string;
       status?: string;
       priority?: string | null;
       revision_notes?: RevisionNote[];
       revision_due_date?: string | null;
+      clientName?: string;
     } = body;
 
     // ======================
@@ -123,6 +125,12 @@ export async function PUT(req: NextRequest) {
     // ======================
     // 7. RESPONSE
     // ======================
+
+    await supabase.from("amos_logs").insert([
+      {
+        activity: `${clientName} requested a revision for content ${data.id}`,
+      },
+    ]);
     return NextResponse.json(
       {
         message: "Content updated successfully",

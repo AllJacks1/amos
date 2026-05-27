@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
+import { useAuthStore } from "@/store/useAuthStore";
 
 interface RequestRevisionModalProps {
   isOpen: boolean;
@@ -26,6 +27,7 @@ interface RequestRevisionModalProps {
     comment: string;
     priority: "low" | "medium" | "high";
     dueDate: string;
+    clientName: string;
   }) => void;
   contentTitle?: string;
   contentPlatform?: string;
@@ -83,6 +85,8 @@ export default function RequestRevisionModal({
   assignedTo = "Team Member",
   brandColor = "#430062",
 }: RequestRevisionModalProps) {
+  const user = useAuthStore((state) => state.user);
+
   const [comment, setComment] = useState("");
   const [priority, setPriority] = useState<"low" | "medium" | "high">("medium");
   const [dueDate, setDueDate] = useState("");
@@ -105,7 +109,12 @@ export default function RequestRevisionModal({
 
     setIsSubmitting(true);
     await new Promise((resolve) => setTimeout(resolve, 800));
-    onSubmit({ comment, priority, dueDate });
+    onSubmit({
+      comment,
+      priority,
+      dueDate,
+      clientName: user?.primary_contact_name?.toString() || "Client",
+    });
     setIsSubmitting(false);
     resetForm();
     onClose();
