@@ -95,6 +95,14 @@ export default function ContentOperations() {
   const [isSubmitRevisionOpen, setIsSubmitRevisionOpen] = useState(false);
   const [isApproveOpen, setIsApproveOpen] = useState(false);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10; // You can make this adjustable
+
+  const totalPages = Math.ceil(filteredContents.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedContents = filteredContents.slice(startIndex, endIndex);
+
   useEffect(() => {
     fetchContents();
   }, [fetchContents]);
@@ -358,12 +366,13 @@ export default function ContentOperations() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredContents.map((item) => (
+                  {paginatedContents.map((item) => (
                     <tr
                       key={item.id}
                       className="border-b border-zinc-100 hover:bg-zinc-50 cursor-pointer transition-colors"
                       onClick={() => openDetail(item)}
                     >
+                      {/* ... same table cells as before ... */}
                       <td className="py-3 px-3 sm:py-5 sm:px-6 font-medium text-sm sm:text-base">
                         {item.title}
                       </td>
@@ -414,6 +423,59 @@ export default function ContentOperations() {
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            {/* Pagination Controls */}
+            <div className="flex items-center justify-between border-t border-zinc-100 px-4 py-4 sm:px-6">
+              <div className="text-sm text-zinc-500">
+                Showing {startIndex + 1} to{" "}
+                {Math.min(endIndex, filteredContents.length)} of{" "}
+                <span className="font-medium text-zinc-700">
+                  {filteredContents.length}
+                </span>{" "}
+                entries
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(prev - 1, 1))
+                  }
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </Button>
+
+                {/* Page Numbers */}
+                <div className="flex gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                    (page) => (
+                      <Button
+                        key={page}
+                        variant={currentPage === page ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setCurrentPage(page)}
+                        className="w-8"
+                      >
+                        {page}
+                      </Button>
+                    ),
+                  )}
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                  }
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </Button>
+              </div>
             </div>
           </div>
         </TabsContent>
