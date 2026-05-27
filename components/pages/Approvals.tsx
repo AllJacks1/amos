@@ -20,10 +20,21 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import AddContentModal from "../sections/AddContentModal";
 import RequestRevisionModal from "../sections/RequestRevisionModal";
@@ -63,10 +74,14 @@ export default function ApprovalsModule() {
   const role = user?.role || "";
 
   // Local State
-  const [activeTab, setActiveTab] = useState<"review" | "revise" | "approved">("review");
+  const [activeTab, setActiveTab] = useState<"review" | "revise" | "approved">(
+    "review",
+  );
   const [searchTerm, setSearchTerm] = useState("");
   const [clientFilter, setClientFilter] = useState("all");
-  const [selectedApproval, setSelectedApproval] = useState<ApprovalItem | null>(null);
+  const [selectedApproval, setSelectedApproval] = useState<ApprovalItem | null>(
+    null,
+  );
 
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isAddContentOpen, setIsAddContentOpen] = useState(false);
@@ -75,7 +90,8 @@ export default function ApprovalsModule() {
   const [isApproveOpen, setIsApproveOpen] = useState(false);
 
   // Store
-  const { contents, loading, error, fetchContents, addContent, updateStatus } = useContentStore();
+  const { contents, loading, error, fetchContents, addContent, updateStatus } =
+    useContentStore();
 
   useEffect(() => {
     fetchContents();
@@ -88,7 +104,8 @@ export default function ApprovalsModule() {
         item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.client.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchesClient = clientFilter === "all" || item.client === clientFilter;
+      const matchesClient =
+        clientFilter === "all" || item.client === clientFilter;
       const matchesTab = item.status === activeTab;
 
       return matchesSearch && matchesClient && matchesTab;
@@ -101,19 +118,25 @@ export default function ApprovalsModule() {
 
   const pendingCount = useMemo(() => {
     return contents.filter(
-      (a) => a.status === "review" && (clientFilter === "all" || a.client === clientFilter)
+      (a) =>
+        a.status === "review" &&
+        (clientFilter === "all" || a.client === clientFilter),
     ).length;
   }, [contents, clientFilter]);
 
   const revisionCount = useMemo(() => {
     return contents.filter(
-      (a) => a.status === "revise" && (clientFilter === "all" || a.client === clientFilter)
+      (a) =>
+        a.status === "revise" &&
+        (clientFilter === "all" || a.client === clientFilter),
     ).length;
   }, [contents, clientFilter]);
 
   const approvedCount = useMemo(() => {
     return contents.filter(
-      (a) => a.status === "approved" && (clientFilter === "all" || a.client === clientFilter)
+      (a) =>
+        a.status === "approved" &&
+        (clientFilter === "all" || a.client === clientFilter),
     ).length;
   }, [contents, clientFilter]);
 
@@ -126,7 +149,8 @@ export default function ApprovalsModule() {
     const diffTime = date.getTime() - now.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    if (diffDays < 0) return `Overdue by ${Math.abs(diffDays)} day${Math.abs(diffDays) !== 1 ? "s" : ""}`;
+    if (diffDays < 0)
+      return `Overdue by ${Math.abs(diffDays)} day${Math.abs(diffDays) !== 1 ? "s" : ""}`;
     if (diffDays === 0) return "Due today";
     if (diffDays === 1) return "Due tomorrow";
     if (diffDays <= 7) return `Due in ${diffDays} days`;
@@ -167,7 +191,9 @@ export default function ApprovalsModule() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5 mb-8">
           <div>
-            <h1 className="text-4xl font-semibold tracking-tight text-zinc-900">Approvals</h1>
+            <h1 className="text-4xl font-semibold tracking-tight text-zinc-900">
+              Approvals
+            </h1>
             <p className="text-zinc-600 mt-1">Client collaboration hub</p>
           </div>
 
@@ -214,9 +240,24 @@ export default function ApprovalsModule() {
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
           {[
-            { title: "Pending Review", count: pendingCount, icon: Clock, color: "amber" },
-            { title: "Needs Revision", count: revisionCount, icon: AlertCircle, color: "rose" },
-            { title: "Approved", count: approvedCount, icon: CheckCircle, color: "emerald" },
+            {
+              title: "Pending Review",
+              count: pendingCount,
+              icon: Clock,
+              color: "amber",
+            },
+            {
+              title: "Needs Revision",
+              count: revisionCount,
+              icon: AlertCircle,
+              color: "rose",
+            },
+            {
+              title: "Approved",
+              count: approvedCount,
+              icon: CheckCircle,
+              color: "emerald",
+            },
           ].map((stat, i) => (
             <Card key={i} className="border border-zinc-200">
               <CardHeader className="pb-3">
@@ -235,17 +276,45 @@ export default function ApprovalsModule() {
         </div>
 
         {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "review" | "revise" | "approved")}>
+        <Tabs
+          value={activeTab}
+          onValueChange={(v) =>
+            setActiveTab(v as "review" | "revise" | "approved")
+          }
+        >
           <TabsList className="bg-white border border-zinc-200 p-1 w-full md:w-fit">
             {[
-              { value: "review", label: "Pending Review", icon: Clock, count: pendingCount },
-              { value: "revise", label: "Needs Revision", icon: AlertCircle, count: revisionCount },
-              { value: "approved", label: "Approved", icon: CheckCircle, count: approvedCount },
+              {
+                value: "review",
+                label: "Pending Review",
+                icon: Clock,
+                count: pendingCount,
+              },
+              {
+                value: "revise",
+                label: "Needs Revision",
+                icon: AlertCircle,
+                count: revisionCount,
+              },
+              {
+                value: "approved",
+                label: "Approved",
+                icon: CheckCircle,
+                count: approvedCount,
+              },
             ].map(({ value, label, icon: Icon, count }) => (
-              <TabsTrigger key={value} value={value} className="flex items-center gap-2 px-5 py-2.5">
+              <TabsTrigger
+                key={value}
+                value={value}
+                className="flex items-center gap-2 px-5 py-2.5"
+              >
                 <Icon className="h-4 w-4" />
                 <span>{label}</span>
-                {count > 0 && <Badge variant="secondary" className="ml-1">{count}</Badge>}
+                {count > 0 && (
+                  <Badge variant="secondary" className="ml-1">
+                    {count}
+                  </Badge>
+                )}
               </TabsTrigger>
             ))}
           </TabsList>
@@ -277,17 +346,24 @@ export default function ApprovalsModule() {
                           </h3>
 
                           <div className="flex items-center gap-2 text-sm text-zinc-500 mb-5">
-                            <span className="font-medium text-zinc-700">{item.platform}</span>
+                            <span className="font-medium text-zinc-700">
+                              {item.platform}
+                            </span>
                             <span className="text-zinc-300">•</span>
                             <span>{item.contentType}</span>
                           </div>
 
                           {item.driveLinks && item.driveLinks.length > 0 && (
                             <div className="mb-6">
-                              <p className="text-xs font-semibold uppercase tracking-widest text-zinc-400 mb-2">Drive Files</p>
+                              <p className="text-xs font-semibold uppercase tracking-widest text-zinc-400 mb-2">
+                                Drive Files
+                              </p>
                               <div className="flex flex-wrap gap-2">
                                 {item.driveLinks.slice(0, 2).map((_, idx) => (
-                                  <div key={idx} className="text-xs flex items-center gap-1.5 bg-amber-50 text-amber-700 px-3 py-1 rounded-lg">
+                                  <div
+                                    key={idx}
+                                    className="text-xs flex items-center gap-1.5 bg-amber-50 text-amber-700 px-3 py-1 rounded-lg"
+                                  >
                                     <FolderOpen className="h-3.5 w-3.5" />
                                     File {idx + 1}
                                   </div>
@@ -300,12 +376,20 @@ export default function ApprovalsModule() {
                             <div className="flex items-center gap-3">
                               <Avatar className="h-9 w-9 ring-2 ring-white">
                                 <AvatarFallback className="bg-zinc-100 text-xs font-medium">
-                                  {item.client.split(" ").map((n) => n[0]).join("").toUpperCase()}
+                                  {item.client
+                                    .split(" ")
+                                    .map((n) => n[0])
+                                    .join("")
+                                    .toUpperCase()}
                                 </AvatarFallback>
                               </Avatar>
                               <div>
-                                <p className="font-medium text-sm">{item.client}</p>
-                                <p className={`text-xs ${overdue ? "text-rose-600 font-medium" : "text-zinc-500"}`}>
+                                <p className="font-medium text-sm">
+                                  {item.client}
+                                </p>
+                                <p
+                                  className={`text-xs ${overdue ? "text-rose-600 font-medium" : "text-zinc-500"}`}
+                                >
                                   {formatDueDate(item.revisionDueDate)}
                                 </p>
                               </div>
@@ -325,12 +409,22 @@ export default function ApprovalsModule() {
               ) : (
                 <div className="text-center py-24">
                   <div className="mx-auto w-20 h-20 bg-zinc-100 rounded-3xl flex items-center justify-center mb-6">
-                    {tab === "review" && <Inbox className="h-10 w-10 text-zinc-400" />}
-                    {tab === "revise" && <CheckCircle2 className="h-10 w-10 text-zinc-400" />}
-                    {tab === "approved" && <PartyPopper className="h-10 w-10 text-zinc-400" />}
+                    {tab === "review" && (
+                      <Inbox className="h-10 w-10 text-zinc-400" />
+                    )}
+                    {tab === "revise" && (
+                      <CheckCircle2 className="h-10 w-10 text-zinc-400" />
+                    )}
+                    {tab === "approved" && (
+                      <PartyPopper className="h-10 w-10 text-zinc-400" />
+                    )}
                   </div>
-                  <h3 className="text-2xl font-semibold text-zinc-900">No items found</h3>
-                  <p className="text-zinc-500 mt-2">Try changing the filter or search term.</p>
+                  <h3 className="text-2xl font-semibold text-zinc-900">
+                    No items found
+                  </h3>
+                  <p className="text-zinc-500 mt-2">
+                    Try changing the filter or search term.
+                  </p>
                 </div>
               )}
             </TabsContent>
@@ -344,10 +438,14 @@ export default function ApprovalsModule() {
           {selectedApproval && (
             <div className="flex flex-col h-full">
               <DialogHeader className="px-8 py-6 border-b">
-                <DialogTitle className="text-3xl font-semibold pr-12">{selectedApproval.title}</DialogTitle>
+                <DialogTitle className="text-3xl font-semibold pr-12">
+                  {selectedApproval.title}
+                </DialogTitle>
                 <div className="flex gap-2 mt-4">
                   <Badge>{selectedApproval.platform}</Badge>
-                  <Badge variant="outline">{selectedApproval.contentType}</Badge>
+                  <Badge variant="outline">
+                    {selectedApproval.contentType}
+                  </Badge>
                 </div>
                 <Button
                   variant="ghost"
@@ -384,8 +482,12 @@ export default function ApprovalsModule() {
                               <FolderOpen className="h-6 w-6 text-amber-600" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="font-medium group-hover:text-amber-700">Asset File {idx + 1}</p>
-                              <p className="text-sm text-zinc-500 truncate">Google Drive Link</p>
+                              <p className="font-medium group-hover:text-amber-700">
+                                Asset File {idx + 1}
+                              </p>
+                              <p className="text-sm text-zinc-500 truncate">
+                                Google Drive Link
+                              </p>
                             </div>
                             <ExternalLink className="h-5 w-5 text-zinc-400 group-hover:text-amber-600" />
                           </a>
@@ -397,14 +499,21 @@ export default function ApprovalsModule() {
 
                 {/* Caption */}
                 <div>
-                  <h4 className="uppercase text-xs tracking-widest text-zinc-500 mb-3">CAPTION</h4>
-                  <p className="text-zinc-700 leading-relaxed text-[15.5px]">{selectedApproval.caption}</p>
+                  <h4 className="uppercase text-xs tracking-widest text-zinc-500 mb-3">
+                    CAPTION
+                  </h4>
+                  <p className="text-zinc-700 leading-relaxed text-[15.5px]">
+                    {selectedApproval.caption}
+                  </p>
                 </div>
 
                 {/* Revision Details */}
-                {(selectedApproval.revisionDueDate || selectedApproval.revisionNotes?.length) && (
+                {(selectedApproval.revisionDueDate ||
+                  selectedApproval.revisionNotes?.length) && (
                   <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6">
-                    <h4 className="font-semibold text-amber-900 mb-4">Revision Details</h4>
+                    <h4 className="font-semibold text-amber-900 mb-4">
+                      Revision Details
+                    </h4>
                     {/* Add more revision UI as needed */}
                   </div>
                 )}
@@ -413,14 +522,21 @@ export default function ApprovalsModule() {
               {/* Action Bar */}
               <div className="border-t p-6 bg-white flex gap-3">
                 {role === "admin" && selectedApproval.status === "revise" && (
-                  <Button onClick={handleSubmitRevision} className="flex-1 h-12">
+                  <Button
+                    onClick={handleSubmitRevision}
+                    className="flex-1 h-12"
+                  >
                     Submit Revision
                   </Button>
                 )}
 
                 {role === "client" && selectedApproval.status === "review" && (
                   <>
-                    <Button variant="outline" onClick={handleRequestRevision} className="flex-1 h-12">
+                    <Button
+                      variant="outline"
+                      onClick={handleRequestRevision}
+                      className="flex-1 h-12"
+                    >
                       Request Revision
                     </Button>
                     <Button
@@ -443,7 +559,15 @@ export default function ApprovalsModule() {
       <AddContentModal
         isOpen={isAddContentOpen}
         onClose={() => setIsAddContentOpen(false)}
-        onAdd={(newContent) => addContent({ ...newContent, id: `c${Date.now()}` } as ApprovalItem)}
+        onAdd={(newContent) => {
+          const contentToAdd = {
+            ...newContent,
+            id: `c${Date.now()}`,
+            publishDate:
+              newContent.publishDate || new Date().toISOString().split("T")[0], // Fallback to today
+          };
+          addContent(contentToAdd); // No more casting needed
+        }}
         brandColor={brandColor}
       />
 
