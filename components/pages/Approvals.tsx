@@ -397,12 +397,12 @@ export default function ApprovalsModule() {
                               </p>
                               <p
                                 className={`text-xs ${
-                                  isOverdue(item.dueDate)
+                                  isOverdue(item.revisionDueDate)
                                     ? "text-rose-500 font-medium"
                                     : "text-zinc-500"
                                 }`}
                               >
-                                {formatDueDate(item.dueDate)}
+                                {formatDueDate(item.revisionDueDate || "")}
                               </p>
                             </div>
                           </div>
@@ -704,7 +704,7 @@ export default function ApprovalsModule() {
                 id: selectedApproval.id,
                 status: "revise",
                 priority: request.priority,
-                revision_due_date: request.dueDate,
+                revision_due_date: request.revisionDueDate,
                 revision_count: (selectedApproval.revisionCount || 0) + 1,
                 revision_notes: [
                   ...(selectedApproval.revisionNotes || []),
