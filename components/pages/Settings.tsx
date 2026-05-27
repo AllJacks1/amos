@@ -293,7 +293,6 @@ export default function SettingsModule() {
                           <TableCell>
                             <div className="flex items-center gap-4">
                               <Avatar>
-                                <AvatarImage src={user.avatar} />
                                 <AvatarFallback>
                                   {user.fullname
                                     ? user.fullname
