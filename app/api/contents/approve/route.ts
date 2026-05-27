@@ -9,7 +9,7 @@ const supabase = createClient(
 export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
-    const { id } = body;
+    const { id, approverName } = body;
 
     if (!id) {
       return NextResponse.json(
@@ -28,6 +28,12 @@ export async function PUT(req: NextRequest) {
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+    
+    await supabase.from("amos_logs").insert([
+      {
+        activity: `${approverName} approved content ${data.id}`,
+      },
+    ]);
 
     return NextResponse.json(
       {

@@ -864,7 +864,7 @@ export default function ContentOperations() {
         }}
         content={selectedContent}
         brandColor={brandColor}
-        adminName="Admin" // or from auth context
+        adminName={user?.fullname?.toString() || "Admin"}
       />
       <ApproveConfirmDialog
         isOpen={isApproveOpen}
@@ -875,7 +875,10 @@ export default function ContentOperations() {
           const res = await fetch("/api/contents/approve", {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id: selectedContent.id }),
+            body: JSON.stringify({
+              id: selectedContent.id,
+              approverName: user?.primary_contact_name || "Client",
+            }),
           });
 
           const data = await res.json();

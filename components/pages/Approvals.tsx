@@ -686,7 +686,10 @@ export default function ApprovalsModule() {
           const res = await fetch("/api/contents/approve", {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id: selectedApproval.id }),
+            body: JSON.stringify({
+              id: selectedApproval.id,
+              approverName: user?.primary_contact_name || "Client",
+            }),
           });
 
           const data = await res.json();
