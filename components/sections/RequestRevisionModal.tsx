@@ -30,7 +30,8 @@ interface RequestRevisionModalProps {
     clientName: string;
   }) => void;
   contentTitle?: string;
-  contentPlatform?: string;
+  contentPlatforms?: string[]; // ← Changed to array
+  contentTypes?: string[]; // ← Added
   assignedTo?: string;
   brandColor?: string;
 }
@@ -81,7 +82,8 @@ export default function RequestRevisionModal({
   onClose,
   onSubmit,
   contentTitle = "Untitled Content",
-  contentPlatform = "Instagram",
+  contentPlatforms = [], // ← Default empty array
+  contentTypes = [], // ← Added
   assignedTo = "Team Member",
   brandColor = "#430062",
 }: RequestRevisionModalProps) {
@@ -109,12 +111,14 @@ export default function RequestRevisionModal({
 
     setIsSubmitting(true);
     await new Promise((resolve) => setTimeout(resolve, 800));
+
     onSubmit({
       comment,
       priority,
       dueDate,
       clientName: user?.primary_contact_name?.toString() || "Client",
     });
+
     setIsSubmitting(false);
     resetForm();
     onClose();
@@ -195,25 +199,51 @@ export default function RequestRevisionModal({
             </button>
           </div>
 
-          {/* Content Preview */}
-          <div className="mt-4 flex items-center gap-2 p-3 bg-zinc-50 rounded-2xl border border-zinc-100">
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-              style={{ backgroundColor: `${brandColor}15` }}
-            >
-              <span className="text-xs font-bold" style={{ color: brandColor }}>
-                {contentTitle.slice(0, 2).toUpperCase()}
-              </span>
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-zinc-900 truncate">
-                {contentTitle}
-              </p>
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                  {contentPlatform}
-                </Badge>
-                <span className="text-xs text-zinc-400">{assignedTo}</span>
+          {/* Updated Content Preview */}
+          <div className="mt-4 p-3 bg-zinc-50 rounded-2xl border border-zinc-100">
+            <div className="flex items-start gap-3">
+              <div
+                className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
+                style={{ backgroundColor: `${brandColor}15` }}
+              >
+                <span
+                  className="text-xs font-bold"
+                  style={{ color: brandColor }}
+                >
+                  {contentTitle.slice(0, 2).toUpperCase()}
+                </span>
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-zinc-900 truncate">
+                  {contentTitle}
+                </p>
+
+                {/* Multiple Platforms & Content Types */}
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {contentPlatforms.length > 0 &&
+                    contentPlatforms.map((platform) => (
+                      <Badge
+                        key={platform}
+                        variant="outline"
+                        className="text-[10px] px-2 py-0"
+                      >
+                        {platform}
+                      </Badge>
+                    ))}
+
+                  {contentTypes.length > 0 &&
+                    contentTypes.map((type) => (
+                      <Badge
+                        key={type}
+                        variant="secondary"
+                        className="text-[10px] px-2 py-0 bg-zinc-100"
+                      >
+                        {type}
+                      </Badge>
+                    ))}
+                </div>
+
+                <p className="text-xs text-zinc-400 mt-1">{assignedTo}</p>
               </div>
             </div>
           </div>
@@ -237,14 +267,11 @@ export default function RequestRevisionModal({
                     key={p.value}
                     type="button"
                     onClick={() => setPriority(p.value)}
-                    className={`
-                      relative flex flex-col items-center gap-1.5 p-3 rounded-2xl border-2 transition-all duration-200
-                      ${
-                        isSelected
-                          ? `${p.border} ${p.bg} ${p.text}`
-                          : "border-zinc-200 hover:border-zinc-300 text-zinc-600 hover:bg-zinc-50"
-                      }
-                    `}
+                    className={`relative flex flex-col items-center gap-1.5 p-3 rounded-2xl border-2 transition-all duration-200 ${
+                      isSelected
+                        ? `${p.border} ${p.bg} ${p.text}`
+                        : "border-zinc-200 hover:border-zinc-300 text-zinc-600 hover:bg-zinc-50"
+                    }`}
                   >
                     <div
                       className="w-2 h-2 rounded-full"
@@ -295,22 +322,14 @@ export default function RequestRevisionModal({
               </div>
               <button
                 type="button"
-                onClick={() => {
-                  setDueDate(getTomorrow());
-                  if (errors.dueDate)
-                    setErrors((prev) => ({ ...prev, dueDate: "" }));
-                }}
+                onClick={() => setDueDate(getTomorrow())}
                 className="px-4 h-11 rounded-2xl border border-zinc-200 text-sm font-medium text-zinc-600 hover:bg-zinc-50 transition-colors whitespace-nowrap"
               >
                 Tomorrow
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  setDueDate(getThreeDays());
-                  if (errors.dueDate)
-                    setErrors((prev) => ({ ...prev, dueDate: "" }));
-                }}
+                onClick={() => setDueDate(getThreeDays())}
                 className="px-4 h-11 rounded-2xl border border-zinc-200 text-sm font-medium text-zinc-600 hover:bg-zinc-50 transition-colors whitespace-nowrap"
               >
                 3 Days
@@ -346,8 +365,7 @@ export default function RequestRevisionModal({
                 setComment(e.target.value);
                 if (errors.comment)
                   setErrors((prev) => ({ ...prev, comment: "" }));
-                if (e.target.value.length > 0) setShowQuickFeedback(false);
-                if (e.target.value.length === 0) setShowQuickFeedback(true);
+                setShowQuickFeedback(e.target.value.length === 0);
               }}
               className={`rounded-2xl min-h-[140px] resize-none ${errors.comment ? "border-red-300 focus-visible:ring-red-200" : ""}`}
               maxLength={1000}
@@ -360,7 +378,7 @@ export default function RequestRevisionModal({
             )}
           </div>
 
-          {/* Quick Feedback Chips */}
+          {/* Quick Feedback */}
           {showQuickFeedback && (
             <div className="space-y-2">
               <p className="text-xs font-medium text-zinc-500">
@@ -385,7 +403,7 @@ export default function RequestRevisionModal({
           {comment && (
             <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
               <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">
-                Request Preview
+                REQUEST PREVIEW
               </p>
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
@@ -406,7 +424,7 @@ export default function RequestRevisionModal({
                     {comment}
                   </p>
                 </div>
-                <div className="flex items-center gap-2 pl-10">
+                <div className="flex flex-wrap gap-2 pl-10">
                   {selectedPriority && (
                     <Badge
                       variant="outline"

@@ -4,8 +4,8 @@ export interface ContentItem {
   id: string;
   title: string;
   caption: string;
-  platform: string;
-  contentType: string;
+  platforms: string[]; // ← Changed to array
+  contentTypes: string[]; // ← Changed to array
   status: "review" | "revise" | "approved" | "scheduled" | "posted";
   publishDate: string;
   client: string;
@@ -30,7 +30,7 @@ interface ContentState {
   error: string | null;
 
   fetchContents: () => Promise<void>;
-  addContent: (content: ContentItem) => void;
+  addContent: (content: any) => void; // Keep `any` or define proper type
   updateStatus: (id: string, status: ContentItem["status"]) => void;
 
   clearContents: () => void;
@@ -46,9 +46,19 @@ const mapContent = (item: any): ContentItem => ({
 
   caption: item.caption || "",
 
-  platform: item.platform || "",
+  // Updated for arrays
+  platforms: Array.isArray(item.platforms)
+    ? item.platforms
+    : item.platform
+      ? [item.platform]
+      : [],
 
-  contentType: item.contentType || item.content_type || "",
+  contentTypes:
+    Array.isArray(item.contentTypes) || Array.isArray(item.content_types)
+      ? item.contentTypes || item.content_types
+      : item.contentType || item.content_type
+        ? [item.contentType || item.content_type]
+        : [],
 
   status: item.status || "review",
 
@@ -92,17 +102,12 @@ export const useContentStore = create<ContentState>((set, get) => ({
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || "Failed to fetch");
+        throw new Error(data.error || "Failed to fetch contents");
       }
 
-      /**
-       * FIXED HERE
-       */
       const normalizedContents = (data.contents || []).map(mapContent);
 
-      set({
-        contents: normalizedContents,
-      });
+      set({ contents: normalizedContents });
     } catch (err) {
       set({
         error: err instanceof Error ? err.message : "Unknown error",
@@ -113,8 +118,9 @@ export const useContentStore = create<ContentState>((set, get) => ({
   },
 
   addContent: (content) => {
+    const normalized = mapContent(content);
     set((state) => ({
-      contents: [mapContent(content), ...state.contents],
+      contents: [normalized, ...state.contents],
     }));
   },
 

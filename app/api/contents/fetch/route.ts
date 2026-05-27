@@ -17,7 +17,6 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // 🔐 decode user from JWT
     const { payload } = await jwtVerify(token, secret);
 
     const role = payload.role as string;
@@ -47,13 +46,8 @@ export async function GET(req: NextRequest) {
       )
       .order("publish_date", { ascending: false });
 
-    // 🔥 ADMIN: sees everything
-    if (role === "admin" || type === "user") {
-      // no filters
-    }
-
-    // 🔒 CLIENT: only their company data
-    else if (type === "client") {
+    // Role-based filtering
+    if (type === "client") {
       const { data: client } = await supabase
         .from("amos_clients")
         .select("id")
@@ -69,8 +63,9 @@ export async function GET(req: NextRequest) {
 
       query = query.eq("client", client.id);
     }
+    // Admin / internal users see everything (no additional filter)
 
-    // optional filters (still apply for both roles)
+    // Optional filters
     if (status && status !== "all") {
       query = query.eq("status", status);
     }
@@ -82,29 +77,51 @@ export async function GET(req: NextRequest) {
     const { data, error } = await query;
 
     if (error) {
+      console.error("Supabase error:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    // === NORMALIZER (matches Zustand mapContent) ===
     const contents = data.map((item: any) => ({
       id: item.id,
-      title: item.content_title ?? "",
+
+      title: item.content_title ?? item.title ?? "",
       caption: item.caption ?? "",
-      platform: item.platform ?? "",
-      contentType: item.content_type ?? "",
-      status: item.status ?? "draft",
-      publishDate: item.publish_date,
+
+      // Updated: Support both legacy single value and new array format
+      platforms: Array.isArray(item.platforms)
+        ? item.platforms
+        : item.platform
+          ? [item.platform]
+          : [],
+
+      contentTypes:
+        Array.isArray(item.contentTypes) || Array.isArray(item.content_types)
+          ? (item.contentTypes ?? item.content_types ?? [])
+          : item.contentType || item.content_type
+            ? [item.contentType ?? item.content_type]
+            : [],
+
+      status: item.status ?? "review",
+      publishDate: item.publish_date ?? "",
+
       client: item.client?.company_name ?? "",
       assignedTo: item.assigned_to?.fullname ?? "",
-      driveLinks: item.gdrive_links ?? [],
-      pillar: item.content_pillar,
+
+      driveLinks: Array.isArray(item.gdrive_links) ? item.gdrive_links : [],
+      pillar: item.content_pillar ?? item.pillar ?? "",
+
       priority: item.priority ?? null,
       revisionDueDate: item.revision_due_date ?? null,
-      revisionCount: item.revision_count ?? null,
-      revisionNotes: item.revision_notes ?? null,
+      revisionCount: item.revision_count ?? 0,
+      revisionNotes: Array.isArray(item.revision_notes)
+        ? item.revision_notes
+        : [],
     }));
 
     return NextResponse.json({ contents }, { status: 200 });
   } catch (error) {
+    console.error("API Error:", error);
     return NextResponse.json(
       {
         error: error instanceof Error ? error.message : "Internal server error",

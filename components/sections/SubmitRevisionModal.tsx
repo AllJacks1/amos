@@ -16,7 +16,6 @@ import {
   Monitor,
   Type,
   AlignLeft,
-  User,
   CheckCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -39,8 +38,8 @@ interface ContentItem {
   id: string;
   title: string;
   caption: string;
-  platform: string;
-  contentType: string;
+  platforms: string[]; // ← Updated
+  contentTypes: string[]; // ← Updated
   status: "review" | "revise" | "approved" | "scheduled" | "posted";
   publishDate: string;
   client: string;
@@ -64,8 +63,8 @@ interface SubmitRevisionModalProps {
     id: string;
     content_title: string;
     caption: string;
-    platform: string;
-    content_type: string;
+    platforms: string[]; // ← Updated
+    content_types: string[]; // ← Updated
     content_pillar: string;
     publish_date: string;
     gdrive_links: string[];
@@ -81,7 +80,7 @@ interface SubmitRevisionModalProps {
   adminName?: string;
 }
 
-const platforms = [
+const platformsList = [
   "Instagram",
   "Facebook",
   "TikTok",
@@ -92,7 +91,7 @@ const platforms = [
   "Threads",
 ];
 
-const contentTypes = [
+const contentTypesList = [
   "Carousel",
   "Reel",
   "Story",
@@ -125,8 +124,8 @@ export default function SubmitRevisionModal({
 
   const [title, setTitle] = useState("");
   const [caption, setCaption] = useState("");
-  const [platform, setPlatform] = useState("");
-  const [contentType, setContentType] = useState("");
+  const [platforms, setPlatforms] = useState<string[]>([]);
+  const [contentTypes, setContentTypes] = useState<string[]>([]);
   const [pillar, setPillar] = useState("");
   const [publishDate, setPublishDate] = useState("");
   const [driveLinks, setDriveLinks] = useState<string[]>([""]);
@@ -135,13 +134,13 @@ export default function SubmitRevisionModal({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [activeSection, setActiveSection] = useState<"edit" | "note">("edit");
 
-  // Initialize form when content changes
+  // Initialize form
   useEffect(() => {
     if (content) {
       setTitle(content.title || "");
       setCaption(content.caption || "");
-      setPlatform(content.platform || "");
-      setContentType(content.contentType || "");
+      setPlatforms(content.platforms || []);
+      setContentTypes(content.contentTypes || []);
       setPillar(content.pillar || "");
       setPublishDate(content.publishDate || "");
       setDriveLinks(content.driveLinks?.length > 0 ? content.driveLinks : [""]);
@@ -155,16 +154,17 @@ export default function SubmitRevisionModal({
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
+
     if (!title.trim()) newErrors.title = "Title is required";
     if (!caption.trim()) newErrors.caption = "Caption is required";
-    if (!platform) newErrors.platform = "Platform is required";
-    if (!contentType) newErrors.contentType = "Content type is required";
+    if (platforms.length === 0)
+      newErrors.platforms = "At least one platform is required";
+    if (contentTypes.length === 0)
+      newErrors.contentTypes = "At least one content type is required";
     if (!pillar) newErrors.pillar = "Content pillar is required";
     if (!publishDate) newErrors.publishDate = "Publish date is required";
-    if (!adminNote.trim())
-      newErrors.adminNote = "Please add a note about what was revised";
+    if (!adminNote.trim()) newErrors.adminNote = "Please add a revision note";
 
-    // Validate drive links (at least one non-empty or all empty)
     const validLinks = driveLinks.filter((l) => l.trim() !== "");
     if (validLinks.length === 0) {
       newErrors.driveLinks = "At least one drive link is required";
@@ -174,9 +174,7 @@ export default function SubmitRevisionModal({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleAddLink = () => {
-    setDriveLinks([...driveLinks, ""]);
-  };
+  const handleAddLink = () => setDriveLinks([...driveLinks, ""]);
 
   const handleRemoveLink = (index: number) => {
     if (driveLinks.length === 1) {
@@ -193,17 +191,39 @@ export default function SubmitRevisionModal({
     if (errors.driveLinks) setErrors((prev) => ({ ...prev, driveLinks: "" }));
   };
 
+  const addPlatform = (platform: string) => {
+    if (!platforms.includes(platform)) {
+      setPlatforms([...platforms, platform]);
+    }
+    if (errors.platforms) setErrors((prev) => ({ ...prev, platforms: "" }));
+  };
+
+  const removePlatform = (platform: string) => {
+    setPlatforms(platforms.filter((p) => p !== platform));
+  };
+
+  const addContentType = (type: string) => {
+    if (!contentTypes.includes(type)) {
+      setContentTypes([...contentTypes, type]);
+    }
+    if (errors.contentTypes)
+      setErrors((prev) => ({ ...prev, contentTypes: "" }));
+  };
+
+  const removeContentType = (type: string) => {
+    setContentTypes(contentTypes.filter((t) => t !== type));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
 
     setIsSubmitting(true);
 
-    // Build revision notes: keep existing + add admin note
     const existingNotes = content.revisionNotes || [];
     const newNote = {
       commenter: adminName,
-      comment: adminNote,
+      comment: adminNote.trim(),
       created_at: new Date().toISOString(),
     };
 
@@ -211,53 +231,37 @@ export default function SubmitRevisionModal({
       id: content.id,
       content_title: title.trim(),
       caption: caption.trim(),
-      platform,
-      content_type: contentType,
+      platforms, // ← Updated
+      content_types: contentTypes, // ← Updated
       content_pillar: pillar,
       publish_date: publishDate,
       gdrive_links: driveLinks.filter((l) => l.trim() !== ""),
       status: "review" as const,
       revision_notes: [...existingNotes, newNote],
-      adminName: user?.fullname || "Admin",
     };
 
     try {
       await new Promise((resolve) => setTimeout(resolve, 600));
       onSubmit(updatePayload);
-      resetForm();
       onClose();
     } catch (error) {
-      console.error(error);
+      console.error("Submission error:", error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const resetForm = () => {
-    setAdminNote("");
-    setErrors({});
-    setActiveSection("edit");
-  };
-
-  const handleClose = () => {
-    if (!isSubmitting) {
-      resetForm();
-      onClose();
-    }
-  };
-
-  const isGoogleDriveLink = (url: string) => {
-    return url.includes("drive.google.com") || url.includes("docs.google.com");
-  };
+  const isGoogleDriveLink = (url: string) =>
+    url.includes("drive.google.com") || url.includes("docs.google.com");
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
       <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
-        onClick={handleClose}
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        onClick={onClose}
       />
 
-      <div className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl shadow-black/10 overflow-hidden animate-in fade-in zoom-in-95 duration-200 max-h-[92vh] flex flex-col">
+      <div className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 max-h-[92vh] flex flex-col">
         {/* Header */}
         <div className="px-6 sm:px-8 pt-6 pb-5 border-b border-zinc-100 flex-shrink-0">
           <div className="flex items-center justify-between">
@@ -278,16 +282,16 @@ export default function SubmitRevisionModal({
               </div>
             </div>
             <button
-              onClick={handleClose}
+              onClick={onClose}
               disabled={isSubmitting}
-              className="w-8 h-8 rounded-xl flex items-center justify-center text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 transition-colors disabled:opacity-50"
+              className="w-8 h-8 rounded-xl flex items-center justify-center text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 transition-colors"
             >
               <X className="h-4 w-4" />
             </button>
           </div>
 
-          {/* Content Preview Card */}
-          <div className="mt-4 flex items-center gap-3 p-3 bg-zinc-50 rounded-2xl border border-zinc-100">
+          {/* Content Preview */}
+          <div className="mt-4 p-3 bg-zinc-50 rounded-2xl border border-zinc-100 flex items-center gap-3">
             <div
               className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
               style={{ backgroundColor: `${brandColor}15` }}
@@ -297,7 +301,7 @@ export default function SubmitRevisionModal({
               </span>
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-zinc-900 truncate">
+              <p className="font-medium text-zinc-900 truncate">
                 {content.title}
               </p>
               <div className="flex items-center gap-2 mt-0.5">
@@ -314,7 +318,7 @@ export default function SubmitRevisionModal({
             </div>
           </div>
 
-          {/* Section Tabs */}
+          {/* Tabs */}
           <div className="flex gap-2 mt-4">
             <button
               type="button"
@@ -346,7 +350,7 @@ export default function SubmitRevisionModal({
           </div>
         </div>
 
-        {/* Form */}
+        {/* Form Content */}
         <form
           onSubmit={handleSubmit}
           className="flex-1 overflow-y-auto px-6 sm:px-8 py-6 space-y-6"
@@ -355,10 +359,7 @@ export default function SubmitRevisionModal({
             <div className="space-y-5">
               {/* Title */}
               <div className="space-y-2">
-                <Label
-                  htmlFor="title"
-                  className="text-sm font-medium text-zinc-700 flex items-center gap-2"
-                >
+                <Label htmlFor="title" className="flex items-center gap-2">
                   <Type className="h-3.5 w-3.5 text-zinc-400" />
                   Content Title
                 </Label>
@@ -371,14 +372,10 @@ export default function SubmitRevisionModal({
                       setErrors((prev) => ({ ...prev, title: "" }));
                   }}
                   placeholder="Enter content title..."
-                  className={`rounded-2xl h-11 ${
-                    errors.title
-                      ? "border-red-300 focus-visible:ring-red-200"
-                      : ""
-                  }`}
+                  className={`rounded-2xl h-11 ${errors.title ? "border-red-300" : ""}`}
                 />
                 {errors.title && (
-                  <p className="text-xs text-red-500 ml-1 flex items-center gap-1">
+                  <p className="text-xs text-red-500 flex items-center gap-1">
                     <AlertCircle className="h-3 w-3" />
                     {errors.title}
                   </p>
@@ -387,10 +384,7 @@ export default function SubmitRevisionModal({
 
               {/* Caption */}
               <div className="space-y-2">
-                <Label
-                  htmlFor="caption"
-                  className="text-sm font-medium text-zinc-700 flex items-center gap-2"
-                >
+                <Label htmlFor="caption" className="flex items-center gap-2">
                   <AlignLeft className="h-3.5 w-3.5 text-zinc-400" />
                   Caption / Copy
                 </Label>
@@ -402,121 +396,121 @@ export default function SubmitRevisionModal({
                     if (errors.caption)
                       setErrors((prev) => ({ ...prev, caption: "" }));
                   }}
-                  placeholder="Enter caption or copy..."
-                  className={`rounded-2xl min-h-[100px] resize-none ${
-                    errors.caption
-                      ? "border-red-300 focus-visible:ring-red-200"
-                      : ""
-                  }`}
+                  placeholder="Write caption or copy..."
+                  className={`rounded-2xl min-h-[100px] ${errors.caption ? "border-red-300" : ""}`}
                 />
                 {errors.caption && (
-                  <p className="text-xs text-red-500 ml-1 flex items-center gap-1">
+                  <p className="text-xs text-red-500 flex items-center gap-1">
                     <AlertCircle className="h-3 w-3" />
                     {errors.caption}
                   </p>
                 )}
               </div>
 
-              {/* Platform & Content Type Row */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-zinc-700 flex items-center gap-2">
-                    <Monitor className="h-3.5 w-3.5 text-zinc-400" />
-                    Platform
-                  </Label>
-                  <Select
-                    value={platform}
-                    onValueChange={(v) => {
-                      setPlatform(v);
-                      if (errors.platform)
-                        setErrors((prev) => ({ ...prev, platform: "" }));
-                    }}
-                  >
-                    <SelectTrigger
-                      className={`rounded-2xl h-11 ${
-                        errors.platform
-                          ? "border-red-300 focus:ring-red-200"
-                          : ""
-                      }`}
+              {/* Platforms - Multi Select */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Monitor className="h-3.5 w-3.5 text-zinc-400" />
+                  Platforms
+                </Label>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {platforms.map((plat) => (
+                    <Badge
+                      key={plat}
+                      variant="secondary"
+                      className="pl-3 pr-2 py-1"
                     >
-                      <SelectValue placeholder="Select platform" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-2xl">
-                      {platforms.map((p) => (
+                      {plat}
+                      <button
+                        type="button"
+                        onClick={() => removePlatform(plat)}
+                        className="ml-2 text-zinc-500 hover:text-red-500"
+                      >
+                        ×
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+                <Select onValueChange={addPlatform} value="">
+                  <SelectTrigger
+                    className={`rounded-2xl h-11 ${errors.platforms ? "border-red-300" : ""}`}
+                  >
+                    <SelectValue placeholder="Add platform..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {platformsList
+                      .filter((p) => !platforms.includes(p))
+                      .map((p) => (
                         <SelectItem key={p} value={p}>
                           {p}
                         </SelectItem>
                       ))}
-                    </SelectContent>
-                  </Select>
-                  {errors.platform && (
-                    <p className="text-xs text-red-500 ml-1">
-                      {errors.platform}
-                    </p>
-                  )}
-                </div>
+                  </SelectContent>
+                </Select>
+                {errors.platforms && (
+                  <p className="text-xs text-red-500">{errors.platforms}</p>
+                )}
+              </div>
 
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-zinc-700 flex items-center gap-2">
-                    <Tag className="h-3.5 w-3.5 text-zinc-400" />
-                    Content Type
-                  </Label>
-                  <Select
-                    value={contentType}
-                    onValueChange={(v) => {
-                      setContentType(v);
-                      if (errors.contentType)
-                        setErrors((prev) => ({ ...prev, contentType: "" }));
-                    }}
-                  >
-                    <SelectTrigger
-                      className={`rounded-2xl h-11 ${
-                        errors.contentType
-                          ? "border-red-300 focus:ring-red-200"
-                          : ""
-                      }`}
+              {/* Content Types - Multi Select */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Tag className="h-3.5 w-3.5 text-zinc-400" />
+                  Content Types
+                </Label>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {contentTypes.map((type) => (
+                    <Badge
+                      key={type}
+                      variant="secondary"
+                      className="pl-3 pr-2 py-1"
                     >
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-2xl">
-                      {contentTypes.map((t) => (
+                      {type}
+                      <button
+                        type="button"
+                        onClick={() => removeContentType(type)}
+                        className="ml-2 text-zinc-500 hover:text-red-500"
+                      >
+                        ×
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+                <Select onValueChange={addContentType} value="">
+                  <SelectTrigger
+                    className={`rounded-2xl h-11 ${errors.contentTypes ? "border-red-300" : ""}`}
+                  >
+                    <SelectValue placeholder="Add content type..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {contentTypesList
+                      .filter((t) => !contentTypes.includes(t))
+                      .map((t) => (
                         <SelectItem key={t} value={t}>
                           {t}
                         </SelectItem>
                       ))}
-                    </SelectContent>
-                  </Select>
-                  {errors.contentType && (
-                    <p className="text-xs text-red-500 ml-1">
-                      {errors.contentType}
-                    </p>
-                  )}
-                </div>
+                  </SelectContent>
+                </Select>
+                {errors.contentTypes && (
+                  <p className="text-xs text-red-500">{errors.contentTypes}</p>
+                )}
               </div>
 
-              {/* Pillar & Publish Date Row */}
+              {/* Pillar & Publish Date */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium text-zinc-700 flex items-center gap-2">
+                  <Label className="flex items-center gap-2">
                     <Tag className="h-3.5 w-3.5 text-zinc-400" />
                     Content Pillar
                   </Label>
-                  <Select
-                    value={pillar}
-                    onValueChange={(v) => {
-                      setPillar(v);
-                      if (errors.pillar)
-                        setErrors((prev) => ({ ...prev, pillar: "" }));
-                    }}
-                  >
+                  <Select value={pillar} onValueChange={setPillar}>
                     <SelectTrigger
-                      className={`rounded-2xl h-11 ${
-                        errors.pillar ? "border-red-300 focus:ring-red-200" : ""
-                      }`}
+                      className={`rounded-2xl h-11 ${errors.pillar ? "border-red-300" : ""}`}
                     >
                       <SelectValue placeholder="Select pillar" />
                     </SelectTrigger>
-                    <SelectContent className="rounded-2xl">
+                    <SelectContent>
                       {pillars.map((p) => (
                         <SelectItem key={p} value={p}>
                           {p}
@@ -525,14 +519,14 @@ export default function SubmitRevisionModal({
                     </SelectContent>
                   </Select>
                   {errors.pillar && (
-                    <p className="text-xs text-red-500 ml-1">{errors.pillar}</p>
+                    <p className="text-xs text-red-500">{errors.pillar}</p>
                   )}
                 </div>
 
                 <div className="space-y-2">
                   <Label
                     htmlFor="publishDate"
-                    className="text-sm font-medium text-zinc-700 flex items-center gap-2"
+                    className="flex items-center gap-2"
                   >
                     <Calendar className="h-3.5 w-3.5 text-zinc-400" />
                     Publish Date
@@ -546,26 +540,20 @@ export default function SubmitRevisionModal({
                       if (errors.publishDate)
                         setErrors((prev) => ({ ...prev, publishDate: "" }));
                     }}
-                    className={`rounded-2xl h-11 ${
-                      errors.publishDate
-                        ? "border-red-300 focus-visible:ring-red-200"
-                        : ""
-                    }`}
+                    className={`rounded-2xl h-11 ${errors.publishDate ? "border-red-300" : ""}`}
                   />
                   {errors.publishDate && (
-                    <p className="text-xs text-red-500 ml-1">
-                      {errors.publishDate}
-                    </p>
+                    <p className="text-xs text-red-500">{errors.publishDate}</p>
                   )}
                 </div>
               </div>
 
-              <Separator className="my-2" />
+              <Separator />
 
-              {/* Google Drive Links */}
+              {/* Drive Links */}
               <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Label className="text-sm font-medium text-zinc-700 flex items-center gap-2">
+                <div className="flex justify-between items-center">
+                  <Label className="flex items-center gap-2">
                     <Link2 className="h-3.5 w-3.5 text-zinc-400" />
                     Google Drive Links
                   </Label>
@@ -574,53 +562,44 @@ export default function SubmitRevisionModal({
                   </span>
                 </div>
 
-                <div className="space-y-2">
-                  {driveLinks.map((link, index) => (
-                    <div key={index} className="flex gap-2">
-                      <div className="relative flex-1">
-                        <Link2
-                          className={`absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 ${
-                            isGoogleDriveLink(link)
-                              ? "text-amber-500"
-                              : "text-zinc-400"
-                          }`}
-                        />
-                        <Input
-                          value={link}
-                          onChange={(e) =>
-                            handleLinkChange(index, e.target.value)
-                          }
-                          placeholder="https://drive.google.com/..."
-                          className={`pl-10 rounded-2xl h-11 ${
-                            errors.driveLinks && index === 0
-                              ? "border-red-300 focus-visible:ring-red-200"
-                              : ""
-                          }`}
-                        />
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveLink(index)}
-                        className="w-11 h-11 rounded-2xl border border-zinc-200 flex items-center justify-center text-zinc-400 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-all"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                {driveLinks.map((link, index) => (
+                  <div key={index} className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Link2
+                        className={`absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 ${isGoogleDriveLink(link) ? "text-amber-500" : "text-zinc-400"}`}
+                      />
+                      <Input
+                        value={link}
+                        onChange={(e) =>
+                          handleLinkChange(index, e.target.value)
+                        }
+                        placeholder="https://drive.google.com/..."
+                        className="pl-10 rounded-2xl h-11"
+                      />
                     </div>
-                  ))}
-                </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => handleRemoveLink(index)}
+                      className="w-11 h-11 rounded-2xl hover:text-red-500 hover:border-red-200"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
 
                 <Button
                   type="button"
                   variant="outline"
                   onClick={handleAddLink}
-                  className="w-full h-10 rounded-2xl border-dashed border-zinc-300 text-zinc-600 hover:border-zinc-400 hover:bg-zinc-50"
+                  className="w-full h-10 rounded-2xl border-dashed"
                 >
                   <Plus className="mr-2 h-4 w-4" />
                   Add Another Link
                 </Button>
 
                 {errors.driveLinks && (
-                  <p className="text-xs text-red-500 ml-1 flex items-center gap-1">
+                  <p className="text-xs text-red-500 flex items-center gap-1">
                     <AlertCircle className="h-3 w-3" />
                     {errors.driveLinks}
                   </p>
@@ -630,13 +609,12 @@ export default function SubmitRevisionModal({
           ) : (
             /* Revision Note Section */
             <div className="space-y-5">
-              {/* Revision Context */}
               {content.revisionNotes && content.revisionNotes.length > 0 && (
                 <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100 space-y-3">
                   <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
                     Previous Revision Requests
                   </p>
-                  <div className="space-y-3 max-h-[200px] overflow-y-auto">
+                  <div className="space-y-3 max-h-[220px] overflow-y-auto pr-2">
                     {content.revisionNotes.map((note, idx) => (
                       <div
                         key={idx}
@@ -645,18 +623,18 @@ export default function SubmitRevisionModal({
                         <div className="flex items-center justify-between mb-1.5">
                           <div className="flex items-center gap-2">
                             <Avatar className="h-6 w-6">
-                              <AvatarFallback className="text-[10px] bg-zinc-100">
+                              <AvatarFallback className="text-xs bg-zinc-100">
                                 {note.commenter
                                   .split(" ")
                                   .map((n) => n[0])
                                   .join("")}
                               </AvatarFallback>
                             </Avatar>
-                            <span className="text-sm font-medium text-zinc-900">
+                            <span className="font-medium text-sm">
                               {note.commenter}
                             </span>
                           </div>
-                          <span className="text-[10px] text-zinc-400">
+                          <span className="text-xs text-zinc-400">
                             {new Date(note.created_at).toLocaleDateString()}
                           </span>
                         </div>
@@ -669,22 +647,19 @@ export default function SubmitRevisionModal({
                 </div>
               )}
 
-              <Separator className="my-2" />
+              <Separator />
 
-              {/* Admin Note Input */}
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
+                <div className="flex justify-between">
                   <Label
                     htmlFor="adminNote"
-                    className="text-sm font-medium text-zinc-700 flex items-center gap-2"
+                    className="flex items-center gap-2"
                   >
                     <FileText className="h-3.5 w-3.5 text-zinc-400" />
                     Your Revision Note
                   </Label>
                   <span
-                    className={`text-xs ${
-                      adminNote.length > 800 ? "text-red-400" : "text-zinc-400"
-                    }`}
+                    className={`text-xs ${adminNote.length > 800 ? "text-red-400" : "text-zinc-400"}`}
                   >
                     {adminNote.length}/1000
                   </span>
@@ -697,34 +672,29 @@ export default function SubmitRevisionModal({
                     if (errors.adminNote)
                       setErrors((prev) => ({ ...prev, adminNote: "" }));
                   }}
-                  placeholder="Describe what changes you made in this revision. Be specific about what was updated, added, or fixed so the reviewer knows what to check..."
-                  className={`rounded-2xl min-h-[160px] resize-none ${
-                    errors.adminNote
-                      ? "border-red-300 focus-visible:ring-red-200"
-                      : ""
-                  }`}
+                  placeholder="Describe the changes you made in this revision..."
+                  className={`min-h-[160px] rounded-2xl ${errors.adminNote ? "border-red-300" : ""}`}
                   maxLength={1000}
                 />
                 {errors.adminNote && (
-                  <p className="text-xs text-red-500 ml-1 flex items-center gap-1">
+                  <p className="text-xs text-red-500 flex items-center gap-1">
                     <AlertCircle className="h-3 w-3" />
                     {errors.adminNote}
                   </p>
                 )}
               </div>
 
-              {/* Status Change Preview */}
               <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                <div className="flex gap-3">
+                  <div className="w-8 h-8 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center">
                     <CheckCircle className="h-4 w-4" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-emerald-900">
-                      Status will change to &quot;For Review&quot;
+                    <p className="font-medium text-emerald-900">
+                      Status will change to "For Review"
                     </p>
                     <p className="text-xs text-emerald-600 mt-0.5">
-                      This content will be sent back to the review pipeline
+                      Content will return to the review pipeline
                     </p>
                   </div>
                 </div>
@@ -734,36 +704,36 @@ export default function SubmitRevisionModal({
         </form>
 
         {/* Footer */}
-        <div className="border-t bg-white p-6 sm:p-8 flex-shrink-0">
+        <div className="border-t p-6 sm:p-8 bg-white flex-shrink-0">
           <div className="flex flex-col-reverse sm:flex-row gap-3">
             <Button
               type="button"
               variant="outline"
-              onClick={handleClose}
+              onClick={onClose}
               disabled={isSubmitting}
-              className="w-full sm:flex-1 h-11 rounded-2xl font-medium"
+              className="h-11 rounded-2xl"
             >
               Cancel
             </Button>
+
             {activeSection === "edit" ? (
               <Button
                 type="button"
                 onClick={() => setActiveSection("note")}
-                className="w-full sm:flex-1 h-11 rounded-2xl font-semibold text-white shadow-lg transition-all active:scale-[0.985]"
+                className="h-11 rounded-2xl font-semibold text-white"
                 style={{
                   backgroundColor: brandColor,
                   boxShadow: `0 4px 14px ${brandColor}25`,
                 }}
               >
-                Continue to Note
-                <Send className="ml-2 h-4 w-4" />
+                Continue to Note <Send className="ml-2 h-4 w-4" />
               </Button>
             ) : (
               <Button
-                type="submit"
-                disabled={isSubmitting}
+                type="button"
                 onClick={handleSubmit}
-                className="w-full sm:flex-1 h-11 rounded-2xl font-semibold text-white shadow-lg transition-all active:scale-[0.985] disabled:opacity-50"
+                disabled={isSubmitting}
+                className="h-11 rounded-2xl font-semibold text-white disabled:opacity-70"
                 style={{
                   backgroundColor: brandColor,
                   boxShadow: `0 4px 14px ${brandColor}25`,

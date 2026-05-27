@@ -10,7 +10,7 @@ interface ApproveConfirmDialogProps {
   onClose: () => void;
   onConfirm: () => void;
   contentTitle?: string;
-  contentPlatform?: string;
+  platforms?: string[]; // ← Updated to array
   clientName?: string;
   brandColor?: string;
 }
@@ -20,7 +20,7 @@ export default function ApproveConfirmDialog({
   onClose,
   onConfirm,
   contentTitle = "Untitled Content",
-  contentPlatform = "Instagram",
+  platforms = [], // ← Default to empty array
   clientName = "Client",
   brandColor = "#430062",
 }: ApproveConfirmDialogProps) {
@@ -36,7 +36,9 @@ export default function ApproveConfirmDialog({
     try {
       await onConfirm();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Approval failed");
+      setError(
+        err instanceof Error ? err.message : "Failed to approve content",
+      );
     } finally {
       setIsApproving(false);
     }
@@ -49,11 +51,15 @@ export default function ApproveConfirmDialog({
     }
   };
 
+  // Format platforms for display
+  const displayPlatforms =
+    platforms.length > 0 ? platforms.join(" • ") : "No platform specified";
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         onClick={handleClose}
       />
 
@@ -72,24 +78,43 @@ export default function ApproveConfirmDialog({
             Approve Content?
           </h2>
           <p className="text-sm text-zinc-500 mt-1.5">
-            This will mark the content as approved.
+            This action will mark the content as approved and move it to the
+            scheduled pipeline.
           </p>
         </div>
 
         {/* Content Preview */}
         <div className="mx-6 p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
-          <p className="text-sm font-medium text-zinc-900 line-clamp-1">
+          <p className="text-sm font-medium text-zinc-900 line-clamp-2 mb-3">
             {contentTitle}
           </p>
-          <div className="flex items-center gap-2 mt-1.5">
-            <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-              {contentPlatform}
-            </Badge>
-            <span className="text-xs text-zinc-400">{clientName}</span>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {platforms.length > 0 ? (
+              platforms.map((platform, index) => (
+                <Badge
+                  key={index}
+                  variant="outline"
+                  className="text-xs px-2.5 py-0.5 border-zinc-200"
+                >
+                  {platform}
+                </Badge>
+              ))
+            ) : (
+              <Badge variant="outline" className="text-xs px-2.5 py-0.5">
+                {displayPlatforms}
+              </Badge>
+            )}
+
+            {clientName && (
+              <span className="text-xs text-zinc-400 ml-auto">
+                {clientName}
+              </span>
+            )}
           </div>
         </div>
 
-        {/* Error */}
+        {/* Error Message */}
         {error && (
           <div className="mx-6 mt-4 p-3 bg-red-50 border border-red-100 rounded-xl flex items-center gap-2">
             <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
@@ -107,6 +132,7 @@ export default function ApproveConfirmDialog({
           >
             Cancel
           </Button>
+
           <Button
             onClick={handleConfirm}
             disabled={isApproving}
@@ -124,7 +150,7 @@ export default function ApproveConfirmDialog({
             ) : (
               <>
                 <CheckCircle2 className="mr-2 h-4 w-4" />
-                Yes, Approve
+                Yes, Approve Content
               </>
             )}
           </Button>

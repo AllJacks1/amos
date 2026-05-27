@@ -154,6 +154,8 @@ export default function ContentOperations() {
       .slice(0, 2);
   };
 
+  console.log("Mapped Contents:", contents);
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -345,10 +347,10 @@ export default function ContentOperations() {
                       Title
                     </th>
                     <th className="text-left py-3 px-3 sm:py-4 sm:px-6 font-medium text-zinc-500 text-xs sm:text-sm whitespace-nowrap">
-                      Platform
+                      Platforms
                     </th>
                     <th className="text-left py-3 px-3 sm:py-4 sm:px-6 font-medium text-zinc-500 text-xs sm:text-sm whitespace-nowrap">
-                      Type
+                      Content Types
                     </th>
                     <th className="text-left py-3 px-3 sm:py-4 sm:px-6 font-medium text-zinc-500 text-xs sm:text-sm whitespace-nowrap">
                       Client
@@ -372,29 +374,88 @@ export default function ContentOperations() {
                       className="border-b border-zinc-100 hover:bg-zinc-50 cursor-pointer transition-colors"
                       onClick={() => openDetail(item)}
                     >
-                      {/* ... same table cells as before ... */}
                       <td className="py-3 px-3 sm:py-5 sm:px-6 font-medium text-sm sm:text-base">
                         {item.title}
                       </td>
-                      <td className="py-3 px-3 sm:py-5 sm:px-6 text-zinc-600 text-xs sm:text-sm whitespace-nowrap">
-                        {item.platform}
+
+                      {/* Platforms - Multiple Badges */}
+                      <td className="py-3 px-3 sm:py-5 sm:px-6">
+                        <div className="flex flex-wrap gap-1">
+                          {item.platforms && item.platforms.length > 0 ? (
+                            <>
+                              {item.platforms
+                                .slice(0, 2)
+                                .map((platform: string) => (
+                                  <Badge
+                                    key={platform}
+                                    variant="outline"
+                                    className="text-[10px] font-medium px-2 py-0.5"
+                                  >
+                                    {platform}
+                                  </Badge>
+                                ))}
+                              {item.platforms.length > 2 && (
+                                <Badge
+                                  variant="outline"
+                                  className="text-[10px] px-2 py-0.5"
+                                >
+                                  +{item.platforms.length - 2}
+                                </Badge>
+                              )}
+                            </>
+                          ) : (
+                            <span className="text-zinc-400 text-sm">—</span>
+                          )}
+                        </div>
                       </td>
-                      <td className="py-3 px-3 sm:py-5 sm:px-6 text-zinc-600 text-xs sm:text-sm whitespace-nowrap">
-                        {item.contentType}
+
+                      {/* Content Types - Multiple Badges */}
+                      <td className="py-3 px-3 sm:py-5 sm:px-6">
+                        <div className="flex flex-wrap gap-1">
+                          {item.contentTypes && item.contentTypes.length > 0 ? (
+                            <>
+                              {item.contentTypes
+                                .slice(0, 2)
+                                .map((type: string) => (
+                                  <Badge
+                                    key={type}
+                                    variant="secondary"
+                                    className="text-[10px] bg-zinc-100 text-zinc-700 px-2 py-0.5"
+                                  >
+                                    {type}
+                                  </Badge>
+                                ))}
+                              {item.contentTypes.length > 2 && (
+                                <Badge
+                                  variant="secondary"
+                                  className="text-[10px] bg-zinc-100 px-2 py-0.5"
+                                >
+                                  +{item.contentTypes.length - 2}
+                                </Badge>
+                              )}
+                            </>
+                          ) : (
+                            <span className="text-zinc-400 text-sm">—</span>
+                          )}
+                        </div>
                       </td>
+
                       <td className="py-3 px-3 sm:py-5 sm:px-6 text-zinc-600 text-xs sm:text-sm whitespace-nowrap">
                         {item.client}
                       </td>
+
                       <td className="py-3 px-3 sm:py-5 sm:px-6">
                         <Badge
-                          className={`${statusColors[item.status]} text-xs whitespace-nowrap`}
+                          className={`${statusColors[item.status] || "bg-zinc-100 text-zinc-700"} text-xs whitespace-nowrap`}
                         >
-                          {statusLabels[item.status]}
+                          {statusLabels[item.status] || item.status}
                         </Badge>
                       </td>
+
                       <td className="py-3 px-3 sm:py-5 sm:px-6 text-xs sm:text-sm text-zinc-600 font-mono whitespace-nowrap">
                         {item.publishDate}
                       </td>
+
                       <td className="py-3 px-3 sm:py-5 sm:px-6">
                         <div className="flex items-center gap-2 min-w-0">
                           <Avatar className="h-6 w-6 flex-shrink-0">
@@ -407,6 +468,7 @@ export default function ContentOperations() {
                           </span>
                         </div>
                       </td>
+
                       <td className="py-3 px-3 sm:py-5 sm:px-6">
                         <Button
                           variant="ghost"
@@ -448,7 +510,6 @@ export default function ContentOperations() {
                   Previous
                 </Button>
 
-                {/* Page Numbers */}
                 <div className="flex gap-1">
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(
                     (page) => (
@@ -496,12 +557,32 @@ export default function ContentOperations() {
                   >
                     {statusLabels[selectedContent.status]}
                   </Badge>
-                  <Badge
-                    variant="outline"
-                    className="text-xs sm:text-sm font-medium px-2.5 sm:px-3 py-0.5 sm:py-1"
-                  >
-                    {selectedContent.platform}
-                  </Badge>
+
+                  {/* Multiple Platforms */}
+                  {selectedContent.platforms &&
+                    selectedContent.platforms.length > 0 &&
+                    selectedContent.platforms.map((platform: string) => (
+                      <Badge
+                        key={platform}
+                        variant="outline"
+                        className="text-xs sm:text-sm font-medium px-2.5 sm:px-3 py-0.5 sm:py-1"
+                      >
+                        {platform}
+                      </Badge>
+                    ))}
+
+                  {/* Multiple Content Types */}
+                  {selectedContent.contentTypes &&
+                    selectedContent.contentTypes.length > 0 &&
+                    selectedContent.contentTypes.map((type: string) => (
+                      <Badge
+                        key={type}
+                        variant="secondary"
+                        className="text-xs sm:text-sm font-medium px-2.5 sm:px-3 py-0.5 sm:py-1 bg-zinc-100"
+                      >
+                        {type}
+                      </Badge>
+                    ))}
                 </div>
 
                 {/* Close Button */}
@@ -560,7 +641,7 @@ export default function ContentOperations() {
                     CAPTION
                   </h4>
                   <p className="text-sm sm:text-[15px] leading-relaxed text-zinc-700">
-                    {selectedContent.caption}
+                    {selectedContent.caption || "No caption provided."}
                   </p>
                 </div>
 
@@ -582,16 +663,24 @@ export default function ContentOperations() {
                       {selectedContent.pillar}
                     </p>
                   </div>
+                  <div>
+                    <h4 className="text-[11px] sm:text-xs font-semibold tracking-widest text-zinc-500 mb-1.5 sm:mb-2">
+                      PUBLISH DATE
+                    </h4>
+                    <p className="text-sm sm:text-base font-medium text-zinc-900">
+                      {selectedContent.publishDate}
+                    </p>
+                  </div>
                 </div>
 
                 <Separator className="my-1 sm:my-2" />
 
                 {/* Revision Details */}
-
+                {/* Revision Details Section */}
                 {((selectedContent.revisionNotes?.length ?? 0) > 0 ||
                   selectedContent.revisionDueDate ||
                   selectedContent.priority ||
-                  selectedContent.revisionCount) && (
+                  typeof selectedContent.revisionCount === "number") && (
                   <div className="space-y-5 rounded-2xl border border-amber-200 bg-amber-50/50 p-4 sm:p-6">
                     <div className="flex items-center justify-between">
                       <h4 className="text-sm sm:text-base font-semibold text-amber-900">
@@ -612,12 +701,14 @@ export default function ContentOperations() {
                             Due Date
                           </p>
                           <p className="text-sm font-medium text-zinc-900">
-                            {selectedContent.revisionDueDate}
+                            {new Date(
+                              selectedContent.revisionDueDate,
+                            ).toLocaleDateString()}
                           </p>
                         </div>
                       )}
 
-                      {selectedContent.revisionCount !== null && (
+                      {typeof selectedContent.revisionCount === "number" && (
                         <div>
                           <p className="text-[11px] uppercase tracking-widest text-zinc-500 mb-1">
                             Revision Count
@@ -646,12 +737,10 @@ export default function ContentOperations() {
                                 <span className="font-medium text-sm text-zinc-900">
                                   {note.commenter}
                                 </span>
-
                                 <span className="text-xs text-zinc-400">
                                   {new Date(note.created_at).toLocaleString()}
                                 </span>
                               </div>
-
                               <p className="text-sm text-zinc-700 leading-relaxed">
                                 {note.comment}
                               </p>
@@ -725,8 +814,8 @@ export default function ContentOperations() {
               body: JSON.stringify({
                 content_title: content.title,
                 caption: content.caption,
-                platform: content.platform,
-                content_type: content.contentType,
+                platforms: content.platforms,
+                content_types: content.contentTypes,
                 client: content.client,
                 assigned_to: content.assignedTo,
                 content_pillar: content.pillar,
@@ -749,8 +838,8 @@ export default function ContentOperations() {
               title: created.title,
 
               caption: created.caption || "",
-              platform: created.platform || "",
-              contentType: created.content_type || "",
+              platforms: created.platform || "",
+              contentTypes: created.content_type || "",
               publishDate: created.publish_date || "",
 
               client:
@@ -833,7 +922,7 @@ export default function ContentOperations() {
           }
         }}
         contentTitle={selectedContent?.title}
-        contentPlatform={selectedContent?.platform}
+        contentPlatforms={selectedContent?.platforms}
         assignedTo={selectedContent?.assignedTo || "Team Member"}
         brandColor={brandColor}
       />
@@ -892,7 +981,7 @@ export default function ContentOperations() {
           setIsApproveOpen(false);
         }}
         contentTitle={selectedContent?.title}
-        contentPlatform={selectedContent?.platform}
+        platforms={selectedContent?.platforms}
         clientName={selectedContent?.client}
         brandColor={brandColor}
       />

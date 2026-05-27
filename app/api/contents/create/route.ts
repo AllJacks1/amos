@@ -13,8 +13,8 @@ export async function POST(req: NextRequest) {
     const {
       content_title,
       caption,
-      platform,
-      content_type,
+      platforms, // ← Changed
+      content_types, // ← Changed
       client,
       assigned_to,
       content_pillar,
@@ -23,30 +23,32 @@ export async function POST(req: NextRequest) {
       adminName,
     } = body;
 
-    // validation
+    // Validation
     if (
       !content_title ||
-      !platform ||
-      !content_type ||
+      !platforms ||
+      !Array.isArray(platforms) ||
+      platforms.length === 0 ||
+      !content_types ||
+      !Array.isArray(content_types) ||
+      content_types.length === 0 ||
       !client ||
       !assigned_to ||
       !publish_date
     ) {
       return NextResponse.json(
         {
-          error: "Missing required fields",
+          error:
+            "Missing required fields (platforms and content_types must be non-empty arrays)",
         },
         { status: 400 },
       );
     }
 
-    // optional:
-    // validate gdrive_links is array
+    // Optional: Validate gdrive_links
     if (gdrive_links && !Array.isArray(gdrive_links)) {
       return NextResponse.json(
-        {
-          error: "gdrive_links must be an array",
-        },
+        { error: "gdrive_links must be an array" },
         { status: 400 },
       );
     }
@@ -57,13 +59,13 @@ export async function POST(req: NextRequest) {
         {
           content_title,
           caption,
-          platform,
-          content_type,
+          platforms, // ← Now array
+          content_types, // ← Now array
           client,
           assigned_to,
           content_pillar,
           publish_date,
-          gdrive_links,
+          gdrive_links: gdrive_links || [],
         },
       ])
       .select(
@@ -84,25 +86,21 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (error) {
-      return NextResponse.json(
-        {
-          error: error.message,
-        },
-        { status: 500 },
-      );
+      console.error("Supabase insert error:", error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    // Normalized response
     const normalizedContent = {
       id: data.id,
       title: data.content_title,
       caption: data.caption,
-      platform: data.platform,
-      contentType: data.content_type,
+      platforms: data.platforms || [], // ← Changed
+      contentTypes: data.content_types || [], // ← Changed
       status: data.status ?? "review",
       publishDate: data.publish_date,
 
       client: data.client?.company_name ?? "",
-
       assignedTo: data.assigned_to?.fullname ?? "",
 
       driveLinks: data.gdrive_links ?? [],
@@ -114,9 +112,10 @@ export async function POST(req: NextRequest) {
       revisionNotes: data.revision_notes ?? [],
     };
 
+    // Log activity
     await supabase.from("amos_logs").insert([
       {
-        activity: `${adminName} created content ${data.id}`,
+        activity: `${adminName} created content #${data.id}`,
       },
     ]);
 
@@ -130,11 +129,10 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
+    console.error("Content creation error:", error);
 
     return NextResponse.json(
-      {
-        error: `Internal server error: ${errorMessage}`,
-      },
+      { error: `Internal server error: ${errorMessage}` },
       { status: 500 },
     );
   }

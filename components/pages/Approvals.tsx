@@ -50,8 +50,8 @@ interface ApprovalItem {
   id: string;
   title: string;
   caption: string;
-  platform: string;
-  contentType: string;
+  platforms: string[];
+  contentTypes: string[];
   status: "review" | "revise" | "approved" | "scheduled" | "posted";
   publishDate: string;
   client: string;
@@ -165,7 +165,7 @@ export default function ApprovalsModule() {
   };
 
   // ==================== HANDLERS ====================
-  const openDetail = (approval: ApprovalItem) => {
+  const openDetail = (approval: any) => {
     setSelectedApproval(approval);
     setIsDetailOpen(true);
   };
@@ -334,6 +334,7 @@ export default function ApprovalsModule() {
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                   {filteredApprovals.map((item) => {
                     const overdue = isOverdue(item.revisionDueDate);
+
                     return (
                       <Card
                         key={item.id}
@@ -345,18 +346,73 @@ export default function ApprovalsModule() {
                             {item.title}
                           </h3>
 
-                          <div className="flex items-center gap-2 text-sm text-zinc-500 mb-5">
-                            <span className="font-medium text-zinc-700">
-                              {item.platform}
-                            </span>
-                            <span className="text-zinc-300">•</span>
-                            <span>{item.contentType}</span>
+                          {/* Platforms & Content Types - Multiple Selection */}
+                          <div className="flex flex-wrap gap-2 mb-5">
+                            {/* Platforms */}
+                            {item.platforms && item.platforms.length > 0 ? (
+                              <>
+                                {item.platforms
+                                  .slice(0, 2)
+                                  .map((platform: string) => (
+                                    <Badge
+                                      key={platform}
+                                      variant="outline"
+                                      className="text-xs font-medium px-2.5 py-0.5"
+                                    >
+                                      {platform}
+                                    </Badge>
+                                  ))}
+                                {item.platforms.length > 2 && (
+                                  <Badge
+                                    variant="outline"
+                                    className="text-xs px-2.5 py-0.5"
+                                  >
+                                    +{item.platforms.length - 2}
+                                  </Badge>
+                                )}
+                              </>
+                            ) : (
+                              <span className="text-xs text-zinc-400">
+                                No platform
+                              </span>
+                            )}
+
+                            {/* Content Types */}
+                            {item.contentTypes &&
+                            item.contentTypes.length > 0 ? (
+                              <>
+                                {item.contentTypes
+                                  .slice(0, 2)
+                                  .map((type: string) => (
+                                    <Badge
+                                      key={type}
+                                      variant="secondary"
+                                      className="text-xs bg-zinc-100 text-zinc-700 px-2.5 py-0.5"
+                                    >
+                                      {type}
+                                    </Badge>
+                                  ))}
+                                {item.contentTypes.length > 2 && (
+                                  <Badge
+                                    variant="secondary"
+                                    className="text-xs bg-zinc-100 px-2.5 py-0.5"
+                                  >
+                                    +{item.contentTypes.length - 2}
+                                  </Badge>
+                                )}
+                              </>
+                            ) : (
+                              <span className="text-xs text-zinc-400">
+                                No content type
+                              </span>
+                            )}
                           </div>
 
+                          {/* Drive Files */}
                           {item.driveLinks && item.driveLinks.length > 0 && (
                             <div className="mb-6">
                               <p className="text-xs font-semibold uppercase tracking-widest text-zinc-400 mb-2">
-                                Drive Files
+                                DRIVE FILES
                               </p>
                               <div className="flex flex-wrap gap-2">
                                 {item.driveLinks.slice(0, 2).map((_, idx) => (
@@ -368,10 +424,16 @@ export default function ApprovalsModule() {
                                     File {idx + 1}
                                   </div>
                                 ))}
+                                {item.driveLinks.length > 2 && (
+                                  <div className="text-xs text-amber-600 px-2 py-1">
+                                    +{item.driveLinks.length - 2} more
+                                  </div>
+                                )}
                               </div>
                             </div>
                           )}
 
+                          {/* Footer */}
                           <div className="mt-auto flex items-center justify-between pt-4 border-t">
                             <div className="flex items-center gap-3">
                               <Avatar className="h-9 w-9 ring-2 ring-white">
@@ -444,12 +506,32 @@ export default function ApprovalsModule() {
                 <DialogTitle className="text-3xl font-semibold pr-12">
                   {selectedApproval.title}
                 </DialogTitle>
-                <div className="flex gap-2 mt-4">
-                  <Badge>{selectedApproval.platform}</Badge>
-                  <Badge variant="outline">
-                    {selectedApproval.contentType}
-                  </Badge>
+
+                {/* Updated: Platforms & Content Types (Multi-value) */}
+                <div className="flex flex-wrap gap-2 mt-4">
+                  {selectedApproval.platforms &&
+                  selectedApproval.platforms.length > 0 ? (
+                    selectedApproval.platforms.map((platform, idx) => (
+                      <Badge key={idx} variant="default">
+                        {platform}
+                      </Badge>
+                    ))
+                  ) : (
+                    <Badge variant="secondary">No platform</Badge>
+                  )}
+
+                  {selectedApproval.contentTypes &&
+                  selectedApproval.contentTypes.length > 0 ? (
+                    selectedApproval.contentTypes.map((type, idx) => (
+                      <Badge key={idx} variant="outline">
+                        {type}
+                      </Badge>
+                    ))
+                  ) : (
+                    <Badge variant="outline">No content type</Badge>
+                  )}
                 </div>
+
                 <Button
                   variant="ghost"
                   size="icon"
@@ -461,19 +543,15 @@ export default function ApprovalsModule() {
               </DialogHeader>
 
               <div className="flex-1 overflow-y-auto p-8 space-y-10">
-                {/* Drive Files */}
-                {/* Drive Files - Fixed TypeScript Issue */}
-                {(() => {
-                  const driveLinks = selectedApproval.driveLinks;
-                  if (!driveLinks || driveLinks.length === 0) return null;
-
-                  return (
+                {/* Google Drive Files */}
+                {selectedApproval.driveLinks &&
+                  selectedApproval.driveLinks.length > 0 && (
                     <div>
                       <h4 className="uppercase text-xs tracking-widest text-zinc-500 mb-4 flex items-center gap-2">
                         <FolderOpen className="h-4 w-4" /> GOOGLE DRIVE FILES
                       </h4>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {driveLinks.map((link, idx) => (
+                        {selectedApproval.driveLinks.map((link, idx) => (
                           <a
                             key={idx}
                             href={link}
@@ -489,7 +567,6 @@ export default function ApprovalsModule() {
                               <p className="font-medium group-hover:text-amber-700">
                                 Asset File {idx + 1}
                               </p>
-
                               <p className="text-sm text-zinc-500 truncate">
                                 Google Drive Link
                               </p>
@@ -500,8 +577,7 @@ export default function ApprovalsModule() {
                         ))}
                       </div>
                     </div>
-                  );
-                })()}
+                  )}
 
                 {/* Caption */}
                 <div>
@@ -509,18 +585,24 @@ export default function ApprovalsModule() {
                     CAPTION
                   </h4>
                   <p className="text-zinc-700 leading-relaxed text-[15.5px]">
-                    {selectedApproval.caption}
+                    {selectedApproval.caption || "No caption provided."}
                   </p>
                 </div>
 
                 {/* Revision Details */}
                 {(selectedApproval.revisionDueDate ||
-                  selectedApproval.revisionNotes?.length) && (
+                  (selectedApproval.revisionNotes?.length ?? 0) > 0) && (
                   <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6">
                     <h4 className="font-semibold text-amber-900 mb-4">
                       Revision Details
                     </h4>
                     {/* Add more revision UI as needed */}
+                    {(selectedApproval.revisionNotes?.length ?? 0) > 0 && (
+                      <div className="text-sm text-amber-800">
+                        {selectedApproval.revisionNotes?.length ?? 0} previous
+                        revision note(s)
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -575,8 +657,8 @@ export default function ApprovalsModule() {
               body: JSON.stringify({
                 content_title: content.title,
                 caption: content.caption,
-                platform: content.platform,
-                content_type: content.contentType,
+                platforms: content.platforms,
+                content_types: content.contentTypes,
                 client: content.client,
                 assigned_to: content.assignedTo,
                 content_pillar: content.pillar,
@@ -598,8 +680,8 @@ export default function ApprovalsModule() {
               id: created.id,
               title: created.title,
               caption: created.caption || "",
-              platform: created.platform || "",
-              contentType: created.contentType || created.content_type || "",
+              platforms: created.platforms || "",
+              contentTypes: created.contentTypes || created.content_types || "",
               publishDate: created.publishDate || created.publish_date || "",
               client: created.client || "",
               assignedTo: created.assignedTo || "",
@@ -672,7 +754,7 @@ export default function ApprovalsModule() {
           }
         }}
         contentTitle={selectedApproval?.title || ""}
-        contentPlatform={selectedApproval?.platform || ""}
+        contentPlatforms={selectedApproval?.platforms || []}
         assignedTo={selectedApproval?.assignedTo || ""}
         brandColor={brandColor}
       />
@@ -745,7 +827,7 @@ export default function ApprovalsModule() {
           setIsApproveOpen(false);
         }}
         contentTitle={selectedApproval?.title || ""}
-        contentPlatform={selectedApproval?.platform || ""}
+        platforms={selectedApproval?.platforms || []}
         clientName={selectedApproval?.client || ""}
         brandColor={brandColor}
       />

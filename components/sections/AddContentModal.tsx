@@ -40,8 +40,8 @@ interface AddContentModalProps {
   onAdd: (content: {
     title: string;
     caption: string;
-    platform: string;
-    contentType: string;
+    platforms: string[];
+    contentTypes: string[];
     publishDate: string;
     client: string;
     assignedTo: string;
@@ -90,8 +90,8 @@ export default function AddContentModal({
   const [formData, setFormData] = useState({
     title: "",
     caption: "",
-    platform: "",
-    contentType: "",
+    platforms: [] as string[],
+    contentTypes: [] as string[],
     publishDate: "",
     client: "",
     assignedTo: "",
@@ -115,9 +115,11 @@ export default function AddContentModal({
   const validateStep1 = () => {
     const newErrors: Record<string, string> = {};
     if (!formData.title.trim()) newErrors.title = "Title is required";
-    if (!formData.platform) newErrors.platform = "Platform is required";
-    if (!formData.contentType)
-      newErrors.contentType = "Content type is required";
+    if (formData.platforms.length === 0)
+      newErrors.platform = "At least one platform is required";
+    if (formData.contentTypes.length === 0)
+      newErrors.contentType = "At least one content type is required";
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -145,7 +147,13 @@ export default function AddContentModal({
     await new Promise((resolve) => setTimeout(resolve, 800));
 
     const cleanLinks = formData.driveLinks.filter((link) => link.trim() !== "");
-    onAdd({ ...formData, driveLinks: cleanLinks.length > 0 ? cleanLinks : [] });
+
+    onAdd({
+      ...formData,
+      platforms: formData.platforms, // ← Send as array
+      contentTypes: formData.contentTypes, // ← Send as array
+      driveLinks: cleanLinks.length > 0 ? cleanLinks : [],
+    });
 
     setIsSubmitting(false);
     resetForm();
@@ -156,8 +164,8 @@ export default function AddContentModal({
     setFormData({
       title: "",
       caption: "",
-      platform: "",
-      contentType: "",
+      platforms: [],
+      contentTypes: [],
       publishDate: "",
       client: "",
       assignedTo: "",
@@ -198,16 +206,38 @@ export default function AddContentModal({
 
   if (!isOpen) return null;
 
-  const selectedPlatform = platforms.find((p) => p.value === formData.platform);
-  const selectedType = contentTypes.find(
-    (t) => t.value === formData.contentType,
+  const selectedPlatformObjects = platforms.filter((p) =>
+    formData.platforms.includes(p.value),
+  );
+
+  const selectedTypeObjects = contentTypes.filter((t) =>
+    formData.contentTypes.includes(t.value),
   );
 
   const selectedClient = clients.find((c) => c.id === formData.client);
-  const selectedUser = users.find((u) => u.id === formData.assignedTo);
 
   const clientsList = clients ?? [];
   const usersList = users ?? [];
+
+  const togglePlatform = (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      platforms: prev.platforms.includes(value)
+        ? prev.platforms.filter((p) => p !== value)
+        : [...prev.platforms, value],
+    }));
+    if (errors.platform) setErrors((prev) => ({ ...prev, platform: "" }));
+  };
+
+  const toggleContentType = (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      contentTypes: prev.contentTypes.includes(value)
+        ? prev.contentTypes.filter((t) => t !== value)
+        : [...prev.contentTypes, value],
+    }));
+    if (errors.contentType) setErrors((prev) => ({ ...prev, contentType: "" }));
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
@@ -315,32 +345,30 @@ export default function AddContentModal({
               {/* Platform */}
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-zinc-700">
-                  Platform
+                  Platforms{" "}
+                  <span className="text-zinc-400 text-xs">
+                    (multiple allowed)
+                  </span>
                 </Label>
                 <div className="grid grid-cols-3 gap-2">
                   {platforms.map((platform) => {
                     const Icon = platform.icon;
-                    const isSelected = formData.platform === platform.value;
+                    const isSelected = formData.platforms.includes(
+                      platform.value,
+                    );
                     return (
                       <button
                         key={platform.value}
                         type="button"
-                        onClick={() => {
-                          setFormData((prev) => ({
-                            ...prev,
-                            platform: platform.value,
-                          }));
-                          if (errors.platform)
-                            setErrors((prev) => ({ ...prev, platform: "" }));
-                        }}
+                        onClick={() => togglePlatform(platform.value)}
                         className={`
-                          flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all duration-200 relative
-                          ${
-                            isSelected
-                              ? "border-violet-500 bg-violet-50 text-violet-700"
-                              : "border-zinc-200 hover:border-zinc-300 text-zinc-600 hover:bg-zinc-50"
-                          }
-                        `}
+              flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all duration-200 relative
+              ${
+                isSelected
+                  ? "border-violet-500 bg-violet-50 text-violet-700"
+                  : "border-zinc-200 hover:border-zinc-300 text-zinc-600 hover:bg-zinc-50"
+              }
+            `}
                       >
                         <Icon
                           className="h-5 w-5"
@@ -366,32 +394,30 @@ export default function AddContentModal({
               {/* Content Type */}
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-zinc-700">
-                  Content Type
+                  Content Types{" "}
+                  <span className="text-zinc-400 text-xs">
+                    (multiple allowed)
+                  </span>
                 </Label>
                 <div className="grid grid-cols-3 gap-2">
                   {contentTypes.map((type) => {
                     const Icon = type.icon;
-                    const isSelected = formData.contentType === type.value;
+                    const isSelected = formData.contentTypes.includes(
+                      type.value,
+                    );
                     return (
                       <button
                         key={type.value}
                         type="button"
-                        onClick={() => {
-                          setFormData((prev) => ({
-                            ...prev,
-                            contentType: type.value,
-                          }));
-                          if (errors.contentType)
-                            setErrors((prev) => ({ ...prev, contentType: "" }));
-                        }}
+                        onClick={() => toggleContentType(type.value)}
                         className={`
-                          flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all duration-200 relative
-                          ${
-                            isSelected
-                              ? "border-violet-500 bg-violet-50 text-violet-700"
-                              : "border-zinc-200 hover:border-zinc-300 text-zinc-600 hover:bg-zinc-50"
-                          }
-                        `}
+              flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all duration-200 relative
+              ${
+                isSelected
+                  ? "border-violet-500 bg-violet-50 text-violet-700"
+                  : "border-zinc-200 hover:border-zinc-300 text-zinc-600 hover:bg-zinc-50"
+              }
+            `}
                       >
                         <Icon className="h-5 w-5" />
                         <span className="text-xs font-medium">
@@ -640,50 +666,48 @@ export default function AddContentModal({
           )}
 
           {/* Live Preview */}
-          {(formData.title || formData.platform) && (
+          {(formData.title || formData.platforms.length > 0) && (
             <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
               <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">
                 Preview
               </p>
               <div className="flex items-start gap-3">
-                {selectedPlatform && (
-                  <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                    style={{ backgroundColor: `${selectedPlatform.color}15` }}
-                  >
-                    <selectedPlatform.icon
-                      className="h-5 w-5"
-                      style={{ color: selectedPlatform.color }}
-                    />
-                  </div>
-                )}
+                {/* Multiple Platform Icons */}
+                <div className="flex -space-x-2">
+                  {selectedPlatformObjects.slice(0, 3).map((p, i) => (
+                    <div
+                      key={i}
+                      className="w-9 h-9 rounded-xl flex items-center justify-center border-2 border-white"
+                      style={{ backgroundColor: `${p.color}15` }}
+                    >
+                      <p.icon className="h-4 w-4" style={{ color: p.color }} />
+                    </div>
+                  ))}
+                  {selectedPlatformObjects.length > 3 && (
+                    <div className="w-9 h-9 rounded-xl bg-zinc-200 flex items-center justify-center text-xs font-medium border-2 border-white">
+                      +{selectedPlatformObjects.length - 3}
+                    </div>
+                  )}
+                </div>
+
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold text-zinc-900 truncate">
                     {formData.title || "Untitled Content"}
                   </p>
-                  <div className="flex items-center gap-2 mt-1 flex-wrap">
-                    {formData.platform && (
-                      <Badge
-                        variant="outline"
-                        className="text-[10px] px-1.5 py-0"
-                      >
-                        {formData.platform}
+
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {formData.platforms.map((p) => (
+                      <Badge key={p} variant="outline" className="text-[10px]">
+                        {p}
                       </Badge>
-                    )}
-                    {formData.contentType && (
-                      <Badge
-                        variant="outline"
-                        className="text-[10px] px-1.5 py-0"
-                      >
-                        {formData.contentType}
+                    ))}
+                    {formData.contentTypes.map((t) => (
+                      <Badge key={t} variant="outline" className="text-[10px]">
+                        {t}
                       </Badge>
-                    )}
-                    {formData.client && (
-                      <span className="text-xs text-zinc-500">
-                        {selectedClient?.company_name}
-                      </span>
-                    )}
+                    ))}
                   </div>
+
                   {formData.caption && (
                     <p className="text-xs text-zinc-500 mt-2 line-clamp-2">
                       {formData.caption}
