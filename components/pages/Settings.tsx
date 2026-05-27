@@ -43,6 +43,7 @@ import {
 } from "@/components/ui/select";
 import { useUsersStore } from "@/store/useUsersStore";
 import AddMemberModal from "../sections/AddMemberModal";
+import { useAuthStore } from "@/store/useAuthStore";
 
 interface User {
   id: string;
@@ -77,6 +78,8 @@ export default function SettingsModule() {
   const { users, fetchUsers, loading } = useUsersStore();
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
 
+  const user = useAuthStore((state) => state.user);
+
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
@@ -98,6 +101,7 @@ export default function SettingsModule() {
           email: member.email,
           role: member.role,
           password: member.password,
+          actor: user?.fullname || "Admin",
         }),
       });
 

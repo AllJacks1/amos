@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    const { fullName, email, role, password } = body;
+    const { fullName, email, role, password, actor } = body;
 
     // Basic validation
     if (!fullName || !email || !role || !password) {
@@ -54,6 +54,12 @@ export async function POST(req: NextRequest) {
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+    await supabase.from("amos_logs").insert([
+      {
+        activity: `${actor || "SYSTEM"} created user ${fullName} (${email}) with role ${role}`,
+      },
+    ]);
 
     return NextResponse.json(
       {
