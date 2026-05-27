@@ -560,8 +560,7 @@ export default function ApprovalsModule() {
         isOpen={isAddContentOpen}
         onClose={() => setIsAddContentOpen(false)}
         onAdd={(newContent) => {
-          const contentToAdd: any = {
-            // Temporary any to bypass strict typing
+          const contentToAdd = {
             ...newContent,
             id: `c${Date.now()}`,
             publishDate:
@@ -631,7 +630,16 @@ export default function ApprovalsModule() {
       <SubmitRevisionModal
         isOpen={isSubmitRevisionOpen}
         onClose={() => setIsSubmitRevisionOpen(false)}
-        content={selectedApproval}
+        content={
+          selectedApproval
+            ? {
+                ...selectedApproval,
+                publishDate:
+                  selectedApproval.publishDate ||
+                  new Date().toISOString().split("T")[0],
+              }
+            : null
+        }
         adminName={user?.fullname || "Admin"}
         onSubmit={async (update) => {
           try {
