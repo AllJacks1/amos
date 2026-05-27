@@ -110,6 +110,7 @@ export default function Clients() {
           id: selectedClient.id,
           newPassword,
           confirmPassword,
+          actor: user?.fullname || "Admin",
         }),
       });
 

@@ -11,7 +11,7 @@ export async function PATCH(req: NextRequest) {
   try {
     const body = await req.json();
 
-    const { id, newPassword, confirmPassword } = body;
+    const { id, newPassword, confirmPassword, actor } = body;
 
     // ✅ Validate input
     if (!id || !newPassword || !confirmPassword) {
@@ -65,6 +65,12 @@ export async function PATCH(req: NextRequest) {
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+    await supabase.from("amos_logs").insert([
+      {
+        activity: `${actor} changed the password of client ${existingClient.id}`,
+      },
+    ]);
 
     return NextResponse.json(
       {
