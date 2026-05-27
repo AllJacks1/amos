@@ -637,10 +637,13 @@ export default function ApprovalsModule() {
                 publishDate:
                   selectedApproval.publishDate ||
                   new Date().toISOString().split("T")[0],
+                // SubmitRevisionModal expects ContentItem['assignedTo'] to be a string (not undefined)
+                assignedTo: selectedApproval.assignedTo || "",
               }
             : null
         }
         adminName={user?.fullname || "Admin"}
+
         onSubmit={async (update) => {
           try {
             const res = await fetch("/api/contents/submit-revision", {
