@@ -361,33 +361,39 @@ export default function ApprovalsModule() {
 
               <div className="flex-1 overflow-y-auto p-8 space-y-10">
                 {/* Drive Files */}
-                {selectedApproval.driveLinks?.length > 0 && (
-                  <div>
-                    <h4 className="uppercase text-xs tracking-widest text-zinc-500 mb-4 flex items-center gap-2">
-                      <FolderOpen className="h-4 w-4" /> GOOGLE DRIVE FILES
-                    </h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {selectedApproval.driveLinks.map((link, idx) => (
-                        <a
-                          key={idx}
-                          href={link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-4 p-5 border border-zinc-200 rounded-2xl hover:border-amber-300 hover:bg-amber-50/70 transition-all group"
-                        >
-                          <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center">
-                            <FolderOpen className="h-6 w-6 text-amber-600" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium group-hover:text-amber-700">Asset File {idx + 1}</p>
-                            <p className="text-sm text-zinc-500 truncate">Google Drive Link</p>
-                          </div>
-                          <ExternalLink className="h-5 w-5 text-zinc-400 group-hover:text-amber-600" />
-                        </a>
-                      ))}
+                {/* Drive Files - Fixed TypeScript Issue */}
+                {(() => {
+                  const driveLinks = selectedApproval.driveLinks;
+                  if (!driveLinks || driveLinks.length === 0) return null;
+
+                  return (
+                    <div>
+                      <h4 className="uppercase text-xs tracking-widest text-zinc-500 mb-4 flex items-center gap-2">
+                        <FolderOpen className="h-4 w-4" /> GOOGLE DRIVE FILES
+                      </h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {driveLinks.map((link, idx) => (
+                          <a
+                            key={idx}
+                            href={link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-4 p-5 border border-zinc-200 rounded-2xl hover:border-amber-300 hover:bg-amber-50/70 transition-all group"
+                          >
+                            <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center">
+                              <FolderOpen className="h-6 w-6 text-amber-600" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium group-hover:text-amber-700">Asset File {idx + 1}</p>
+                              <p className="text-sm text-zinc-500 truncate">Google Drive Link</p>
+                            </div>
+                            <ExternalLink className="h-5 w-5 text-zinc-400 group-hover:text-amber-600" />
+                          </a>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
 
                 {/* Caption */}
                 <div>
