@@ -731,7 +731,7 @@ export default function ContentOperations() {
             if (!selectedContent) return;
 
             const revisionNote = {
-              commenter: "Karl Tan", // replace with logged in user later
+              commenter: user?.primary_contact_name, // replace with logged in user later
               comment: request.comment,
               created_at: new Date().toISOString(),
             };
