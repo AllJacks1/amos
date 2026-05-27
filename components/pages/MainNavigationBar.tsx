@@ -146,6 +146,23 @@ export default function AMOSLayout({
     }
   };
 
+  const getInitials = (
+    name?: string | number | boolean | null | undefined,
+  ): string => {
+    // Convert to string first and handle all edge cases
+    const nameStr = typeof name === "string" ? name : name?.toString() || "";
+
+    if (!nameStr.trim()) return "U";
+
+    return nameStr
+      .trim()
+      .split(" ")
+      .map((word) => word[0] || "")
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
   return (
     <div className="h-[100dvh] overflow-hidden bg-zinc-50">
       <div className="flex h-full">
@@ -408,24 +425,29 @@ export default function AMOSLayout({
                       <div className="shrink-0 p-6 border-b border-zinc-100">
                         <div className="flex items-center gap-3">
                           <Avatar className="h-9 w-9 rounded-2xl border border-zinc-200">
-                <AvatarImage src="/logos/axis_logo.png" alt="Brand" />
-                <AvatarFallback>A</AvatarFallback>
-              </Avatar>
+                            <AvatarImage
+                              src="/logos/axis_logo.png"
+                              alt="Brand"
+                            />
+                            <AvatarFallback>A</AvatarFallback>
+                          </Avatar>
 
-              {!isCollapsed && (
-                <div className="min-w-0">
-                  <div
-                    className={`font-semibold text-xl tracking-tight truncate`}
-                  >
-                    <strong className={`text-[${brandColor}]`}>Axis</strong>{" "}
-                    Command
-                  </div>
+                          {!isCollapsed && (
+                            <div className="min-w-0">
+                              <div
+                                className={`font-semibold text-xl tracking-tight truncate`}
+                              >
+                                <strong className={`text-[${brandColor}]`}>
+                                  Axis
+                                </strong>{" "}
+                                Command
+                              </div>
 
-                  <div className="text-xs text-zinc-500 -mt-1 truncate">
-                    Marketing OS
-                  </div>
-                </div>
-              )}
+                              <div className="text-xs text-zinc-500 -mt-1 truncate">
+                                Marketing OS
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
 
@@ -469,15 +491,13 @@ export default function AMOSLayout({
                         <div className="flex items-center gap-3 rounded-2xl p-2 hover:bg-zinc-100 transition-colors cursor-pointer min-w-0">
                           <Avatar className="h-9 w-9 border border-zinc-100 shrink-0">
                             {userDisplay.avatar && (
-                              <AvatarImage src={userDisplay.avatar} />
+                              <AvatarImage
+                                src={userDisplay.avatar.toString()}
+                              />
                             )}
 
                             <AvatarFallback>
-                              {userDisplay.name
-                                .split(" ")
-                                .map((n) => n[0])
-                                .join("")
-                                .toUpperCase()}
+                              {getInitials(userDisplay?.name)}
                             </AvatarFallback>
                           </Avatar>
 
@@ -533,7 +553,7 @@ export default function AMOSLayout({
       <ChangePasswordModal
         isOpen={isChangePasswordOpen}
         onClose={() => setIsChangePasswordOpen(false)}
-        userId={user?.id} // Required: pass the user's ID
+        userId={user?.id || ""} // Required: pass the user's ID
         userEmail={user?.email}
       />
     </div>
