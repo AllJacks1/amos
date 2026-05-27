@@ -32,34 +32,10 @@ import SubmitRevisionModal from "../sections/SubmitRevisionModal";
 import ApproveConfirmDialog from "../sections/ApproveConfirmDialog";
 
 import CalendarView from "../sections/CalendarView";
-import { useContentStore } from "@/store/useContentStore";
+import { ContentItem, useContentStore } from "@/store/useContentStore";
 import { useAuthStore } from "@/store/useAuthStore";
 
 const brandColor = "#430062";
-
-// ==================== TYPES ====================
-export interface ContentItem {
-  id: string;
-  title: string;
-  caption: string;
-  platform: string;
-  contentType: string;
-  status: "review" | "revise" | "approved" | "scheduled" | "posted";
-  publishDate: string;
-  client: string;
-  assignedTo: string;
-  driveLinks: string[];
-  pillar: string;
-
-  priority?: string | null;
-  revisionDueDate?: string | null;
-  revisionCount?: number;
-  revisionNotes?: {
-    commenter: string;
-    comment: string;
-    created_at: string;
-  }[];
-}
 
 const statusColors = {
   review: "bg-amber-100 text-amber-700",
@@ -103,8 +79,8 @@ export default function ContentOperations() {
 
   const filteredContents = contents.filter((item) => {
     const matchesSearch =
-      item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.client.toLowerCase().includes(searchTerm.toLowerCase());
+      (item.title || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.client || "").toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStatus =
       statusFilter === "all" || item.status === statusFilter;
@@ -151,6 +127,23 @@ export default function ContentOperations() {
   const openDetail = (content: ContentItem) => {
     setSelectedContent(content);
     setIsDetailOpen(true);
+  };
+
+  const getInitials = (
+    name?: string | number | boolean | null | undefined,
+  ): string => {
+    // Convert to string first and handle all edge cases
+    const nameStr = typeof name === "string" ? name : name?.toString() || "";
+
+    if (!nameStr.trim()) return "U";
+
+    return nameStr
+      .trim()
+      .split(" ")
+      .map((word) => word[0] || "")
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
   };
 
   return (
@@ -312,13 +305,7 @@ export default function ContentOperations() {
                         </Badge>
                         <Avatar className="h-6 w-6 flex-shrink-0">
                           <AvatarFallback className="text-xs">
-                            {typeof item.assignedTo === "string"
-                              ? item.assignedTo
-                                  .split(" ")
-                                  .map((n) => n[0])
-                                  .join("")
-                                  .toUpperCase()
-                              : "NA"}
+                            {getInitials(item.assignedTo)}
                           </AvatarFallback>
                         </Avatar>
                       </div>
@@ -403,10 +390,7 @@ export default function ContentOperations() {
                         <div className="flex items-center gap-2 min-w-0">
                           <Avatar className="h-6 w-6 flex-shrink-0">
                             <AvatarFallback className="text-xs bg-zinc-100">
-                              {item.assignedTo
-                                .split(" ")
-                                .map((n) => n[0])
-                                .join("")}
+                              {getInitials(item.assignedTo)}
                             </AvatarFallback>
                           </Avatar>
                           <span className="text-xs sm:text-sm text-zinc-600 truncate">
@@ -699,16 +683,27 @@ export default function ContentOperations() {
 
             const newContent: ContentItem = {
               id: created.id,
-              title: created.content_title,
-              caption: created.caption,
-              platform: created.platform,
-              contentType: created.content_type,
-              publishDate: created.publish_date,
-              client: created.client,
-              status: "review",
-              assignedTo: created.assigned_to,
+              title: created.title,
+
+              caption: created.caption || "",
+              platform: created.platform || "",
+              contentType: created.content_type || "",
+              publishDate: created.publish_date || "",
+
+              client:
+                typeof created.client === "string"
+                  ? created.client
+                  : created.client?.company_name || "",
+
+              status: created.status || "review",
+
+              assignedTo:
+                typeof created.assigned_to === "string"
+                  ? created.assigned_to
+                  : created.assigned_to?.fullname || "",
+
               driveLinks: created.gdrive_links || [],
-              pillar: created.content_pillar,
+              pillar: created.content_pillar || "",
             };
 
             addContent(newContent);

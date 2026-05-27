@@ -30,7 +30,8 @@ export async function GET(req: NextRequest) {
 
     let query = supabase
       .from("amos_contents")
-      .select(`
+      .select(
+        `
         *,
         client:amos_clients (
           id,
@@ -42,7 +43,8 @@ export async function GET(req: NextRequest) {
           fullname,
           email
         )
-      `)
+      `,
+      )
       .order("publish_date", { ascending: false });
 
     // 🔥 ADMIN: sees everything
@@ -59,7 +61,10 @@ export async function GET(req: NextRequest) {
         .single();
 
       if (!client) {
-        return NextResponse.json({ error: "Client not found" }, { status: 404 });
+        return NextResponse.json(
+          { error: "Client not found" },
+          { status: 404 },
+        );
       }
 
       query = query.eq("client", client.id);
@@ -82,10 +87,10 @@ export async function GET(req: NextRequest) {
 
     const contents = data.map((item: any) => ({
       id: item.id,
-      title: item.content_title,
-      caption: item.caption,
-      platform: item.platform,
-      contentType: item.content_type,
+      title: item.content_title ?? "",
+      caption: item.caption ?? "",
+      platform: item.platform ?? "",
+      contentType: item.content_type ?? "",
       status: item.status ?? "draft",
       publishDate: item.publish_date,
       client: item.client?.company_name ?? "",
@@ -102,8 +107,7 @@ export async function GET(req: NextRequest) {
   } catch (error) {
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : "Internal server error",
+        error: error instanceof Error ? error.message : "Internal server error",
       },
       { status: 500 },
     );

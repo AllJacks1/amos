@@ -434,7 +434,10 @@ export default function ApprovalsModule() {
 
       {/* Detail Dialog */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="max-w-5xl max-h-[95vh] p-0 flex flex-col overflow-hidden">
+        <DialogContent
+          className="w-[95vw] max-w-2xl max-h-[95vh] p-0 flex flex-col overflow-hidden"
+          showCloseButton={false}
+        >
           {selectedApproval && (
             <div className="flex flex-col h-full">
               <DialogHeader className="px-8 py-6 border-b">
@@ -476,19 +479,22 @@ export default function ApprovalsModule() {
                             href={link}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-4 p-5 border border-zinc-200 rounded-2xl hover:border-amber-300 hover:bg-amber-50/70 transition-all group"
+                            className="flex w-full items-center gap-4 p-5 border border-zinc-200 rounded-2xl hover:border-amber-300 hover:bg-amber-50/70 transition-all group"
                           >
                             <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center">
                               <FolderOpen className="h-6 w-6 text-amber-600" />
                             </div>
+
                             <div className="flex-1 min-w-0">
                               <p className="font-medium group-hover:text-amber-700">
                                 Asset File {idx + 1}
                               </p>
+
                               <p className="text-sm text-zinc-500 truncate">
                                 Google Drive Link
                               </p>
                             </div>
+
                             <ExternalLink className="h-5 w-5 text-zinc-400 group-hover:text-amber-600" />
                           </a>
                         ))}

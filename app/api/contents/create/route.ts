@@ -91,10 +91,32 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const normalizedContent = {
+      id: data.id,
+      title: data.content_title,
+      caption: data.caption,
+      platform: data.platform,
+      contentType: data.content_type,
+      status: data.status ?? "review",
+      publishDate: data.publish_date,
+
+      client: data.client?.company_name ?? "",
+
+      assignedTo: data.assigned_to?.fullname ?? "",
+
+      driveLinks: data.gdrive_links ?? [],
+      pillar: data.content_pillar,
+
+      priority: data.priority ?? null,
+      revisionDueDate: data.revision_due_date ?? null,
+      revisionCount: data.revision_count ?? null,
+      revisionNotes: data.revision_notes ?? [],
+    };
+
     return NextResponse.json(
       {
         message: "Content created successfully",
-        content: data,
+        content: normalizedContent,
       },
       { status: 201 },
     );
