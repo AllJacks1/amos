@@ -20,6 +20,7 @@ export async function POST(req: NextRequest) {
       content_pillar,
       publish_date,
       gdrive_links,
+      adminName,
     } = body;
 
     // validation
@@ -112,6 +113,12 @@ export async function POST(req: NextRequest) {
       revisionCount: data.revision_count ?? null,
       revisionNotes: data.revision_notes ?? [],
     };
+
+    await supabase.from("amos_logs").insert([
+      {
+        activity: `${adminName} created content ${data.id}`,
+      },
+    ]);
 
     return NextResponse.json(
       {

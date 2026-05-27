@@ -732,6 +732,7 @@ export default function ContentOperations() {
                 content_pillar: content.pillar,
                 publish_date: content.publishDate,
                 gdrive_links: content.driveLinks,
+                adminName: user?.fullname?.toString() || "Admin",
               }),
             });
 

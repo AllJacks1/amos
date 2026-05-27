@@ -565,21 +565,64 @@ export default function ApprovalsModule() {
       <AddContentModal
         isOpen={isAddContentOpen}
         onClose={() => setIsAddContentOpen(false)}
-        onAdd={(newContent) => {
-          const contentToAdd = {
-            ...newContent,
-            id: `c${Date.now()}`,
-            publishDate:
-              newContent.publishDate || new Date().toISOString().split("T")[0],
-            status:
-              (newContent.status as
-                | "review"
-                | "revise"
-                | "approved"
-                | "scheduled"
-                | "posted") || "review",
-          };
-          addContent(contentToAdd);
+        onAdd={async (content) => {
+          try {
+            const res = await fetch("/api/contents/create", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                content_title: content.title,
+                caption: content.caption,
+                platform: content.platform,
+                content_type: content.contentType,
+                client: content.client,
+                assigned_to: content.assignedTo,
+                content_pillar: content.pillar,
+                publish_date: content.publishDate,
+                gdrive_links: content.driveLinks,
+                adminName: user?.fullname?.toString() || "Admin",
+              }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+              throw new Error(data.error || "Failed to create content");
+            }
+
+            const created = data.content;
+
+            const newContent: ApprovalItem = {
+              id: created.id,
+              title: created.title,
+              caption: created.caption || "",
+              platform: created.platform || "",
+              contentType: created.contentType || created.content_type || "",
+              publishDate: created.publishDate || created.publish_date || "",
+              client: created.client || "",
+              assignedTo: created.assignedTo || "",
+              driveLinks: created.driveLinks || [],
+              pillar: created.pillar || created.content_pillar || "",
+              status: (created.status as any) || "review",
+
+              priority: created.priority ?? null,
+              revisionDueDate: created.revisionDueDate ?? null,
+              revisionCount: created.revisionCount ?? 0,
+              revisionNotes: created.revisionNotes ?? [],
+            };
+
+            addContent(newContent);
+            fetchContents(); // Refresh the full list from server
+
+            setIsAddContentOpen(false);
+          } catch (error) {
+            console.error(error);
+            alert(
+              error instanceof Error ? error.message : "Something went wrong",
+            );
+          }
         }}
         brandColor={brandColor}
       />
