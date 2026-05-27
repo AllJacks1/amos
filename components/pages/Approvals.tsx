@@ -645,7 +645,6 @@ export default function ApprovalsModule() {
             : null
         }
         adminName={user?.fullname?.toString() || "Admin"}
-
         onSubmit={async (update) => {
           try {
             const res = await fetch("/api/contents/submit-revision", {
