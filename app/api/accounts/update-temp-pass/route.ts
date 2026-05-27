@@ -75,10 +75,7 @@ export async function PATCH(req: NextRequest) {
 
     // Account not found in either table
     if (!account || !tableName) {
-      return NextResponse.json(
-        { error: "Account not found" },
-        { status: 404 },
-      );
+      return NextResponse.json({ error: "Account not found" }, { status: 404 });
     }
 
     // ─── HASH & UPDATE PASSWORD ──────────────────────
@@ -97,11 +94,14 @@ export async function PATCH(req: NextRequest) {
       .select("id, email, first_login");
 
     if (updateError) {
-      return NextResponse.json(
-        { error: updateError.message },
-        { status: 500 },
-      );
+      return NextResponse.json({ error: updateError.message }, { status: 500 });
     }
+
+    await supabase.from("amos_logs").insert([
+      {
+        activity: `User ${account.email} changed temporary password`,
+      },
+    ]);
 
     return NextResponse.json(
       {

@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
   // 🔥 LOG logout activity
   await supabase.from("amos_logs").insert([
     {
-      activity: `${userEmail} logged out`,
+      activity: `User ${userEmail} logged out`,
     },
   ]);
 

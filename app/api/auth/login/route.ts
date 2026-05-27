@@ -109,7 +109,7 @@ export async function POST(req: NextRequest) {
 
     await supabase.from("amos_logs").insert([
       {
-        activity: `${email} logged in`,
+        activity: `User ${email} logged in`,
       },
     ]);
 
