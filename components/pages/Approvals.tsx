@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   CheckCircle,
   Clock,
@@ -14,39 +14,27 @@ import {
   CheckCircle2,
   PartyPopper,
 } from "lucide-react";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 import AddContentModal from "../sections/AddContentModal";
 import RequestRevisionModal from "../sections/RequestRevisionModal";
 import SubmitRevisionModal from "../sections/SubmitRevisionModal";
 import ApproveConfirmDialog from "../sections/ApproveConfirmDialog";
+
 import { useContentStore } from "@/store/useContentStore";
 import { useAuthStore } from "@/store/useAuthStore";
 
 const brandColor = "#430062";
 
-// ==================== TYPES ====================
 interface ApprovalItem {
   id: string;
   title: string;
@@ -54,58 +42,105 @@ interface ApprovalItem {
   platform: string;
   contentType: string;
   status: "review" | "revise" | "approved" | "scheduled" | "posted";
-  publishDate: string;
+  publishDate?: string;
   client: string;
-  assignedTo: string;
-  driveLinks: string[];
-  pillar: string;
-
+  assignedTo?: string;
+  driveLinks?: string[];
+  pillar?: string;
   priority?: string | null;
   revisionDueDate?: string | null;
   revisionCount?: number;
-  revisionNotes?: {
+  revisionNotes?: Array<{
     commenter: string;
     comment: string;
     created_at: string;
-  }[];
+  }>;
+  thumbnail?: string;
 }
 
 export default function ApprovalsModule() {
   const user = useAuthStore((state) => state.user);
   const role = user?.role || "";
 
-  const [activeTab, setActiveTab] = useState<"review" | "revise" | "approved">(
-    "review",
-  );
+  // Local State
+  const [activeTab, setActiveTab] = useState<"review" | "revise" | "approved">("review");
   const [searchTerm, setSearchTerm] = useState("");
   const [clientFilter, setClientFilter] = useState("all");
-  const [selectedApproval, setSelectedApproval] = useState<ApprovalItem | null>(
-    null,
-  );
+  const [selectedApproval, setSelectedApproval] = useState<ApprovalItem | null>(null);
+
   const [isDetailOpen, setIsDetailOpen] = useState(false);
-  const [newComment, setNewComment] = useState("");
   const [isAddContentOpen, setIsAddContentOpen] = useState(false);
   const [isRevisionOpen, setIsRevisionOpen] = useState(false);
   const [isSubmitRevisionOpen, setIsSubmitRevisionOpen] = useState(false);
   const [isApproveOpen, setIsApproveOpen] = useState(false);
 
-  const { contents, loading, error, fetchContents, addContent, updateStatus } =
-    useContentStore();
+  // Store
+  const { contents, loading, error, fetchContents, addContent, updateStatus } = useContentStore();
 
   useEffect(() => {
     fetchContents();
   }, [fetchContents]);
 
-  const filteredApprovals = contents.filter((item) => {
-    const matchesSearch =
-      item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.client.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesClient =
-      clientFilter === "all" || item.client === clientFilter;
-    const matchesTab = item.status === activeTab;
-    return matchesSearch && matchesClient && matchesTab;
-  });
+  // ==================== FILTERING & COUNTS ====================
+  const filteredApprovals = useMemo(() => {
+    return contents.filter((item) => {
+      const matchesSearch =
+        item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.client.toLowerCase().includes(searchTerm.toLowerCase());
 
+      const matchesClient = clientFilter === "all" || item.client === clientFilter;
+      const matchesTab = item.status === activeTab;
+
+      return matchesSearch && matchesClient && matchesTab;
+    });
+  }, [contents, searchTerm, clientFilter, activeTab]);
+
+  const uniqueClients = useMemo(() => {
+    return [...new Set(contents.map((item) => item.client).filter(Boolean))];
+  }, [contents]);
+
+  const pendingCount = useMemo(() => {
+    return contents.filter(
+      (a) => a.status === "review" && (clientFilter === "all" || a.client === clientFilter)
+    ).length;
+  }, [contents, clientFilter]);
+
+  const revisionCount = useMemo(() => {
+    return contents.filter(
+      (a) => a.status === "revise" && (clientFilter === "all" || a.client === clientFilter)
+    ).length;
+  }, [contents, clientFilter]);
+
+  const approvedCount = useMemo(() => {
+    return contents.filter(
+      (a) => a.status === "approved" && (clientFilter === "all" || a.client === clientFilter)
+    ).length;
+  }, [contents, clientFilter]);
+
+  // ==================== DATE UTILITIES ====================
+  const formatDueDate = (dateStr?: string | null): string => {
+    if (!dateStr) return "No due date";
+
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffTime = date.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) return `Overdue by ${Math.abs(diffDays)} day${Math.abs(diffDays) !== 1 ? "s" : ""}`;
+    if (diffDays === 0) return "Due today";
+    if (diffDays === 1) return "Due tomorrow";
+    if (diffDays <= 7) return `Due in ${diffDays} days`;
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  };
+
+  const isOverdue = (dateStr?: string | null): boolean => {
+    if (!dateStr) return false;
+    const due = new Date(dateStr);
+    due.setHours(23, 59, 59, 999);
+    return due < new Date();
+  };
+
+  // ==================== HANDLERS ====================
   const openDetail = (approval: ApprovalItem) => {
     setSelectedApproval(approval);
     setIsDetailOpen(true);
@@ -126,339 +161,176 @@ export default function ApprovalsModule() {
     setIsDetailOpen(false);
   };
 
-  function formatDueDate(dateStr: string): string {
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diffDays = Math.ceil(
-      (date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
-    );
-
-    if (diffDays < 0)
-      return `Overdue by ${Math.abs(diffDays)} day${Math.abs(diffDays) !== 1 ? "s" : ""}`;
-    if (diffDays === 0) return "Due today";
-    if (diffDays === 1) return "Due tomorrow";
-    if (diffDays <= 7) return `Due in ${diffDays} days`;
-    return `Due ${date.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
-  }
-
-  function isOverdue(dateStr: string): boolean {
-    const due = new Date(dateStr);
-    due.setHours(23, 59, 59, 999);
-
-    return due < new Date();
-  }
-
-  const filteredByClient =
-    clientFilter === "all"
-      ? contents
-      : contents.filter((item) => item.client === clientFilter);
-
-  // Counts now react to selected client
-  const pendingCount = filteredByClient.filter(
-    (a) => a.status === "review",
-  ).length;
-
-  const revisionCount = filteredByClient.filter(
-    (a) => a.status === "revise",
-  ).length;
-
-  const approvedCount = filteredByClient.filter(
-    (a) => a.status === "approved",
-  ).length;
-
-  const uniqueClients = [
-    ...new Set(contents.map((item) => item.client).filter(Boolean)),
-  ];
-
   return (
-    <div className="p-6 lg:p-8 space-y-8">
-      <div className="flex flex-col gap-6">
-        {/* Page Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5">
+    <div className="p-6 lg:p-8 space-y-8 min-h-screen bg-zinc-50">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5 mb-8">
           <div>
-            <h1 className="text-3xl font-semibold tracking-tight">Approvals</h1>
+            <h1 className="text-4xl font-semibold tracking-tight text-zinc-900">Approvals</h1>
             <p className="text-zinc-600 mt-1">Client collaboration hub</p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-stretch gap-3 w-full sm:w-auto">
-            {/* Search */}
-            <div className="relative flex-1 min-w-0 sm:max-w-72">
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            <div className="relative flex-1 sm:max-w-80">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
               <Input
-                placeholder="Search approvals..."
-                className="pl-10 w-full"
+                placeholder="Search by title or client..."
+                className="pl-10"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
 
-            {/* Client Filter */}
             {role === "admin" && (
-              <Select value={clientFilter} onValueChange={setClientFilter}>
-                <SelectTrigger className="h-11 w-full sm:w-52">
-                  <SelectValue placeholder="All Clients" />
-                </SelectTrigger>
+              <>
+                <Select value={clientFilter} onValueChange={setClientFilter}>
+                  <SelectTrigger className="w-full sm:w-56 h-11">
+                    <SelectValue placeholder="All Clients" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Clients</SelectItem>
+                    {uniqueClients.map((client) => (
+                      <SelectItem key={client} value={client}>
+                        {client}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
 
-                <SelectContent>
-                  <SelectItem value="all">All Clients</SelectItem>
-
-                  {uniqueClients.map((client) => (
-                    <SelectItem key={client} value={client}>
-                      {client}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-
-            {/* Upload Button */}
-            {role === "admin" && (
-              <Button
-                style={{ backgroundColor: brandColor }}
-                className="text-white w-full sm:w-auto"
-                onClick={() => setIsAddContentOpen(true)}
-              >
-                <Plus className="mr-2 h-4 w-4 flex-shrink-0" />
-                New Content
-              </Button>
+                <Button
+                  style={{ backgroundColor: brandColor }}
+                  className="text-white whitespace-nowrap"
+                  onClick={() => setIsAddContentOpen(true)}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  New Content
+                </Button>
+              </>
             )}
           </div>
         </div>
 
         {/* KPI Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Card className="bg-white border border-zinc-200 rounded-3xl shadow-sm">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">Pending Review</CardTitle>
-                <Clock className="h-5 w-5 text-amber-600" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-4xl font-semibold tracking-tighter">
-                {pendingCount}
-              </div>
-              {/* <p className="text-sm text-zinc-500 mt-2">Due this week</p> */}
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white border border-zinc-200 rounded-3xl shadow-sm">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">Revision Needed</CardTitle>
-                <AlertCircle className="h-5 w-5 text-rose-600" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-4xl font-semibold tracking-tighter">
-                {revisionCount}
-              </div>
-              {/* <p className="text-sm text-zinc-500 mt-2">Action required</p> */}
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white border border-zinc-200 rounded-3xl shadow-sm">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">Approved</CardTitle>
-                <CheckCircle className="h-5 w-5 text-emerald-600" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-4xl font-semibold tracking-tighter">
-                {approvedCount}
-              </div>
-              {/* <p className="text-sm text-emerald-600 mt-2">
-                +4 from last month
-              </p> */}
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+          {[
+            { title: "Pending Review", count: pendingCount, icon: Clock, color: "amber" },
+            { title: "Needs Revision", count: revisionCount, icon: AlertCircle, color: "rose" },
+            { title: "Approved", count: approvedCount, icon: CheckCircle, color: "emerald" },
+          ].map((stat, i) => (
+            <Card key={i} className="border border-zinc-200">
+              <CardHeader className="pb-3">
+                <div className="flex justify-between items-center">
+                  <CardTitle className="text-lg">{stat.title}</CardTitle>
+                  <stat.icon className={`h-5 w-5 text-${stat.color}-600`} />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-5xl font-semibold tracking-tighter text-zinc-900">
+                  {stat.count}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
 
-        {/* Status Tabs */}
-        <Tabs
-          value={activeTab}
-          onValueChange={(v) =>
-            setActiveTab(v as "review" | "revise" | "approved")
-          }
-          className="w-full"
-        >
-          <TabsList className="bg-white border border-zinc-200 flex flex-wrap h-auto w-full md:w-fit p-1 gap-1">
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "review" | "revise" | "approved")}>
+          <TabsList className="bg-white border border-zinc-200 p-1 w-full md:w-fit">
             {[
-              {
-                value: "review",
-                label: "Pending Review",
-                icon: Clock,
-                count: pendingCount,
-              },
-              {
-                value: "revise",
-                label: "Needs Revision",
-                icon: AlertCircle,
-                count: revisionCount,
-              },
-              {
-                value: "approved",
-                label: "Approved",
-                icon: CheckCircle,
-                count: approvedCount,
-              },
+              { value: "review", label: "Pending Review", icon: Clock, count: pendingCount },
+              { value: "revise", label: "Needs Revision", icon: AlertCircle, count: revisionCount },
+              { value: "approved", label: "Approved", icon: CheckCircle, count: approvedCount },
             ].map(({ value, label, icon: Icon, count }) => (
-              <TabsTrigger
-                key={value}
-                value={value}
-                className="data-[state=active]:border-b-2 data-[state=active]:border-violet-600 data-[state=active]:bg-violet-50 flex-1 sm:flex-none justify-center text-xs sm:text-sm sm:px-4 sm:py-2.5"
-              >
-                <Icon className="h-4 w-4 flex-shrink-0" />
-
-                {/* Full label on larger screens */}
-                <span className="hidden sm:inline">{label}</span>
-
-                {count > 0 && (
-                  <span className="ml-1 text-[10px] sm:text-xs bg-zinc-200/80 data-[state=active]:bg-violet-100 text-zinc-600 data-[state=active]:text-violet-700 px-1.5 py-0.5 rounded-full font-semibold transition-colors">
-                    {count}
-                  </span>
-                )}
+              <TabsTrigger key={value} value={value} className="flex items-center gap-2 px-5 py-2.5">
+                <Icon className="h-4 w-4" />
+                <span>{label}</span>
+                {count > 0 && <Badge variant="secondary" className="ml-1">{count}</Badge>}
               </TabsTrigger>
             ))}
           </TabsList>
 
           {["review", "revise", "approved"].map((tab) => (
-            <TabsContent
-              key={tab}
-              value={tab}
-              className="mt-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/20 rounded-lg"
-            >
-              {filteredApprovals.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">
-                  {filteredApprovals.map((item, index) => (
-                    <Card
-                      key={item.id}
-                      className="group bg-white border border-zinc-200/80 rounded-2xl overflow-hidden hover:shadow-lg hover:shadow-zinc-200/50 hover:border-zinc-300/80 transition-all duration-300 cursor-pointer flex flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/30 focus-visible:ring-offset-2"
-                      onClick={() => openDetail(item)}
-                      style={{ animationDelay: `${index * 40}ms` }}
-                    >
-                      <CardContent className="p-5 sm:p-6 flex-1 flex flex-col">
-                        {/* Title */}
-                        <h3 className="font-semibold text-base sm:text-lg leading-snug mb-2 line-clamp-2 text-zinc-900 group-hover:text-violet-700 transition-colors duration-200">
-                          {item.title}
-                        </h3>
+            <TabsContent key={tab} value={tab} className="mt-8">
+              {loading ? (
+                <div className="flex justify-center py-20">
+                  <div className="animate-spin h-8 w-8 border-4 border-zinc-300 border-t-violet-600 rounded-full" />
+                </div>
+              ) : error ? (
+                <div className="text-center py-20 text-red-600">
+                  <AlertCircle className="h-10 w-10 mx-auto mb-4" />
+                  <p>{error}</p>
+                </div>
+              ) : filteredApprovals.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {filteredApprovals.map((item) => {
+                    const overdue = isOverdue(item.revisionDueDate);
+                    return (
+                      <Card
+                        key={item.id}
+                        className="group cursor-pointer hover:shadow-xl transition-all duration-300 border border-zinc-200 hover:border-zinc-300"
+                        onClick={() => openDetail(item)}
+                      >
+                        <CardContent className="p-6 flex flex-col h-full">
+                          <h3 className="font-semibold text-lg leading-tight mb-3 line-clamp-2 group-hover:text-violet-700 transition-colors">
+                            {item.title}
+                          </h3>
 
-                        {/* Metadata */}
-                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs sm:text-sm text-zinc-500 mb-4">
-                          <span className="font-medium text-zinc-600">
-                            {item.platform}
-                          </span>
-                          <span className="text-zinc-300">•</span>
-                          <span>{item.contentType}</span>
-                        </div>
+                          <div className="flex items-center gap-2 text-sm text-zinc-500 mb-5">
+                            <span className="font-medium text-zinc-700">{item.platform}</span>
+                            <span className="text-zinc-300">•</span>
+                            <span>{item.contentType}</span>
+                          </div>
 
-                        {/* Drive Files */}
-                        {item.driveLinks && item.driveLinks.length > 0 && (
-                          <div className="mb-4">
-                            <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400 mb-2">
-                              Drive Files
-                            </p>
-                            <div className="flex flex-wrap gap-1.5">
-                              {item.driveLinks.map((link, idx) => (
-                                <a
-                                  key={idx}
-                                  href={link}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  onClick={(e) => e.stopPropagation()}
-                                  className="inline-flex items-center gap-1.5 text-xs bg-zinc-50 hover:bg-zinc-100 active:bg-zinc-200 transition-all duration-200 px-2.5 py-1.5 rounded-lg text-zinc-600 border border-zinc-200/80 hover:border-zinc-300 hover:shadow-sm group/link"
-                                >
-                                  <FolderOpen className="h-3 w-3 text-amber-600 flex-shrink-0" />
-                                  <span className="truncate max-w-[120px] sm:max-w-[140px]">
+                          {item.driveLinks && item.driveLinks.length > 0 && (
+                            <div className="mb-6">
+                              <p className="text-xs font-semibold uppercase tracking-widest text-zinc-400 mb-2">Drive Files</p>
+                              <div className="flex flex-wrap gap-2">
+                                {item.driveLinks.slice(0, 2).map((_, idx) => (
+                                  <div key={idx} className="text-xs flex items-center gap-1.5 bg-amber-50 text-amber-700 px-3 py-1 rounded-lg">
+                                    <FolderOpen className="h-3.5 w-3.5" />
                                     File {idx + 1}
-                                  </span>
-                                  <ExternalLink className="h-2.5 w-2.5 text-zinc-400 opacity-0 group-hover/link:opacity-100 transition-opacity flex-shrink-0" />
-                                </a>
-                              ))}
+                                  </div>
+                                ))}
+                              </div>
                             </div>
-                          </div>
-                        )}
-
-                        {/* Footer */}
-                        <div className="mt-auto pt-4 border-t border-zinc-100 flex items-center justify-between gap-3">
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            <Avatar className="h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0 ring-2 ring-zinc-50">
-                              <AvatarFallback className="bg-zinc-100 text-zinc-600 text-xs font-medium">
-                                {item.client
-                                  .split(" ")
-                                  .map((n) => n[0])
-                                  .join("")}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="min-w-0">
-                              <p className="text-sm font-medium text-zinc-900 truncate">
-                                {item.client}
-                              </p>
-                              <p
-                                className={`text-xs ${
-                                  isOverdue(item.revisionDueDate)
-                                    ? "text-rose-500 font-medium"
-                                    : "text-zinc-500"
-                                }`}
-                              >
-                                {formatDueDate(item.revisionDueDate)}
-                              </p>
-                            </div>
-                          </div>
-
-                          {item.revisionCount > 0 && (
-                            <Badge
-                              variant="outline"
-                              className="text-[11px] sm:text-xs whitespace-nowrap flex-shrink-0 bg-zinc-50 text-zinc-600 border-zinc-200"
-                            >
-                              {item.revisionCount} revision
-                              {item.revisionCount !== 1 ? "s" : ""}
-                            </Badge>
                           )}
-                        </div>
-                      </CardContent>
 
-                      {/* Status bar for cards without thumbnail */}
-                      {!item.thumbnail && (
-                        <div
-                          className={`h-1 w-full ${
-                            item.status === "review"
-                              ? "bg-amber-400"
-                              : item.status === "revise"
-                                ? "bg-rose-400"
-                                : "bg-emerald-400"
-                          }`}
-                        />
-                      )}
-                    </Card>
-                  ))}
+                          <div className="mt-auto flex items-center justify-between pt-4 border-t">
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-9 w-9 ring-2 ring-white">
+                                <AvatarFallback className="bg-zinc-100 text-xs font-medium">
+                                  {item.client.split(" ").map((n) => n[0]).join("").toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="font-medium text-sm">{item.client}</p>
+                                <p className={`text-xs ${overdue ? "text-rose-600 font-medium" : "text-zinc-500"}`}>
+                                  {formatDueDate(item.revisionDueDate)}
+                                </p>
+                              </div>
+                            </div>
+
+                            {item.revisionCount && item.revisionCount > 0 && (
+                              <Badge variant="outline" className="text-xs">
+                                {item.revisionCount} rev
+                              </Badge>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
               ) : (
-                <div className="text-center py-16 sm:py-24 animate-in fade-in duration-500">
-                  <div className="mx-auto w-14 h-14 sm:w-16 sm:h-16 bg-zinc-50 border border-zinc-100 rounded-2xl flex items-center justify-center mb-5">
-                    {tab === "review" ? (
-                      <Inbox className="h-7 w-7 text-zinc-300" />
-                    ) : tab === "revise" ? (
-                      <CheckCircle2 className="h-7 w-7 text-zinc-300" />
-                    ) : (
-                      <PartyPopper className="h-7 w-7 text-zinc-300" />
-                    )}
+                <div className="text-center py-24">
+                  <div className="mx-auto w-20 h-20 bg-zinc-100 rounded-3xl flex items-center justify-center mb-6">
+                    {tab === "review" && <Inbox className="h-10 w-10 text-zinc-400" />}
+                    {tab === "revise" && <CheckCircle2 className="h-10 w-10 text-zinc-400" />}
+                    {tab === "approved" && <PartyPopper className="h-10 w-10 text-zinc-400" />}
                   </div>
-                  <h3 className="text-lg sm:text-xl font-semibold text-zinc-900">
-                    {tab === "review"
-                      ? "All caught up!"
-                      : tab === "revise"
-                        ? "No revisions needed"
-                        : "Nothing approved yet"}
-                  </h3>
-                  <p className="text-sm sm:text-base text-zinc-500 mt-2 max-w-sm mx-auto">
-                    {tab === "review"
-                      ? "There are no items waiting for your review right now."
-                      : tab === "revise"
-                        ? "Great work! No content needs revision at the moment."
-                        : "Approved items will appear here once you review them."}
-                  </p>
+                  <h3 className="text-2xl font-semibold text-zinc-900">No items found</h3>
+                  <p className="text-zinc-500 mt-2">Try changing the filter or search term.</p>
                 </div>
               )}
             </TabsContent>
@@ -466,224 +338,109 @@ export default function ApprovalsModule() {
         </Tabs>
       </div>
 
-      {/* Content Detail Sheet */}
+      {/* Detail Dialog */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="w-full max-w-[95vw] lg:max-w-5xl xl:max-w-6xl max-h-[94vh] overflow-hidden p-0 flex flex-col">
+        <DialogContent className="max-w-5xl max-h-[95vh] p-0 flex flex-col overflow-hidden">
           {selectedApproval && (
-            <div className="flex flex-col h-full min-h-0">
-              {/* Header */}
-              <DialogHeader className="px-6 sm:px-8 pt-6 pb-5 border-b bg-white z-10 flex-shrink-0 relative">
-                <DialogTitle className="text-2xl sm:text-3xl leading-tight font-semibold tracking-tight pr-10">
-                  {selectedApproval.title}
-                </DialogTitle>
-
-                <div className="flex flex-wrap gap-2 mt-4">
+            <div className="flex flex-col h-full">
+              <DialogHeader className="px-8 py-6 border-b">
+                <DialogTitle className="text-3xl font-semibold pr-12">{selectedApproval.title}</DialogTitle>
+                <div className="flex gap-2 mt-4">
                   <Badge>{selectedApproval.platform}</Badge>
-                  <Badge variant="outline">
-                    {selectedApproval.contentType}
-                  </Badge>
+                  <Badge variant="outline">{selectedApproval.contentType}</Badge>
                 </div>
-
-                {/* Close Button */}
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="absolute right-4 sm:right-6 top-5 text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 rounded-full h-9 w-9"
+                  className="absolute top-6 right-6"
                   onClick={() => setIsDetailOpen(false)}
                 >
                   <X className="h-5 w-5" />
-                  <span className="sr-only">Close</span>
                 </Button>
               </DialogHeader>
 
-              {/* Scrollable Content */}
-              <div className="flex-1 overflow-y-auto px-6 sm:px-8 py-8 space-y-10 min-h-0">
-                {/* Google Drive Files */}
-                {selectedApproval.driveLinks &&
-                  selectedApproval.driveLinks.length > 0 && (
-                    <div>
-                      <h4 className="uppercase text-xs tracking-widest text-zinc-500 mb-3 flex items-center gap-2">
-                        <FolderOpen className="h-4 w-4" />
-                        GOOGLE DRIVE FILES
-                      </h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {selectedApproval.driveLinks.map((link, idx) => (
-                          <a
-                            key={idx}
-                            href={link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="group flex items-center gap-4 p-4 border border-zinc-200 hover:border-amber-300 rounded-2xl hover:bg-amber-50/50 transition-all"
-                          >
-                            <div className="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center flex-shrink-0">
-                              <FolderOpen className="h-6 w-6 text-amber-600" />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <p className="font-medium text-sm text-zinc-900 group-hover:text-amber-700 transition-colors">
-                                Asset File {idx + 1}
-                              </p>
-                              <p className="text-xs text-zinc-500 truncate">
-                                Google Drive Link
-                              </p>
-                            </div>
-                            <ExternalLink className="h-5 w-5 text-zinc-400 group-hover:text-amber-600 transition-colors" />
-                          </a>
-                        ))}
-                      </div>
+              <div className="flex-1 overflow-y-auto p-8 space-y-10">
+                {/* Drive Files */}
+                {selectedApproval.driveLinks?.length > 0 && (
+                  <div>
+                    <h4 className="uppercase text-xs tracking-widest text-zinc-500 mb-4 flex items-center gap-2">
+                      <FolderOpen className="h-4 w-4" /> GOOGLE DRIVE FILES
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {selectedApproval.driveLinks.map((link, idx) => (
+                        <a
+                          key={idx}
+                          href={link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-4 p-5 border border-zinc-200 rounded-2xl hover:border-amber-300 hover:bg-amber-50/70 transition-all group"
+                        >
+                          <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center">
+                            <FolderOpen className="h-6 w-6 text-amber-600" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium group-hover:text-amber-700">Asset File {idx + 1}</p>
+                            <p className="text-sm text-zinc-500 truncate">Google Drive Link</p>
+                          </div>
+                          <ExternalLink className="h-5 w-5 text-zinc-400 group-hover:text-amber-600" />
+                        </a>
+                      ))}
                     </div>
-                  )}
+                  </div>
+                )}
 
                 {/* Caption */}
                 <div>
-                  <h4 className="uppercase text-xs tracking-widest text-zinc-500 mb-3">
-                    CAPTION
-                  </h4>
-                  <p className="text-zinc-700 leading-relaxed text-[15px] sm:text-lg">
-                    {selectedApproval.caption}
-                  </p>
+                  <h4 className="uppercase text-xs tracking-widest text-zinc-500 mb-3">CAPTION</h4>
+                  <p className="text-zinc-700 leading-relaxed text-[15.5px]">{selectedApproval.caption}</p>
                 </div>
 
-                <Separator className="my-8" />
-
                 {/* Revision Details */}
-
-                {(selectedApproval.revisionNotes?.length > 0 ||
-                  selectedApproval.revisionDueDate ||
-                  selectedApproval.priority ||
-                  selectedApproval.revisionCount) && (
-                  <div className="space-y-5 rounded-2xl border border-amber-200 bg-amber-50/50 p-4 sm:p-6">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-sm sm:text-base font-semibold text-amber-900">
-                        Revision Details
-                      </h4>
-
-                      {selectedApproval.priority && (
-                        <Badge className="bg-amber-100 text-amber-700 border border-amber-200">
-                          {selectedApproval.priority} Priority
-                        </Badge>
-                      )}
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {selectedApproval.revisionDueDate && (
-                        <div>
-                          <p className="text-[11px] uppercase tracking-widest text-zinc-500 mb-1">
-                            Due Date
-                          </p>
-                          <p className="text-sm font-medium text-zinc-900">
-                            {selectedApproval.revisionDueDate}
-                          </p>
-                        </div>
-                      )}
-
-                      {selectedApproval.revisionCount !== null && (
-                        <div>
-                          <p className="text-[11px] uppercase tracking-widest text-zinc-500 mb-1">
-                            Revision Count
-                          </p>
-                          <p className="text-sm font-medium text-zinc-900">
-                            {selectedApproval.revisionCount}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Revision Notes */}
-                    {selectedApproval.revisionNotes?.length > 0 && (
-                      <div>
-                        <p className="text-[11px] uppercase tracking-widest text-zinc-500 mb-3">
-                          Revision Notes
-                        </p>
-
-                        <div className="space-y-3">
-                          {selectedApproval.revisionNotes.map((note, idx) => (
-                            <div
-                              key={idx}
-                              className="rounded-xl border border-zinc-200 bg-white p-4"
-                            >
-                              <div className="flex items-center justify-between mb-2">
-                                <span className="font-medium text-sm text-zinc-900">
-                                  {note.commenter}
-                                </span>
-
-                                <span className="text-xs text-zinc-400">
-                                  {new Date(note.created_at).toLocaleString()}
-                                </span>
-                              </div>
-
-                              <p className="text-sm text-zinc-700 leading-relaxed">
-                                {note.comment}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                {(selectedApproval.revisionDueDate || selectedApproval.revisionNotes?.length) && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6">
+                    <h4 className="font-semibold text-amber-900 mb-4">Revision Details</h4>
+                    {/* Add more revision UI as needed */}
                   </div>
                 )}
               </div>
 
-              {/* Sticky Action Bar */}
-              <div className="border-t bg-white p-6 sm:p-8 z-10 flex-shrink-0">
-                <div className="flex flex-col sm:flex-row gap-3">
-                  {role === "admin" && selectedApproval.status === "revise" && (
-                    <Button
-                      variant="outline"
-                      className="flex-1 h-12"
-                      onClick={handleSubmitRevision}
-                    >
-                      Submit Revision
-                    </Button>
-                  )}
-                  {role === "client" &&
-                    selectedApproval.status === "review" && (
-                      <>
-                        <Button
-                          variant="outline"
-                          className="flex-1 h-12"
-                          onClick={handleRequestRevision}
-                        >
-                          Request Revision
-                        </Button>
+              {/* Action Bar */}
+              <div className="border-t p-6 bg-white flex gap-3">
+                {role === "admin" && selectedApproval.status === "revise" && (
+                  <Button onClick={handleSubmitRevision} className="flex-1 h-12">
+                    Submit Revision
+                  </Button>
+                )}
 
-                        <Button
-                          className="flex-1 h-12 text-white p-2"
-                          style={{ backgroundColor: brandColor }}
-                          onClick={handleApprove}
-                        >
-                          <CheckCircle2 className="mr-2 h-4 w-4" />
-                          Approve Content
-                        </Button>
-                      </>
-                    )}
-                </div>
+                {role === "client" && selectedApproval.status === "review" && (
+                  <>
+                    <Button variant="outline" onClick={handleRequestRevision} className="flex-1 h-12">
+                      Request Revision
+                    </Button>
+                    <Button
+                      onClick={handleApprove}
+                      className="flex-1 h-12 text-white"
+                      style={{ backgroundColor: brandColor }}
+                    >
+                      <CheckCircle2 className="mr-2 h-4 w-4" />
+                      Approve Content
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Modals */}
       <AddContentModal
         isOpen={isAddContentOpen}
         onClose={() => setIsAddContentOpen(false)}
-        onAdd={(content) => {
-          const newContent: ContentItem = {
-            id: `c${Date.now()}`,
-            title: content.title,
-            caption: content.caption,
-            platform: content.platform,
-            contentType: content.contentType,
-            status: content.status as ContentItem["status"],
-            publishDate: content.publishDate,
-            client: content.client,
-            assignedTo: content.assignedTo,
-            driveLinks: content.driveLinks,
-            pillar: content.pillar,
-          };
-
-          addContent(newContent);
-        }}
+        onAdd={(newContent) => addContent({ ...newContent, id: `c${Date.now()}` } as ApprovalItem)}
         brandColor={brandColor}
       />
+
       <RequestRevisionModal
         isOpen={isRevisionOpen}
         onClose={() => setIsRevisionOpen(false)}
@@ -692,7 +449,7 @@ export default function ApprovalsModule() {
 
           try {
             const revisionNote = {
-              commenter: "Client", // replace with actual user
+              commenter: user?.primary_contact_name || "Client",
               comment: request.comment,
               created_at: new Date().toISOString(),
             };
@@ -727,17 +484,17 @@ export default function ApprovalsModule() {
             );
           }
         }}
-        contentTitle={selectedApproval?.title}
-        contentPlatform={selectedApproval?.platform}
-        assignedTo={selectedApproval?.assignedTo || "Team Member"}
+        contentTitle={selectedApproval?.title || ""}
+        contentPlatform={selectedApproval?.platform || ""}
+        assignedTo={selectedApproval?.assignedTo || ""}
         brandColor={brandColor}
       />
+
       <SubmitRevisionModal
         isOpen={isSubmitRevisionOpen}
         onClose={() => setIsSubmitRevisionOpen(false)}
         content={selectedApproval}
-        adminName="Admin"
-        brandColor={brandColor}
+        adminName={user?.fullname || "Admin"}
         onSubmit={async (update) => {
           try {
             const res = await fetch("/api/contents/submit-revision", {
@@ -760,7 +517,9 @@ export default function ApprovalsModule() {
             );
           }
         }}
+        brandColor={brandColor}
       />
+
       <ApproveConfirmDialog
         isOpen={isApproveOpen}
         onClose={() => setIsApproveOpen(false)}
@@ -782,9 +541,9 @@ export default function ApprovalsModule() {
 
           setIsApproveOpen(false);
         }}
-        contentTitle={selectedApproval?.title}
-        contentPlatform={selectedApproval?.platform}
-        clientName={selectedApproval?.client}
+        contentTitle={selectedApproval?.title || ""}
+        contentPlatform={selectedApproval?.platform || ""}
+        clientName={selectedApproval?.client || ""}
         brandColor={brandColor}
       />
     </div>
