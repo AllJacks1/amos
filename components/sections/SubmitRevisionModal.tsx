@@ -17,6 +17,13 @@ import {
   Type,
   AlignLeft,
   CheckCircle,
+  LinkIcon,
+  ListOrdered,
+  List,
+  Heading2,
+  Heading1,
+  Italic,
+  Bold,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,6 +40,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuthStore } from "@/store/useAuthStore";
+
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Link from "@tiptap/extension-link";
+import CharacterCount from "@tiptap/extension-character-count";
 
 interface ContentItem {
   id: string;
@@ -134,6 +146,28 @@ export default function SubmitRevisionModal({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [activeSection, setActiveSection] = useState<"edit" | "note">("edit");
 
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        heading: { levels: [1, 2] },
+        bulletList: { HTMLAttributes: { class: "list-disc pl-6" } },
+        orderedList: { HTMLAttributes: { class: "list-decimal pl-6" } },
+      }),
+      Link.configure({
+        openOnClick: false,
+        HTMLAttributes: {
+          class: "text-blue-600 underline hover:text-blue-700",
+        },
+      }),
+      CharacterCount,
+    ],
+    content: caption,
+    onUpdate: ({ editor }) => {
+      const html = editor.getHTML();
+      setCaption(html);
+    },
+  });
+
   // Initialize form
   useEffect(() => {
     if (content) {
@@ -150,7 +184,13 @@ export default function SubmitRevisionModal({
     }
   }, [content]);
 
-  if (!isOpen || !content) return null;
+  useEffect(() => {
+  if (editor && caption !== editor.getHTML()) {
+    editor.commands.setContent(caption);
+  }
+}, [caption, editor]);
+
+if (!isOpen || !content) return null;
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -253,6 +293,8 @@ export default function SubmitRevisionModal({
 
   const isGoogleDriveLink = (url: string) =>
     url.includes("drive.google.com") || url.includes("docs.google.com");
+
+  const characterCount = editor?.storage.characterCount?.characters() ?? 0;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
@@ -384,27 +426,92 @@ export default function SubmitRevisionModal({
 
               {/* Caption */}
               <div className="space-y-2">
-                <Label htmlFor="caption" className="flex items-center gap-2">
-                  <AlignLeft className="h-3.5 w-3.5 text-zinc-400" />
-                  Caption / Copy
-                </Label>
-                <Textarea
-                  id="caption"
-                  value={caption}
-                  onChange={(e) => {
-                    setCaption(e.target.value);
-                    if (errors.caption)
-                      setErrors((prev) => ({ ...prev, caption: "" }));
-                  }}
-                  placeholder="Write caption or copy..."
-                  className={`rounded-2xl min-h-[100px] ${errors.caption ? "border-red-300" : ""}`}
-                />
-                {errors.caption && (
-                  <p className="text-xs text-red-500 flex items-center gap-1">
-                    <AlertCircle className="h-3 w-3" />
-                    {errors.caption}
-                  </p>
-                )}
+                <Label className="text-sm font-medium text-zinc-700">Caption</Label>
+
+                {/* Toolbar */}
+                <div className="flex flex-wrap gap-1 border border-zinc-200 bg-zinc-50 p-2 rounded-2xl">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => editor?.chain().focus().toggleBold().run()}
+                    className={editor?.isActive("bold") ? "bg-zinc-200" : ""}
+                  >
+                    <Bold className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => editor?.chain().focus().toggleItalic().run()}
+                    className={editor?.isActive("italic") ? "bg-zinc-200" : ""}
+                  >
+                    <Italic className="h-4 w-4" />
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
+                    className={editor?.isActive("heading", { level: 1 }) ? "bg-zinc-200" : ""}
+                  >
+                    <Heading1 className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
+                    className={editor?.isActive("heading", { level: 2 }) ? "bg-zinc-200" : ""}
+                  >
+                    <Heading2 className="h-4 w-4" />
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => editor?.chain().focus().toggleBulletList().run()}
+                    className={editor?.isActive("bulletList") ? "bg-zinc-200" : ""}
+                  >
+                    <List className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+                    className={editor?.isActive("orderedList") ? "bg-zinc-200" : ""}
+                  >
+                    <ListOrdered className="h-4 w-4" />
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      const url = prompt("Enter URL:");
+                      if (url) editor?.chain().focus().setLink({ href: url }).run();
+                    }}
+                  >
+                    <LinkIcon className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                {/* Editor Content */}
+                <div className="min-h-[140px] border border-zinc-200 rounded-2xl p-4 focus-within:border-violet-500 transition-colors bg-white">
+                  <EditorContent
+                    editor={editor}
+                    className="prose prose-sm max-w-none focus:outline-none min-h-[120px]"
+                  />
+                </div>
+
+                <div className="flex justify-between text-xs text-zinc-400">
+                  <span>Rich text supported</span>
+                  <span>{characterCount} characters</span>
+                </div>
               </div>
 
               {/* Platforms - Multi Select */}

@@ -584,9 +584,17 @@ export default function ApprovalsModule() {
                   <h4 className="uppercase text-xs tracking-widest text-zinc-500 mb-3">
                     CAPTION
                   </h4>
-                  <p className="text-zinc-700 leading-relaxed text-[15.5px]">
-                    {selectedApproval.caption || "No caption provided."}
-                  </p>
+
+                  {selectedApproval.caption ? (
+                    <div
+                      className="text-zinc-700 leading-relaxed text-[15.5px] prose prose-zinc max-w-none prose-headings:text-zinc-800 prose-strong:text-zinc-800 prose-a:text-blue-600"
+                      dangerouslySetInnerHTML={{
+                        __html: selectedApproval.caption,
+                      }}
+                    />
+                  ) : (
+                    <p className="text-zinc-500 italic">No caption provided.</p>
+                  )}
                 </div>
 
                 {/* Revision Details */}

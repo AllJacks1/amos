@@ -640,9 +640,17 @@ export default function ContentOperations() {
                   <h4 className="text-[11px] sm:text-xs font-semibold tracking-widest text-zinc-500 mb-2 sm:mb-3">
                     CAPTION
                   </h4>
-                  <p className="text-sm sm:text-[15px] leading-relaxed text-zinc-700">
-                    {selectedContent.caption || "No caption provided."}
-                  </p>
+
+                  {selectedContent.caption ? (
+                    <div
+                      className="text-sm sm:text-[15px] leading-relaxed text-zinc-700 prose prose-zinc max-w-none prose-headings:text-zinc-800 prose-strong:text-zinc-800 prose-a:text-blue-600"
+                      dangerouslySetInnerHTML={{
+                        __html: selectedContent.caption,
+                      }}
+                    />
+                  ) : (
+                    <p className="text-zinc-500 italic">No caption provided.</p>
+                  )}
                 </div>
 
                 {/* Metadata Grid */}

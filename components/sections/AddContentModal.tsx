@@ -18,6 +18,13 @@ import {
   Loader2,
   Check,
   Globe,
+  Bold,
+  Italic,
+  Heading1,
+  Heading2,
+  List,
+  ListOrdered,
+  LinkIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,6 +40,11 @@ import {
 } from "@/components/ui/select";
 import { useClientStore } from "@/store/clientStore";
 import { useUsersStore } from "@/store/useUsersStore";
+
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Link from "@tiptap/extension-link";
+import CharacterCount from "@tiptap/extension-character-count";
 
 interface AddContentModalProps {
   isOpen: boolean;
@@ -59,7 +71,12 @@ const platforms = [
   { value: "Twitter", label: "Twitter / X", icon: Globe, color: "#000000" },
   { value: "TikTok", label: "TikTok", icon: Video, color: "#000000" },
   { value: "YouTube", label: "YouTube", icon: Video, color: "#FF0000" },
-  { value: "Google Business", label: "Google Business", icon: Globe, color: "#F4B400" },
+  {
+    value: "Google Business",
+    label: "Google Business",
+    icon: Globe,
+    color: "#F4B400",
+  },
 ];
 
 const contentTypes = [
@@ -108,12 +125,40 @@ export default function AddContentModal({
   const { users, fetchUsers } = useUsersStore();
   const [step, setStep] = useState(1);
 
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        heading: { levels: [1, 2] },
+        bulletList: { HTMLAttributes: { class: "list-disc pl-6" } },
+        orderedList: { HTMLAttributes: { class: "list-decimal pl-6" } },
+      }),
+      Link.configure({
+        openOnClick: false,
+        HTMLAttributes: {
+          class: "text-blue-600 underline hover:text-blue-700",
+        },
+      }),
+      CharacterCount,
+    ],
+    content: formData.caption,
+    onUpdate: ({ editor }) => {
+      const html = editor.getHTML();
+      setFormData((prev) => ({ ...prev, caption: html }));
+    },
+  });
+
   useEffect(() => {
     if (isOpen) {
       fetchClients();
       fetchUsers();
     }
   }, [isOpen, fetchClients, fetchUsers]);
+
+  useEffect(() => {
+    if (editor && formData.caption !== editor.getHTML()) {
+      editor.commands.setContent(formData.caption);
+    }
+  }, [formData.caption, editor]);
 
   const validateStep1 = () => {
     const newErrors: Record<string, string> = {};
@@ -153,9 +198,10 @@ export default function AddContentModal({
 
     onAdd({
       ...formData,
-      platforms: formData.platforms, // ← Send as array
-      contentTypes: formData.contentTypes, // ← Send as array
+      platforms: formData.platforms,
+      contentTypes: formData.contentTypes,
       driveLinks: cleanLinks.length > 0 ? cleanLinks : [],
+      caption: formData.caption || "<p></p>",
     });
 
     setIsSubmitting(false);
@@ -178,6 +224,7 @@ export default function AddContentModal({
     });
     setErrors({});
     setStep(1);
+    editor?.commands.clearContent();
   };
 
   const handleClose = () => {
@@ -241,6 +288,8 @@ export default function AddContentModal({
     }));
     if (errors.contentType) setErrors((prev) => ({ ...prev, contentType: "" }));
   };
+
+  const characterCount = editor?.storage.characterCount?.characters() ?? 0;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
@@ -322,27 +371,115 @@ export default function AddContentModal({
 
               {/* Caption */}
               <div className="space-y-2">
-                <Label
-                  htmlFor="caption"
-                  className="text-sm font-medium text-zinc-700"
-                >
+                <Label className="text-sm font-medium text-zinc-700">
                   Caption
                 </Label>
-                <Textarea
-                  id="caption"
-                  placeholder="Write your caption here..."
-                  value={formData.caption}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      caption: e.target.value,
-                    }))
-                  }
-                  className="rounded-2xl min-h-[100px] resize-none"
-                />
-                <p className="text-xs text-zinc-400 text-right">
-                  {formData.caption.length} chars
-                </p>
+
+                {/* Toolbar */}
+                <div className="flex flex-wrap gap-1 border border-zinc-200 bg-zinc-50 p-2 rounded-2xl">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => editor?.chain().focus().toggleBold().run()}
+                    className={editor?.isActive("bold") ? "bg-zinc-200" : ""}
+                  >
+                    <Bold className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => editor?.chain().focus().toggleItalic().run()}
+                    className={editor?.isActive("italic") ? "bg-zinc-200" : ""}
+                  >
+                    <Italic className="h-4 w-4" />
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() =>
+                      editor?.chain().focus().toggleHeading({ level: 1 }).run()
+                    }
+                    className={
+                      editor?.isActive("heading", { level: 1 })
+                        ? "bg-zinc-200"
+                        : ""
+                    }
+                  >
+                    <Heading1 className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() =>
+                      editor?.chain().focus().toggleHeading({ level: 2 }).run()
+                    }
+                    className={
+                      editor?.isActive("heading", { level: 2 })
+                        ? "bg-zinc-200"
+                        : ""
+                    }
+                  >
+                    <Heading2 className="h-4 w-4" />
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() =>
+                      editor?.chain().focus().toggleBulletList().run()
+                    }
+                    className={
+                      editor?.isActive("bulletList") ? "bg-zinc-200" : ""
+                    }
+                  >
+                    <List className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() =>
+                      editor?.chain().focus().toggleOrderedList().run()
+                    }
+                    className={
+                      editor?.isActive("orderedList") ? "bg-zinc-200" : ""
+                    }
+                  >
+                    <ListOrdered className="h-4 w-4" />
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      const url = prompt("Enter URL:");
+                      if (url)
+                        editor?.chain().focus().setLink({ href: url }).run();
+                    }}
+                  >
+                    <LinkIcon className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                {/* Editor Content */}
+                <div className="min-h-[140px] border border-zinc-200 rounded-2xl p-4 focus-within:border-violet-500 transition-colors bg-white">
+                  <EditorContent
+                    editor={editor}
+                    className="prose prose-sm max-w-none focus:outline-none min-h-[120px]"
+                  />
+                </div>
+
+                <div className="flex justify-between text-xs text-zinc-400">
+                  <span>Rich text supported</span>
+                  <span>{characterCount} characters</span>
+                </div>
               </div>
 
               {/* Platform */}
@@ -669,13 +806,17 @@ export default function AddContentModal({
           )}
 
           {/* Live Preview */}
-          {(formData.title || formData.platforms.length > 0) && (
+          {/* Live Preview */}
+          {(formData.title ||
+            formData.platforms.length > 0 ||
+            formData.caption) && (
             <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
               <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">
                 Preview
               </p>
+
               <div className="flex items-start gap-3">
-                {/* Multiple Platform Icons */}
+                {/* Platform Icons */}
                 <div className="flex -space-x-2">
                   {selectedPlatformObjects.slice(0, 3).map((p, i) => (
                     <div
@@ -711,10 +852,12 @@ export default function AddContentModal({
                     ))}
                   </div>
 
+                  {/* Updated Caption Preview with HTML rendering */}
                   {formData.caption && (
-                    <p className="text-xs text-zinc-500 mt-2 line-clamp-2">
-                      {formData.caption}
-                    </p>
+                    <div
+                      className="text-sm text-zinc-600 mt-3 line-clamp-3 prose prose-sm prose-zinc max-w-none"
+                      dangerouslySetInnerHTML={{ __html: formData.caption }}
+                    />
                   )}
                 </div>
               </div>
