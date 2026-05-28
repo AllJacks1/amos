@@ -59,6 +59,7 @@ const platforms = [
   { value: "Twitter", label: "Twitter / X", icon: Globe, color: "#000000" },
   { value: "TikTok", label: "TikTok", icon: Video, color: "#000000" },
   { value: "YouTube", label: "YouTube", icon: Video, color: "#FF0000" },
+  { value: "Google Business", label: "Google Business", icon: Globe, color: "#F4B400" },
 ];
 
 const contentTypes = [
@@ -79,6 +80,8 @@ const pillars = [
   "Promotional",
   "Seasonal",
   "Community",
+  "Brand Positioning",
+  "Others",
 ];
 
 export default function AddContentModal({
