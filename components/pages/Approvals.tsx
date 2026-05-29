@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   PartyPopper,
   FileText,
+  Trash2,
 } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -47,6 +48,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import EditContentModal from "../sections/EditContentModal";
 import { useClientStore } from "@/store/clientStore";
 import { useUsersStore } from "@/store/useUsersStore";
+import DeleteContentModal from "../sections/DeleteContentModal";
 
 const brandColor = "#430062";
 
@@ -96,6 +98,11 @@ export default function ApprovalsModule() {
   const [isSubmitRevisionOpen, setIsSubmitRevisionOpen] = useState(false);
   const [isApproveOpen, setIsApproveOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [contentToDelete, setContentToDelete] = useState<{
+    id: string;
+    title: string;
+  } | null>(null);
 
   // Store
   const { contents, loading, error, fetchContents, addContent, updateStatus } =
@@ -545,23 +552,43 @@ export default function ApprovalsModule() {
                     </div>
                   </div>
 
-                  {user?.role === "admin" && (
-                    <div className="flex items-center gap-3">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="hidden sm:flex items-center gap-2"
-                        onClick={openEdit}
-                      >
-                        <FileText className="h-4 w-4" />
-                        Edit
-                      </Button>
+                  <div className="flex items-center gap-3">
+                    {user?.role === "admin" && (
+                      <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="hidden sm:flex items-center gap-2 hover:bg-zinc-900/5 hover:border-zinc-300 transition-colors cursor-pointer"
+                          onClick={openEdit}
+                        >
+                          <FileText className="h-4 w-4" />
+                          Edit
+                        </Button>
 
-                      <Button variant="ghost" size="icon" onClick={() => setIsDetailOpen(false)}>
-                        <X className="h-5 w-5" />
-                      </Button>
-                    </div>
-                  )}
+                        <Button
+                          size="sm"
+                          className="text-red-700 bg-red-50 hover:bg-red-100 hover:text-red-900 transition-colors cursor-pointer"
+                          onClick={() => {
+                            setContentToDelete({
+                              id: selectedApproval.id,
+                              title: selectedApproval.title,
+                            });
+                            setIsDeleteOpen(true);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          Delete
+                        </Button>
+                      </>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setIsDetailOpen(false)}
+                    >
+                      <X className="h-5 w-5" />
+                    </Button>
+                  </div>
                 </div>
               </DialogHeader>
 
@@ -926,6 +953,48 @@ export default function ApprovalsModule() {
         }}
         content={selectedApproval!}
         brandColor={brandColor}
+      />
+      <DeleteContentModal
+        isOpen={isDeleteOpen}
+        onClose={() => {
+          setIsDeleteOpen(false);
+          setContentToDelete(null);
+        }}
+        onConfirm={async (id) => {
+          try {
+            const res = await fetch("/api/contents/delete", {
+              method: "DELETE",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                id,
+                adminName: user?.fullname?.toString() || "Admin",
+              }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) throw new Error(data.error || "Failed to delete");
+
+            // Refresh list
+            await fetchContents();
+
+            // Close modals
+            setIsDeleteOpen(false);
+            setIsDetailOpen(false);
+            setContentToDelete(null);
+
+            alert("Content deleted successfully");
+          } catch (error) {
+            alert(
+              error instanceof Error
+                ? error.message
+                : "Failed to delete content",
+            );
+          }
+        }}
+        contentTitle={contentToDelete?.title || ""}
+        contentId={contentToDelete?.id || ""}
+        isDeleting={false}
       />
     </div>
   );
