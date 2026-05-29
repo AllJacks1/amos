@@ -9,6 +9,7 @@ import {
   Search,
   MoreHorizontal,
   X,
+  FileText,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,9 @@ import ApproveConfirmDialog from "../sections/ApproveConfirmDialog";
 import CalendarView from "../sections/CalendarView";
 import { ContentItem, useContentStore } from "@/store/useContentStore";
 import { useAuthStore } from "@/store/useAuthStore";
+import EditContentModal from "../sections/EditContentModal";
+import { useClientStore } from "@/store/clientStore";
+import { useUsersStore } from "@/store/useUsersStore";
 
 const brandColor = "#430062";
 
@@ -56,6 +60,9 @@ const statusLabels = {
 export default function ContentOperations() {
   const user = useAuthStore((state) => state.user);
   const role = user?.role || "";
+
+  const { clients, fetchClients } = useClientStore();
+  const { users, fetchUsers } = useUsersStore();
 
   const [activeView, setActiveView] = useState<"kanban" | "calendar" | "table">(
     "kanban",
@@ -103,9 +110,13 @@ export default function ContentOperations() {
   const endIndex = startIndex + itemsPerPage;
   const paginatedContents = filteredContents.slice(startIndex, endIndex);
 
+  const [isEditOpen, setIsEditOpen] = useState(false);
+
   useEffect(() => {
     fetchContents();
-  }, [fetchContents]);
+    fetchClients();
+    fetchUsers();
+  }, [fetchContents, fetchClients, fetchUsers]);
 
   const kanbanColumns = [
     {
@@ -153,6 +164,12 @@ export default function ContentOperations() {
       .toUpperCase()
       .slice(0, 2);
   };
+
+  const clientLookup = Object.fromEntries(
+    clients.map((c) => [c.id, c.company_name]),
+  );
+
+  const userLookup = Object.fromEntries(users.map((u) => [u.id, u.fullname]));
 
   console.log("Mapped Contents:", contents);
 
@@ -203,7 +220,7 @@ export default function ContentOperations() {
 
                 {uniqueClients.map((client) => (
                   <SelectItem key={client} value={client}>
-                    {client}
+                    {clientLookup[client]}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -280,7 +297,7 @@ export default function ContentOperations() {
                       </div>
 
                       <div className="text-xs sm:text-sm text-zinc-500 mb-3">
-                        {item.client}
+                        {clientLookup[item.client]}
                       </div>
 
                       {/* Google Drive Links */}
@@ -315,7 +332,7 @@ export default function ContentOperations() {
                         </Badge>
                         <Avatar className="h-6 w-6 flex-shrink-0">
                           <AvatarFallback className="text-xs">
-                            {getInitials(item.assignedTo)}
+                            {getInitials(userLookup[item.assignedTo])}
                           </AvatarFallback>
                         </Avatar>
                       </div>
@@ -441,7 +458,7 @@ export default function ContentOperations() {
                       </td>
 
                       <td className="py-3 px-3 sm:py-5 sm:px-6 text-zinc-600 text-xs sm:text-sm whitespace-nowrap">
-                        {item.client}
+                        {clientLookup[item.client]}
                       </td>
 
                       <td className="py-3 px-3 sm:py-5 sm:px-6">
@@ -460,11 +477,11 @@ export default function ContentOperations() {
                         <div className="flex items-center gap-2 min-w-0">
                           <Avatar className="h-6 w-6 flex-shrink-0">
                             <AvatarFallback className="text-xs bg-zinc-100">
-                              {getInitials(item.assignedTo)}
+                              {getInitials(userLookup[item.assignedTo])}
                             </AvatarFallback>
                           </Avatar>
                           <span className="text-xs sm:text-sm text-zinc-600 truncate">
-                            {item.assignedTo}
+                            {userLookup[item.assignedTo]}
                           </span>
                         </div>
                       </td>
@@ -547,54 +564,63 @@ export default function ContentOperations() {
             <div className="flex flex-col h-full min-h-0">
               {/* Header */}
               <DialogHeader className="px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-3 sm:pb-5 border-b bg-white z-10 flex-shrink-0 relative">
-                <DialogTitle className="text-xl sm:text-2xl lg:text-3xl leading-tight font-semibold tracking-tight break-words pr-8">
-                  {selectedContent.title}
-                </DialogTitle>
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 pr-8">
+                    <DialogTitle className="text-xl sm:text-2xl lg:text-3xl leading-tight font-semibold tracking-tight break-words">
+                      {selectedContent.title}
+                    </DialogTitle>
 
-                <div className="flex flex-wrap items-center gap-2 mt-3 sm:mt-4">
-                  <Badge
-                    className={`${statusColors[selectedContent.status]} text-xs sm:text-sm font-medium px-2.5 sm:px-3 py-0.5 sm:py-1`}
-                  >
-                    {statusLabels[selectedContent.status]}
-                  </Badge>
-
-                  {/* Multiple Platforms */}
-                  {selectedContent.platforms &&
-                    selectedContent.platforms.length > 0 &&
-                    selectedContent.platforms.map((platform: string) => (
+                    <div className="flex flex-wrap items-center gap-2 mt-3 sm:mt-4">
                       <Badge
-                        key={platform}
-                        variant="outline"
-                        className="text-xs sm:text-sm font-medium px-2.5 sm:px-3 py-0.5 sm:py-1"
+                        className={`${statusColors[selectedContent.status]} text-xs sm:text-sm font-medium px-2.5 sm:px-3 py-0.5 sm:py-1`}
                       >
-                        {platform}
+                        {statusLabels[selectedContent.status]}
                       </Badge>
-                    ))}
 
-                  {/* Multiple Content Types */}
-                  {selectedContent.contentTypes &&
-                    selectedContent.contentTypes.length > 0 &&
-                    selectedContent.contentTypes.map((type: string) => (
-                      <Badge
-                        key={type}
-                        variant="secondary"
-                        className="text-xs sm:text-sm font-medium px-2.5 sm:px-3 py-0.5 sm:py-1 bg-zinc-100"
-                      >
-                        {type}
-                      </Badge>
-                    ))}
+                      {selectedContent.platforms?.map((platform: string) => (
+                        <Badge
+                          key={platform}
+                          variant="outline"
+                          className="text-xs sm:text-sm"
+                        >
+                          {platform}
+                        </Badge>
+                      ))}
+
+                      {selectedContent.contentTypes?.map((type: string) => (
+                        <Badge
+                          key={type}
+                          variant="secondary"
+                          className="text-xs sm:text-sm bg-zinc-100"
+                        >
+                          {type}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="hidden sm:flex items-center gap-2 h-9"
+                      onClick={() => setIsEditOpen(true)}
+                    >
+                      <FileText className="h-4 w-4" />
+                      Edit
+                    </Button>
+
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 sm:h-9 sm:w-9 rounded-full text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100"
+                      onClick={() => setIsDetailOpen(false)}
+                    >
+                      <X className="h-4 w-4 sm:h-5 sm:w-5" />
+                    </Button>
+                  </div>
                 </div>
-
-                {/* Close Button */}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-4 top-4 sm:right-6 sm:top-6 text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 rounded-full h-8 w-8 sm:h-9 sm:w-9"
-                  onClick={() => setIsDetailOpen(false)}
-                >
-                  <X className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span className="sr-only">Close</span>
-                </Button>
               </DialogHeader>
 
               {/* Scrollable Content Area */}
@@ -660,7 +686,7 @@ export default function ContentOperations() {
                       CLIENT
                     </h4>
                     <p className="text-sm sm:text-base font-medium text-zinc-900">
-                      {selectedContent.client}
+                      {clientLookup[selectedContent.client]}
                     </p>
                   </div>
                   <div>
@@ -679,6 +705,16 @@ export default function ContentOperations() {
                       {selectedContent.publishDate}
                     </p>
                   </div>
+                  {user?.role === "admin" && (
+                    <div>
+                      <h4 className="text-[11px] sm:text-xs font-semibold tracking-widest text-zinc-500 mb-1.5 sm:mb-2">
+                        ASSIGNED TO
+                      </h4>
+                      <p className="text-sm sm:text-base font-medium text-zinc-900">
+                        {userLookup[selectedContent.assignedTo]}
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 <Separator className="my-1 sm:my-2" />
@@ -850,17 +886,11 @@ export default function ContentOperations() {
               contentTypes: created.content_type || "",
               publishDate: created.publish_date || "",
 
-              client:
-                typeof created.client === "string"
-                  ? created.client
-                  : created.client?.company_name || "",
+              client: created.client || "",
 
               status: created.status || "review",
 
-              assignedTo:
-                typeof created.assigned_to === "string"
-                  ? created.assigned_to
-                  : created.assigned_to?.fullname || "",
+              assignedTo: created.assigned_to || "",
 
               driveLinks: created.gdrive_links || [],
               pillar: created.content_pillar || "",
@@ -931,7 +961,7 @@ export default function ContentOperations() {
         }}
         contentTitle={selectedContent?.title}
         contentPlatforms={selectedContent?.platforms}
-        assignedTo={selectedContent?.assignedTo || "Team Member"}
+        assignedTo={selectedContent?.assignedTo || ""}
         brandColor={brandColor}
       />
       <SubmitRevisionModal
@@ -991,6 +1021,76 @@ export default function ContentOperations() {
         contentTitle={selectedContent?.title}
         platforms={selectedContent?.platforms}
         clientName={selectedContent?.client}
+        brandColor={brandColor}
+      />
+      <EditContentModal
+        isOpen={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+        onUpdate={async (id: string, updatedData) => {
+          try {
+            // console.log("Updating content with ID:", id, "Data:", updatedData);
+            const response = await fetch("/api/contents/update", {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                id,
+                content_title: updatedData.title,
+                caption: updatedData.caption,
+                platforms: updatedData.platforms,
+                content_types: updatedData.contentTypes,
+                client: updatedData.client,
+                assigned_to: updatedData.assignedTo,
+                content_pillar: updatedData.pillar,
+                publish_date: updatedData.publishDate,
+                gdrive_links: updatedData.driveLinks,
+                adminName: user?.fullname?.toString() || "Admin",
+              }),
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+              throw new Error(result.error || "Failed to update content");
+            }
+
+            // ✅ FIXED: Proper type casting + refresh
+            await fetchContents(); // Best way - refresh from store
+
+            // Update selected content safely
+            setSelectedContent((prev) => {
+              if (!prev) return null;
+              return {
+                ...prev,
+                title: updatedData.title,
+                caption: updatedData.caption,
+                platforms: updatedData.platforms,
+                contentTypes: updatedData.contentTypes,
+                client: updatedData.client,
+                assignedTo: updatedData.assignedTo,
+                pillar: updatedData.pillar,
+                publishDate: updatedData.publishDate,
+                driveLinks: updatedData.driveLinks,
+                // Keep original status unless you explicitly update it
+                status: prev.status,
+                // Preserve other fields that might not be in updatedData
+                priority: prev.priority,
+                revisionDueDate: prev.revisionDueDate,
+                revisionCount: prev.revisionCount,
+                revisionNotes: prev.revisionNotes,
+              };
+            });
+
+            alert("Content updated successfully!");
+          } catch (error) {
+            console.error(error);
+            alert(
+              error instanceof Error
+                ? error.message
+                : "Failed to update content",
+            );
+          }
+        }}
+        content={selectedContent!}
         brandColor={brandColor}
       />
     </div>

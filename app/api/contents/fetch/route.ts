@@ -29,21 +29,7 @@ export async function GET(req: NextRequest) {
 
     let query = supabase
       .from("amos_contents")
-      .select(
-        `
-        *,
-        client:amos_clients (
-          id,
-          company_name,
-          company_logo
-        ),
-        assigned_to:amos_users (
-          id,
-          fullname,
-          email
-        )
-      `,
-      )
+      .select("*")
       .order("publish_date", { ascending: true });
 
     // Role-based filtering
@@ -105,8 +91,8 @@ export async function GET(req: NextRequest) {
       status: item.status ?? "review",
       publishDate: item.publish_date ?? "",
 
-      client: item.client?.company_name ?? "",
-      assignedTo: item.assigned_to?.fullname ?? "",
+      client: item.client ?? "",
+      assignedTo: item.assigned_to ?? "",
 
       driveLinks: Array.isArray(item.gdrive_links) ? item.gdrive_links : [],
       pillar: item.content_pillar ?? item.pillar ?? "",

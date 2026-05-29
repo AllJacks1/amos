@@ -13,6 +13,7 @@ import {
   Inbox,
   CheckCircle2,
   PartyPopper,
+  FileText,
 } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -43,6 +44,9 @@ import ApproveConfirmDialog from "../sections/ApproveConfirmDialog";
 
 import { useContentStore } from "@/store/useContentStore";
 import { useAuthStore } from "@/store/useAuthStore";
+import EditContentModal from "../sections/EditContentModal";
+import { useClientStore } from "@/store/clientStore";
+import { useUsersStore } from "@/store/useUsersStore";
 
 const brandColor = "#430062";
 
@@ -73,6 +77,9 @@ export default function ApprovalsModule() {
   const user = useAuthStore((state) => state.user);
   const role = user?.role || "";
 
+  const { clients, fetchClients } = useClientStore();
+  const { users, fetchUsers } = useUsersStore();
+
   // Local State
   const [activeTab, setActiveTab] = useState<"review" | "revise" | "approved">(
     "review",
@@ -88,6 +95,7 @@ export default function ApprovalsModule() {
   const [isRevisionOpen, setIsRevisionOpen] = useState(false);
   const [isSubmitRevisionOpen, setIsSubmitRevisionOpen] = useState(false);
   const [isApproveOpen, setIsApproveOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
 
   // Store
   const { contents, loading, error, fetchContents, addContent, updateStatus } =
@@ -95,7 +103,9 @@ export default function ApprovalsModule() {
 
   useEffect(() => {
     fetchContents();
-  }, [fetchContents]);
+    fetchClients();
+    fetchUsers();
+  }, [fetchContents, fetchClients, fetchUsers]);
 
   // ==================== FILTERING & COUNTS ====================
   const filteredApprovals = useMemo(() => {
@@ -184,6 +194,12 @@ export default function ApprovalsModule() {
     setIsSubmitRevisionOpen(true);
     setIsDetailOpen(false);
   };
+
+  const clientLookup = Object.fromEntries(
+    clients.map((c) => [c.id, c.company_name]),
+  );
+
+  const userLookup = Object.fromEntries(users.map((u) => [u.id, u.fullname]));
 
   return (
     <div className="p-6 lg:p-8 space-y-8 min-h-screen bg-zinc-50">
@@ -438,7 +454,7 @@ export default function ApprovalsModule() {
                             <div className="flex items-center gap-3">
                               <Avatar className="h-9 w-9 ring-2 ring-white">
                                 <AvatarFallback className="bg-zinc-100 text-xs font-medium">
-                                  {item.client
+                                  {clientLookup[item.client]
                                     .split(" ")
                                     .map((n) => n[0])
                                     .join("")
@@ -447,7 +463,7 @@ export default function ApprovalsModule() {
                               </Avatar>
                               <div>
                                 <p className="font-medium text-sm">
-                                  {item.client}
+                                  {clientLookup[item.client]}
                                 </p>
                                 <p
                                   className={`text-xs ${overdue ? "text-rose-600 font-medium" : "text-zinc-500"}`}
@@ -501,48 +517,53 @@ export default function ApprovalsModule() {
           showCloseButton={false}
         >
           {selectedApproval && (
-            <div className="flex flex-col h-full">
-              <DialogHeader className="px-8 py-6 border-b">
-                <DialogTitle className="text-3xl font-semibold pr-12">
-                  {selectedApproval.title}
-                </DialogTitle>
+            <div className="flex flex-col h-full max-h-[95vh] overflow-hidden">
+              {/* Fixed Header */}
+              <DialogHeader className="px-6 sm:px-8 py-5 sm:py-6 border-b bg-white flex-shrink-0 relative">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 pr-12">
+                    <DialogTitle className="text-2xl sm:text-3xl font-semibold leading-tight">
+                      {selectedApproval.title}
+                    </DialogTitle>
 
-                {/* Updated: Platforms & Content Types (Multi-value) */}
-                <div className="flex flex-wrap gap-2 mt-4">
-                  {selectedApproval.platforms &&
-                  selectedApproval.platforms.length > 0 ? (
-                    selectedApproval.platforms.map((platform, idx) => (
-                      <Badge key={idx} variant="default">
-                        {platform}
-                      </Badge>
-                    ))
-                  ) : (
-                    <Badge variant="secondary">No platform</Badge>
-                  )}
+                    <div className="flex flex-wrap gap-2 mt-4">
+                      {selectedApproval.platforms?.map((platform, idx) => (
+                        <Badge key={idx} variant="default">
+                          {platform}
+                        </Badge>
+                      ))}
+                      {selectedApproval.contentTypes?.map((type, idx) => (
+                        <Badge key={idx} variant="outline">
+                          {type}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
 
-                  {selectedApproval.contentTypes &&
-                  selectedApproval.contentTypes.length > 0 ? (
-                    selectedApproval.contentTypes.map((type, idx) => (
-                      <Badge key={idx} variant="outline">
-                        {type}
-                      </Badge>
-                    ))
-                  ) : (
-                    <Badge variant="outline">No content type</Badge>
-                  )}
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="hidden sm:flex items-center gap-2"
+                      onClick={() => setIsEditOpen(true)}
+                    >
+                      <FileText className="h-4 w-4" />
+                      Edit
+                    </Button>
+
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setIsDetailOpen(false)}
+                    >
+                      <X className="h-5 w-5" />
+                    </Button>
+                  </div>
                 </div>
-
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute top-6 right-6"
-                  onClick={() => setIsDetailOpen(false)}
-                >
-                  <X className="h-5 w-5" />
-                </Button>
               </DialogHeader>
 
-              <div className="flex-1 overflow-y-auto p-8 space-y-10">
+              {/* Scrollable Content Area */}
+              <div className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-10 bg-zinc-50">
                 {/* Google Drive Files */}
                 {selectedApproval.driveLinks &&
                   selectedApproval.driveLinks.length > 0 && (
@@ -562,7 +583,6 @@ export default function ApprovalsModule() {
                             <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center">
                               <FolderOpen className="h-6 w-6 text-amber-600" />
                             </div>
-
                             <div className="flex-1 min-w-0">
                               <p className="font-medium group-hover:text-amber-700">
                                 Asset File {idx + 1}
@@ -571,7 +591,6 @@ export default function ApprovalsModule() {
                                 Google Drive Link
                               </p>
                             </div>
-
                             <ExternalLink className="h-5 w-5 text-zinc-400 group-hover:text-amber-600" />
                           </a>
                         ))}
@@ -584,7 +603,6 @@ export default function ApprovalsModule() {
                   <h4 className="uppercase text-xs tracking-widest text-zinc-500 mb-3">
                     CAPTION
                   </h4>
-
                   {selectedApproval.caption ? (
                     <div
                       className="text-zinc-700 leading-relaxed text-[15.5px] prose prose-zinc max-w-none prose-headings:text-zinc-800 prose-strong:text-zinc-800 prose-a:text-blue-600"
@@ -604,7 +622,6 @@ export default function ApprovalsModule() {
                     <h4 className="font-semibold text-amber-900 mb-4">
                       Revision Details
                     </h4>
-                    {/* Add more revision UI as needed */}
                     {(selectedApproval.revisionNotes?.length ?? 0) > 0 && (
                       <div className="text-sm text-amber-800">
                         {selectedApproval.revisionNotes?.length ?? 0} previous
@@ -615,8 +632,8 @@ export default function ApprovalsModule() {
                 )}
               </div>
 
-              {/* Action Bar */}
-              <div className="border-t p-6 bg-white flex gap-3">
+              {/* Fixed Footer */}
+              <div className="border-t p-6 bg-white flex-shrink-0 flex gap-3">
                 {role === "admin" && selectedApproval.status === "revise" && (
                   <Button
                     onClick={handleSubmitRevision}
@@ -837,6 +854,74 @@ export default function ApprovalsModule() {
         contentTitle={selectedApproval?.title || ""}
         platforms={selectedApproval?.platforms || []}
         clientName={selectedApproval?.client || ""}
+        brandColor={brandColor}
+      />
+      <EditContentModal
+        isOpen={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+        onUpdate={async (id: string, updatedData) => {
+          try {
+            const response = await fetch("/api/contents/update", {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                id,
+                content_title: updatedData.title,
+                caption: updatedData.caption,
+                platforms: updatedData.platforms,
+                content_types: updatedData.contentTypes,
+                client: updatedData.client,
+                assigned_to: updatedData.assignedTo,
+                content_pillar: updatedData.pillar,
+                publish_date: updatedData.publishDate,
+                gdrive_links: updatedData.driveLinks,
+                adminName: user?.fullname?.toString() || "Admin",
+              }),
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+              throw new Error(result.error || "Failed to update content");
+            }
+
+            // Refresh data
+            await fetchContents();
+
+            // Update selected item for immediate feedback
+            setSelectedApproval((prev) => {
+              if (!prev) return null;
+              return {
+                ...prev,
+                title: updatedData.title,
+                caption: updatedData.caption,
+                platforms: updatedData.platforms,
+                contentTypes: updatedData.contentTypes,
+                client: updatedData.client,
+                assignedTo: updatedData.assignedTo,
+                pillar: updatedData.pillar,
+                publishDate: updatedData.publishDate,
+                driveLinks: updatedData.driveLinks,
+                // Preserve existing fields not in edit
+                status: prev.status,
+                priority: prev.priority,
+                revisionDueDate: prev.revisionDueDate,
+                revisionCount: prev.revisionCount,
+                revisionNotes: prev.revisionNotes,
+              };
+            });
+
+            alert("Content updated successfully!");
+          } catch (error) {
+            console.error(error);
+            alert(
+              error instanceof Error
+                ? error.message
+                : "Failed to update content",
+            );
+          }
+        }}
+        content={selectedApproval!}
         brandColor={brandColor}
       />
     </div>

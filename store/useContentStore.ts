@@ -64,17 +64,9 @@ const mapContent = (item: any): ContentItem => ({
 
   publishDate: item.publishDate || item.publish_date || "",
 
-  client:
-    typeof item.client === "string"
-      ? item.client
-      : item.client?.company_name || "",
+  client: item.client  || "",
 
-  assignedTo:
-    typeof item.assignedTo === "string"
-      ? item.assignedTo
-      : typeof item.assigned_to === "string"
-        ? item.assigned_to
-        : item.assigned_to?.fullname || "",
+  assignedTo:item.assignedTo || "",
 
   driveLinks: item.driveLinks || item.gdrive_links || [],
 
