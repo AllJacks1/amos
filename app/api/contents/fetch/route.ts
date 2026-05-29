@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
         )
       `,
       )
-      .order("publish_date", { ascending: false });
+      .order("publish_date", { ascending: true });
 
     // Role-based filtering
     if (type === "client") {
