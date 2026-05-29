@@ -148,6 +148,11 @@ export default function ContentOperations() {
     setIsDetailOpen(true);
   };
 
+  const openEdit = () => {
+    setIsDetailOpen(false);
+    setIsEditOpen(true);
+  }
+
   const getInitials = (
     name?: string | number | boolean | null | undefined,
   ): string => {
@@ -605,7 +610,7 @@ export default function ContentOperations() {
                       variant="outline"
                       size="sm"
                       className="hidden sm:flex items-center gap-2 h-9"
-                      onClick={() => setIsEditOpen(true)}
+                      onClick={openEdit}
                     >
                       <FileText className="h-4 w-4" />
                       Edit

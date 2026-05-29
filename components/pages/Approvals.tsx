@@ -195,6 +195,11 @@ export default function ApprovalsModule() {
     setIsDetailOpen(false);
   };
 
+  const openEdit = () => {
+    setIsDetailOpen(false);
+    setIsEditOpen(true);
+  };
+
   const clientLookup = Object.fromEntries(
     clients.map((c) => [c.id, c.company_name]),
   );
@@ -540,25 +545,23 @@ export default function ApprovalsModule() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="hidden sm:flex items-center gap-2"
-                      onClick={() => setIsEditOpen(true)}
-                    >
-                      <FileText className="h-4 w-4" />
-                      Edit
-                    </Button>
+                  {user?.role === "admin" && (
+                    <div className="flex items-center gap-3">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="hidden sm:flex items-center gap-2"
+                        onClick={openEdit}
+                      >
+                        <FileText className="h-4 w-4" />
+                        Edit
+                      </Button>
 
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setIsDetailOpen(false)}
-                    >
-                      <X className="h-5 w-5" />
-                    </Button>
-                  </div>
+                      <Button variant="ghost" size="icon" onClick={() => setIsDetailOpen(false)}>
+                        <X className="h-5 w-5" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </DialogHeader>
 
