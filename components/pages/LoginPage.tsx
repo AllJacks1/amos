@@ -7,13 +7,23 @@ import {
   Eye,
   EyeOff,
   ArrowRight,
-  Building2,
   CheckCircle2,
+  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useRouter } from "next/navigation";
+
+const BRAND = "#430062";
+const BRAND_DARK = "#2d0044";
+const BRAND_LIGHT = "#6b1a8f";
+
+const FEATURES = [
+  "Integrated Marketing Workflow",
+  "Real-time Campaign Tracking",
+  "Collaborative Client Experience",
+] as const;
 
 export default function LoginPage() {
   const router = useRouter();
@@ -21,10 +31,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
   const setUser = useAuthStore((state) => state.setUser);
-
-  const brandColor = "#430062";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,9 +40,7 @@ export default function LoginPage() {
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
 
@@ -47,273 +52,241 @@ export default function LoginPage() {
         return;
       }
 
-      // store user globally in Zustand
-      setUser({
-        ...data.user,
-        type: data.type,
-      });
-
+      setUser({ ...data.user, type: data.type });
       router.push("/content");
-    } catch (err) {
+    } catch {
       alert("Something went wrong");
     } finally {
       setIsLoading(false);
     }
   };
 
+  const inputClass =
+    "block w-full pl-10 pr-3 py-3 bg-white/80 border border-gray-200 rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#430062]/25 focus:border-[#430062]/40 focus:bg-white transition-all duration-200 sm:text-sm shadow-sm";
+
   return (
-    <div className="min-h-screen flex bg-gray-50">
-      {/* Left Side - Branding & Value Proposition */}
-      <div
-        className="hidden lg:flex lg:w-1/2 relative overflow-hidden"
-        style={{ backgroundColor: brandColor }}
-      >
-        {/* Abstract Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />
-        </div>
+    <div className="min-h-screen flex bg-[#f8f7fa]">
+      <div className="hidden lg:flex lg:w-[52%] relative overflow-hidden">
+        <div
+          className="absolute inset-0"
+          style={{
+            background: `linear-gradient(145deg, ${BRAND} 0%, ${BRAND_DARK} 55%, #1a0028 100%)`,
+          }}
+        />
+        <div
+          className="absolute inset-0 opacity-[0.07]"
+          style={{
+            backgroundImage: `linear-gradient(rgba(255,255,255,.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.8) 1px, transparent 1px)`,
+            backgroundSize: "48px 48px",
+          }}
+        />
+        <div className="absolute top-1/4 -left-20 w-[420px] h-[420px] rounded-full bg-[#9d4edd]/30 blur-[100px]" />
+        <div className="absolute bottom-0 right-0 w-[360px] h-[360px] rounded-full bg-white/10 blur-[80px]" />
+        <div className="absolute top-1/2 right-1/4 w-48 h-48 rounded-full bg-emerald-400/15 blur-3xl" />
 
-        <div className="relative z-10 flex flex-col justify-between p-12 text-white">
-          <div className="flex items-center">
-            <div className="relative h-24 w-84 overflow-hidden">
-              <Image
-                src="/logos/axiscommand_white.png"
-                alt="Axis Command Logo"
-                fill={true}
-                className="object-contain"
-                priority
-              />
-            </div>
+        <div className="relative z-10 flex flex-col justify-between p-12 xl:p-14 text-white w-full">
+          <div className="relative h-20 w-56">
+            <Image
+              src="/logos/axiscommand_white.png"
+              alt="Axis Command Logo"
+              fill
+              className="object-contain object-left"
+              priority
+            />
           </div>
 
-          <div className="max-w-lg">
-            <h2 className="text-4xl font-bold leading-tight mb-6">
-              Welcome back to Axis Command
-            </h2>
-            <p className="text-lg text-white/80 leading-relaxed mb-8">
-              Manage content, campaigns, reporting, and approvals in one
-              streamlined marketing workspace.
-            </p>
+          <div className="max-w-lg space-y-8">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium tracking-wide text-white/90 backdrop-blur-sm">
+              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
+              Marketing operations platform
+            </div>
 
-            <div className="space-y-4">
-              {[
-                "Integrated Marketing Workflow",
-                "Real-time Campaign Tracking",
-                "Collaborative Client Experience",
-              ].map((feature, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
-                  <span className="text-white/90">{feature}</span>
-                </div>
+            <div>
+              <h2 className="text-4xl xl:text-[2.75rem] font-semibold leading-[1.15] tracking-tight">
+                Welcome back to{" "}
+                <span className="text-white/95">Axis Command</span>
+              </h2>
+              <p className="mt-5 text-lg text-white/75 leading-relaxed max-w-md">
+                Manage content, campaigns, reporting, and approvals in one
+                streamlined marketing workspace.
+              </p>
+            </div>
+
+            <ul className="space-y-3">
+              {FEATURES.map((feature) => (
+                <li
+                  key={feature}
+                  className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 backdrop-blur-sm"
+                >
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-400/20">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-300" />
+                  </span>
+                  <span className="text-sm font-medium text-white/90">
+                    {feature}
+                  </span>
+                </li>
               ))}
-            </div>
+            </ul>
           </div>
 
-          <div className="text-sm text-white/60">
+          <p className="text-sm text-white/50">
             © 2026{" "}
             <a
               href="https://www.astragroupph.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:underline"
+              className="text-white/70 hover:text-white underline-offset-2 hover:underline transition-colors"
             >
               Astra Group of Companies, Inc.
             </a>{" "}
             All rights reserved.
-          </div>
+          </p>
         </div>
       </div>
 
-      {/* Right Side - Login Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12">
-        <div className="w-full max-w-md space-y-8">
-          {/* Mobile Logo */}
-          <div className="lg:hidden flex items-center justify-center gap-3 mb-8">
+      <div className="w-full lg:w-[48%] flex items-center justify-center p-6 sm:p-10 relative overflow-hidden">
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background: `
+              radial-gradient(ellipse 80% 50% at 50% -20%, rgba(67, 0, 98, 0.08), transparent),
+              radial-gradient(ellipse 60% 40% at 100% 100%, rgba(107, 26, 143, 0.06), transparent)
+            `,
+          }}
+        />
+
+        <div className="relative w-full max-w-[420px]">
+          <div className="lg:hidden flex justify-center mb-8">
             <Image
               src="/logos/axiscommand_primary.png"
               alt="Axis Command Logo"
-              width={242}
-              height={82}
+              width={220}
+              height={74}
               className="object-contain"
               priority
             />
           </div>
 
-          <div className="text-center lg:text-left">
-            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
-              Sign in to your AMOS Account
-            </h1>
-            {/* <p className="mt-2 text-gray-600">
-              Don&apos;t have an account?{" "}
-              <Link
-                href="/signup"
-                className="font-semibold hover:underline transition-colors"
-                style={{ color: brandColor }}
+          <div className="rounded-2xl border border-gray-200/80 bg-white/90 backdrop-blur-sm p-8 sm:p-9 shadow-xl shadow-gray-900/[0.04] ring-1 ring-gray-900/[0.03]">
+            <div className="mb-8 text-center lg:text-left">
+              <p
+                className="text-xs font-semibold uppercase tracking-widest mb-2"
+                style={{ color: BRAND_LIGHT }}
               >
-                Get started
-              </Link>
-            </p> */}
-          </div>
-
-          {/* Social Login */}
-          {/* <div className="grid grid-cols-1">
-            <button
-              type="button"
-              className="flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 hover:shadow-sm hover:cursor-pointer"
-              style={{ "--tw-ring-color": brandColor } as React.CSSProperties}
-            > */}
-          {/* <Chrome className="w-5 h-5" /> */}
-          {/* <span>Google</span>
-            </button>
-          </div>
-
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-200" />
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-gray-50 text-gray-500">
-                Or continue with
-              </span>
-            </div>
-          </div> */}
-
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700 mb-1.5"
-              >
-                Email address
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all sm:text-sm"
-                  style={
-                    { "--tw-ring-color": brandColor } as React.CSSProperties
-                  }
-                  placeholder="you@company.com"
-                />
-              </div>
+                AMOS
+              </p>
+              <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900 tracking-tight">
+                Sign in to your account
+              </h1>
+              <p className="mt-2 text-sm text-gray-500">
+                Enter your credentials to access your workspace.
+              </p>
             </div>
 
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700 mb-1.5"
-              >
-                Password
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  autoComplete="current-password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all sm:text-sm"
-                  style={
-                    { "--tw-ring-color": brandColor } as React.CSSProperties
-                  }
-                  placeholder="••••••••"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5" />
-                  ) : (
-                    <Eye className="h-5 w-5" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  id="remember-me"
-                  name="remember-me"
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 text-[#1E2A70] focus:ring-[#1E2A70] cursor-pointer"
-                />
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
                 <label
-                  htmlFor="remember-me"
-                  className="ml-2 block text-sm text-gray-600 cursor-pointer select-none"
+                  htmlFor="email"
+                  className="block text-sm font-medium text-gray-700 mb-1.5"
                 >
-                  Remember me
+                  Email address
                 </label>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                    <Mail className="h-[18px] w-[18px] text-gray-400 group-focus-within:text-[#430062]/70 transition-colors" />
+                  </div>
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className={inputClass}
+                    placeholder="you@company.com"
+                  />
+                </div>
               </div>
-              <Link
-                href="/forgot-password"
-                className="text-sm font-medium hover:underline transition-colors"
-                style={{ color: brandColor }}
+              <div>
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-medium text-gray-700 mb-1.5"
+                >
+                  Password
+                </label>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                    <Lock className="h-[18px] w-[18px] text-gray-400 group-focus-within:text-[#430062]/70 transition-colors" />
+                  </div>
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    autoComplete="current-password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className={`${inputClass} pr-11`}
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600 transition-colors rounded-r-xl"
+                    aria-label={
+                      showPassword ? "Hide password" : "Show password"
+                    }
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-[18px] w-[18px]" />
+                    ) : (
+                      <Eye className="h-[18px] w-[18px]" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="group w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold text-white shadow-md shadow-[#430062]/20 hover:shadow-lg hover:shadow-[#430062]/25 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-[#430062]/40 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0 transition-all duration-200"
+                style={{
+                  background: `linear-gradient(135deg, ${BRAND} 0%, ${BRAND_LIGHT} 100%)`,
+                }}
               >
-                Forgot password?
-              </Link>
-            </div> */}
+                {isLoading ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <>
+                    Sign in
+                    <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+                  </>
+                )}
+              </button>
+            </form>
 
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 border border-transparent rounded-lg text-sm font-semibold text-white shadow-sm hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
-              style={
-                {
-                  backgroundColor: brandColor,
-                  "--tw-ring-color": brandColor,
-                } as React.CSSProperties
-              }
-            >
-              {isLoading ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <>
-                  Sign in
-                  <ArrowRight className="w-4 h-4" />
-                </>
-              )}
-            </button>
-          </form>
-
-          {/* <p className="text-center text-xs text-gray-500">
-            By signing in, you agree to our{" "}
-            <Link
-              href="/terms"
-              className="underline hover:text-gray-700"
-              style={{ color: brandColor }}
-            >
-              Terms of Service
-            </Link>{" "}
-            and{" "}
-            <Link
-              href="/privacy"
-              className="underline hover:text-gray-700"
-              style={{ color: brandColor }}
-            >
-              Privacy Policy
-            </Link>
-          </p> */}
+            <div className="mt-8 pt-6 border-t border-gray-100">
+              <p className="text-center text-xs text-gray-500 leading-relaxed">
+                By signing in, you agree to our{" "}
+                <Link
+                  href="/terms"
+                  className="font-medium hover:underline underline-offset-2"
+                  style={{ color: BRAND }}
+                >
+                  Terms of Service
+                </Link>{" "}
+                and{" "}
+                <Link
+                  href="/privacy"
+                  className="font-medium hover:underline underline-offset-2"
+                  style={{ color: BRAND }}
+                >
+                  Privacy Policy
+                </Link>
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
