@@ -65,8 +65,8 @@ export default function LoginPage() {
     "block w-full pl-10 pr-3 py-3 bg-white/80 border border-gray-200 rounded-xl text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#430062]/25 focus:border-[#430062]/40 focus:bg-white transition-all duration-200 sm:text-sm shadow-sm";
 
   return (
-    <div className="min-h-screen flex bg-[#f8f7fa]">
-      <div className="hidden lg:flex lg:w-[52%] relative overflow-hidden">
+    <div className="fixed inset-0 flex h-dvh max-h-dvh w-full overflow-hidden overscroll-none bg-[#f8f7fa]">
+      <div className="relative hidden shrink-0 overflow-hidden lg:flex lg:w-[52%]">
         <div
           className="absolute inset-0"
           style={{
@@ -144,7 +144,7 @@ export default function LoginPage() {
         </div>
       </div>
 
-      <div className="w-full lg:w-[48%] flex items-center justify-center p-6 sm:p-10 relative overflow-hidden">
+      <div className="relative flex min-h-0 w-full flex-1 items-center justify-center overflow-y-auto overscroll-y-contain p-6 sm:p-10 lg:w-[48%]">
         <div
           className="pointer-events-none absolute inset-0"
           style={{
