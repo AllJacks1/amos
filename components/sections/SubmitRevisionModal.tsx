@@ -40,6 +40,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuthStore } from "@/store/useAuthStore";
+import { ContentModalShell } from "./content-ui";
+import { cn } from "@/lib/utils";
 
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -297,15 +299,9 @@ if (!isOpen || !content) return null;
   const characterCount = editor?.storage.characterCount?.characters() ?? 0;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
-      <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-        onClick={onClose}
-      />
-
-      <div className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 max-h-[92vh] flex flex-col">
-        {/* Header */}
-        <div className="px-6 sm:px-8 pt-6 pb-5 border-b border-zinc-100 flex-shrink-0">
+    <ContentModalShell onClose={onClose} maxWidth="max-w-2xl">
+        <div className="relative shrink-0 border-b border-zinc-100 bg-gradient-to-b from-[#430062]/[0.06] to-white px-6 pb-5 pt-6 sm:px-8">
+          <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-[#430062] via-[#6b1a8f] to-[#a855f7]" />
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div
@@ -365,11 +361,12 @@ if (!isOpen || !content) return null;
             <button
               type="button"
               onClick={() => setActiveSection("edit")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+              className={cn(
+                "flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-all",
                 activeSection === "edit"
-                  ? "bg-zinc-900 text-white"
-                  : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200"
-              }`}
+                  ? "bg-[#430062] text-white shadow-sm"
+                  : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200",
+              )}
             >
               <Pencil className="h-3.5 w-3.5" />
               Edit Content
@@ -377,11 +374,12 @@ if (!isOpen || !content) return null;
             <button
               type="button"
               onClick={() => setActiveSection("note")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+              className={cn(
+                "flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-all",
                 activeSection === "note"
-                  ? "bg-zinc-900 text-white"
-                  : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200"
-              }`}
+                  ? "bg-[#430062] text-white shadow-sm"
+                  : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200",
+              )}
             >
               <FileText className="h-3.5 w-3.5" />
               Revision Note
@@ -827,11 +825,7 @@ if (!isOpen || !content) return null;
               <Button
                 type="button"
                 onClick={() => setActiveSection("note")}
-                className="h-11 rounded-2xl font-semibold text-white"
-                style={{
-                  backgroundColor: brandColor,
-                  boxShadow: `0 4px 14px ${brandColor}25`,
-                }}
+                className="h-11 rounded-xl bg-[#430062] font-semibold text-white shadow-md shadow-[#430062]/20 hover:bg-[#5a0080]"
               >
                 Continue to Note <Send className="ml-2 h-4 w-4" />
               </Button>
@@ -840,11 +834,7 @@ if (!isOpen || !content) return null;
                 type="button"
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                className="h-11 rounded-2xl font-semibold text-white disabled:opacity-70"
-                style={{
-                  backgroundColor: brandColor,
-                  boxShadow: `0 4px 14px ${brandColor}25`,
-                }}
+                className="h-11 rounded-xl bg-[#430062] font-semibold text-white shadow-md shadow-[#430062]/20 hover:bg-[#5a0080] disabled:opacity-70"
               >
                 {isSubmitting ? (
                   <>
@@ -861,7 +851,6 @@ if (!isOpen || !content) return null;
             )}
           </div>
         </div>
-      </div>
-    </div>
+    </ContentModalShell>
   );
 }

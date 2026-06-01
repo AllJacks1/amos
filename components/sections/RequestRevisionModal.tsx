@@ -19,6 +19,11 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/store/useAuthStore";
+import {
+  ContentModalHeader,
+  ContentModalShell,
+  ContentPreviewCard,
+} from "./content-ui";
 
 interface RequestRevisionModalProps {
   isOpen: boolean;
@@ -161,46 +166,16 @@ export default function RequestRevisionModal({
   const selectedPriority = priorities.find((p) => p.value === priority);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
-      <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
-        onClick={handleClose}
-      />
+    <ContentModalShell onClose={handleClose} maxWidth="max-w-xl">
+        <ContentModalHeader
+          icon={MessageSquare}
+          title="Request Revision"
+          subtitle={`Send feedback to ${assignedTo}`}
+          onClose={handleClose}
+          disabled={isSubmitting}
+        />
 
-      <div className="relative w-full max-w-xl bg-white rounded-3xl shadow-2xl shadow-black/10 overflow-hidden animate-in fade-in zoom-in-95 duration-200 max-h-[92vh] flex flex-col">
-        {/* Header */}
-        <div className="px-6 sm:px-8 pt-6 pb-5 border-b border-zinc-100 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div
-                className="w-10 h-10 rounded-2xl flex items-center justify-center"
-                style={{ backgroundColor: `${brandColor}15` }}
-              >
-                <MessageSquare
-                  className="h-5 w-5"
-                  style={{ color: brandColor }}
-                />
-              </div>
-              <div>
-                <h2 className="text-xl font-semibold text-zinc-900">
-                  Request Revision
-                </h2>
-                <p className="text-sm text-zinc-500 mt-0.5">
-                  Send feedback to {assignedTo}
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={handleClose}
-              disabled={isSubmitting}
-              className="w-8 h-8 rounded-xl flex items-center justify-center text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 transition-colors disabled:opacity-50"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-
-          {/* Updated Content Preview */}
-          <div className="mt-4 p-3 bg-zinc-50 rounded-2xl border border-zinc-100">
+          <ContentPreviewCard className="mx-6 mt-4 sm:mx-8">
             <div className="flex items-start gap-3">
               <div
                 className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
@@ -246,13 +221,11 @@ export default function RequestRevisionModal({
                 <p className="text-xs text-zinc-400 mt-1">{assignedTo}</p>
               </div>
             </div>
-          </div>
-        </div>
+          </ContentPreviewCard>
 
-        {/* Form */}
         <form
           onSubmit={handleSubmit}
-          className="flex-1 overflow-y-auto px-6 sm:px-8 py-6 space-y-6"
+          className="flex-1 space-y-6 overflow-y-auto overscroll-y-contain px-6 py-6 sm:px-8"
         >
           {/* Priority Selector */}
           <div className="space-y-2">
@@ -455,15 +428,14 @@ export default function RequestRevisionModal({
           )}
         </form>
 
-        {/* Footer */}
-        <div className="border-t bg-white p-6 sm:p-8 flex-shrink-0">
-          <div className="flex flex-col-reverse sm:flex-row gap-3">
+        <div className="shrink-0 border-t border-zinc-100 bg-zinc-50/50 p-6 sm:p-8">
+          <div className="flex flex-col-reverse gap-3 sm:flex-row">
             <Button
               type="button"
               variant="outline"
               onClick={handleClose}
               disabled={isSubmitting}
-              className="w-full sm:flex-1 h-11 rounded-2xl font-medium"
+              className="h-11 w-full rounded-xl font-medium sm:flex-1"
             >
               Cancel
             </Button>
@@ -471,11 +443,7 @@ export default function RequestRevisionModal({
               type="submit"
               disabled={isSubmitting || !comment.trim()}
               onClick={handleSubmit}
-              className="w-full sm:flex-1 h-11 rounded-2xl font-semibold text-white shadow-lg transition-all active:scale-[0.985] disabled:opacity-50"
-              style={{
-                backgroundColor: brandColor,
-                boxShadow: `0 4px 14px ${brandColor}25`,
-              }}
+              className="h-11 w-full rounded-xl bg-[#430062] font-semibold text-white shadow-md shadow-[#430062]/20 hover:bg-[#5a0080] active:scale-[0.99] disabled:opacity-50 sm:flex-1"
             >
               {isSubmitting ? (
                 <>
@@ -491,7 +459,6 @@ export default function RequestRevisionModal({
             </Button>
           </div>
         </div>
-      </div>
-    </div>
+    </ContentModalShell>
   );
 }

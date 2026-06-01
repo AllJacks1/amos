@@ -40,25 +40,12 @@ import EditContentModal from "../sections/EditContentModal";
 import { useClientStore } from "@/store/clientStore";
 import { useUsersStore } from "@/store/useUsersStore";
 import DeleteContentModal from "../sections/DeleteContentModal";
-
-const brandColor = "#430062";
-
-const statusColors = {
-  review: "bg-amber-100 text-amber-700",
-  revise: "bg-rose-100 text-rose-700",
-  approved: "bg-emerald-100 text-emerald-700",
-  scheduled: "bg-blue-100 text-blue-700",
-  posted: "bg-purple-100 text-purple-700",
-};
-
-const statusLabels = {
-  review: "For Review",
-  revise: "For Revision",
-  approved: "Approved",
-  scheduled: "Scheduled",
-  posted: "Posted",
-};
-
+import {
+  CONTENT_BRAND,
+  contentStatusLabels,
+  contentStatusStyles,
+  ContentSectionLabel,
+} from "../sections/content-ui";
 export default function ContentOperations() {
   const user = useAuthStore((state) => state.user);
   const role = user?.role || "";
@@ -91,16 +78,41 @@ export default function ContentOperations() {
     ...new Set(contents.map((item) => item.client).filter(Boolean)),
   ];
 
+  const clientLookup = Object.fromEntries(
+    clients.map((c) => [c.id, c.company_name]),
+  );
+
+  const userLookup = Object.fromEntries(users.map((u) => [u.id, u.fullname]));
+
   const filteredContents = contents.filter((item) => {
+    const searchValue = String(searchTerm ?? "")
+      .toLowerCase()
+      .trim();
+    const statusValue = String(statusFilter ?? "")
+      .toLowerCase()
+      .trim();
+    const clientValue = String(clientFilter ?? "").trim();
+
+    const title = String(item?.title ?? "")
+      .toLowerCase()
+      .trim();
+    const status = String(item?.status ?? "")
+      .toLowerCase()
+      .trim();
+    const clientId = String(item?.client ?? "").trim();
+
+    const clientName = String(clientLookup?.[clientId] ?? "")
+      .toLowerCase()
+      .trim();
+
     const matchesSearch =
-      (item.title || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (item.client || "").toLowerCase().includes(searchTerm.toLowerCase());
+      !searchValue ||
+      title.includes(searchValue) ||
+      clientName.includes(searchValue);
 
-    const matchesStatus =
-      statusFilter === "all" || item.status === statusFilter;
+    const matchesStatus = statusValue === "all" || status === statusValue;
 
-    const matchesClient =
-      clientFilter === "all" || item.client === clientFilter;
+    const matchesClient = clientValue === "all" || clientId === clientValue;
 
     return matchesSearch && matchesStatus && matchesClient;
   });
@@ -177,78 +189,68 @@ export default function ContentOperations() {
       .slice(0, 2);
   };
 
-  const clientLookup = Object.fromEntries(
-    clients.map((c) => [c.id, c.company_name]),
-  );
-
-  const userLookup = Object.fromEntries(users.map((u) => [u.id, u.fullname]));
-
-  console.log("Mapped Contents:", contents);
-
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="min-w-0">
-          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">
-            Content Operations
-          </h1>
-          <p className="text-zinc-600 mt-1 text-sm sm:text-base">
-            Unified workspace • {filteredContents.length} total piece
-            {filteredContents.length !== 1 ? "s" : ""}
+    <div className="space-y-6 p-4 sm:space-y-8 sm:p-6 lg:p-8">
+      <div className="rounded-2xl border border-zinc-200/80 bg-white/90 p-4 shadow-sm ring-1 ring-black/[0.03] backdrop-blur-sm sm:p-5">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <p className="text-sm text-zinc-500">
+            <span className="font-semibold text-zinc-900">
+              {filteredContents.length}
+            </span>{" "}
+            content piece{filteredContents.length !== 1 ? "s" : ""}
           </p>
-        </div>
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
-          <div className="relative flex-1 sm:flex-none sm:w-72 md:w-80">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400 flex-shrink-0" />
-            <Input
-              placeholder="Search content..."
-              className="pl-10 w-full"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="relative flex-1 sm:w-64 md:w-72">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 shrink-0 text-zinc-400" />
+              <Input
+                placeholder="Search content..."
+                className="h-10 w-full rounded-xl border-zinc-200/80 bg-zinc-50/50 pl-10 shadow-sm focus-visible:ring-[#430062]/15"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
 
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full sm:w-40 md:w-44">
-              <SelectValue placeholder="Filter Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="review">In Review</SelectItem>
-              <SelectItem value="revise">For Revision</SelectItem>
-              <SelectItem value="approved">Approved</SelectItem>
-              {/* <SelectItem value="scheduled">Scheduled</SelectItem> */}
-            </SelectContent>
-          </Select>
-
-          {role === "admin" && (
-            <Select value={clientFilter} onValueChange={setClientFilter}>
-              <SelectTrigger className="w-full sm:w-44 md:w-52">
-                <SelectValue placeholder="All Clients" />
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="h-10 w-full rounded-xl border-zinc-200/80 bg-white sm:w-40">
+                <SelectValue placeholder="Filter Status" />
               </SelectTrigger>
-
               <SelectContent>
-                <SelectItem value="all">All Clients</SelectItem>
-
-                {uniqueClients.map((client) => (
-                  <SelectItem key={client} value={client}>
-                    {clientLookup[client]}
-                  </SelectItem>
-                ))}
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="review">In Review</SelectItem>
+                <SelectItem value="revise">For Revision</SelectItem>
+                <SelectItem value="approved">Approved</SelectItem>
+                {/* <SelectItem value="scheduled">Scheduled</SelectItem> */}
               </SelectContent>
             </Select>
-          )}
 
-          {role === "admin" && (
-            <Button
-              style={{ backgroundColor: brandColor }}
-              className="text-white w-full sm:w-auto"
-              onClick={() => setIsAddContentOpen(true)}
-            >
-              <Plus className="mr-2 h-4 w-4 flex-shrink-0" />
-              New Content
-            </Button>
-          )}
+            {role === "admin" && (
+              <Select value={clientFilter} onValueChange={setClientFilter}>
+                <SelectTrigger className="h-10 w-full rounded-xl border-zinc-200/80 bg-white sm:w-48">
+                  <SelectValue placeholder="All Clients" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value="all">All Clients</SelectItem>
+
+                  {uniqueClients.map((client) => (
+                    <SelectItem key={client} value={client}>
+                      {clientLookup[client]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+
+            {role === "admin" && (
+              <Button
+                className="h-10 w-full rounded-xl bg-[#430062] text-white shadow-md shadow-[#430062]/20 hover:bg-[#5a0080] sm:w-auto"
+                onClick={() => setIsAddContentOpen(true)}
+              >
+                <Plus className="mr-2 h-4 w-4 shrink-0" />
+                New Content
+              </Button>
+            )}
+          </div>
         </div>
       </div>
       <Tabs
@@ -258,24 +260,24 @@ export default function ContentOperations() {
         }
         className="w-full"
       >
-        <TabsList className="bg-white border border-zinc-200 flex flex-wrap h-auto w-full md:w-fit p-1 gap-1">
+        <TabsList className="flex h-auto w-full flex-wrap gap-1 rounded-xl border border-zinc-200/80 bg-white/90 p-1 shadow-sm ring-1 ring-black/[0.03] md:w-fit">
           <TabsTrigger
             value="kanban"
-            className="data-[state=active]:border-b-2 data-[state=active]:border-violet-600 data-[state=active]:bg-violet-50 flex-1 sm:flex-none justify-center text-xs sm:text-sm px-3 py-2 sm:px-4 sm:py-2.5"
+            className="flex-1 justify-center rounded-lg px-3 py-2 text-xs data-[state=active]:bg-[#430062]/10 data-[state=active]:text-[#430062] data-[state=active]:shadow-sm sm:flex-none sm:px-4 sm:py-2.5 sm:text-sm"
           >
             <LayoutDashboard className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
             <span className="hidden sm:inline">Kanban</span>
           </TabsTrigger>
           <TabsTrigger
             value="calendar"
-            className="data-[state=active]:border-b-2 data-[state=active]:border-violet-600 data-[state=active]:bg-violet-50 flex-1 sm:flex-none justify-center text-xs sm:text-sm px-3 py-2 sm:px-4 sm:py-2.5"
+            className="flex-1 justify-center rounded-lg px-3 py-2 text-xs data-[state=active]:bg-[#430062]/10 data-[state=active]:text-[#430062] data-[state=active]:shadow-sm sm:flex-none sm:px-4 sm:py-2.5 sm:text-sm"
           >
             <CalendarIcon className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
             <span className="hidden sm:inline">Calendar</span>
           </TabsTrigger>
           <TabsTrigger
             value="table"
-            className="data-[state=active]:border-b-2 data-[state=active]:border-violet-600 data-[state=active]:bg-violet-50 flex-1 sm:flex-none justify-center text-xs sm:text-sm px-3 py-2 sm:px-4 sm:py-2.5"
+            className="flex-1 justify-center rounded-lg px-3 py-2 text-xs data-[state=active]:bg-[#430062]/10 data-[state=active]:text-[#430062] data-[state=active]:shadow-sm sm:flex-none sm:px-4 sm:py-2.5 sm:text-sm"
           >
             <TableIcon className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
             <span className="hidden sm:inline">Table</span>
@@ -286,7 +288,7 @@ export default function ContentOperations() {
             {kanbanColumns.map((column) => (
               <div
                 key={column.id}
-                className="bg-white rounded-2xl sm:rounded-3xl border border-zinc-100 p-4 sm:p-5"
+                className="rounded-2xl border border-zinc-200/80 bg-white/95 p-4 shadow-sm ring-1 ring-black/[0.03] sm:p-5"
               >
                 <div className="flex items-center justify-between mb-4 sm:mb-6 gap-2">
                   <h3 className="font-semibold text-sm sm:text-base truncate min-w-0">
@@ -302,7 +304,7 @@ export default function ContentOperations() {
                     <div
                       key={item.id}
                       onClick={() => openDetail(item)}
-                      className="bg-white border border-zinc-200 rounded-xl sm:rounded-2xl p-4 sm:p-5 hover:shadow-md transition-all cursor-pointer"
+                      className="cursor-pointer rounded-xl border border-zinc-200/80 bg-white p-4 shadow-sm ring-1 ring-black/[0.02] transition-all hover:border-[#430062]/20 hover:shadow-md hover:ring-[#430062]/10 sm:p-5"
                     >
                       <div className="font-medium text-sm sm:text-base line-clamp-2 mb-2">
                         {item.title}
@@ -338,9 +340,9 @@ export default function ContentOperations() {
 
                       <div className="flex items-center justify-between gap-2">
                         <Badge
-                          className={`${statusColors[item.status]} text-xs whitespace-nowrap`}
+                          className={`${contentStatusStyles[item.status]} text-xs whitespace-nowrap`}
                         >
-                          {statusLabels[item.status]}
+                          {contentStatusLabels[item.status]}
                         </Badge>
                         <Avatar className="h-6 w-6 flex-shrink-0">
                           <AvatarFallback className="text-xs">
@@ -367,7 +369,7 @@ export default function ContentOperations() {
         </TabsContent>
 
         <TabsContent value="table" className="mt-4 sm:mt-6">
-          <div className="bg-white rounded-2xl sm:rounded-3xl border border-zinc-200 overflow-hidden">
+          <div className="overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-sm ring-1 ring-black/[0.03]">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
@@ -475,9 +477,9 @@ export default function ContentOperations() {
 
                       <td className="py-3 px-3 sm:py-5 sm:px-6">
                         <Badge
-                          className={`${statusColors[item.status] || "bg-zinc-100 text-zinc-700"} text-xs whitespace-nowrap`}
+                          className={`${contentStatusStyles[item.status] || "bg-zinc-100 text-zinc-700"} text-xs whitespace-nowrap`}
                         >
-                          {statusLabels[item.status] || item.status}
+                          {contentStatusLabels[item.status] || item.status}
                         </Badge>
                       </td>
 
@@ -571,11 +573,12 @@ export default function ContentOperations() {
         </TabsContent>
       </Tabs>
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-3xl lg:max-w-4xl xl:max-w-5xl h-[100dvh] sm:h-[94vh] overflow-hidden p-0 flex flex-col">
+        <DialogContent className="flex h-[100dvh] w-full max-w-[95vw] flex-col overflow-hidden border-zinc-200/80 p-0 shadow-2xl sm:h-[94vh] sm:max-w-[90vw] md:max-w-3xl lg:max-w-4xl xl:max-w-5xl">
           {selectedContent && (
             <div className="flex flex-col h-full min-h-0">
               {/* Header */}
-              <DialogHeader className="px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-3 sm:pb-5 border-b bg-white z-10 flex-shrink-0 relative">
+              <DialogHeader className="relative z-10 shrink-0 border-b border-zinc-200/80 bg-gradient-to-b from-[#430062]/[0.06] to-white px-4 pb-4 pt-5 sm:px-6 sm:pb-5 sm:pt-6 lg:px-8">
+                <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-[#430062] via-[#6b1a8f] to-[#a855f7]" />
                 <div className="flex items-start justify-between">
                   <div className="flex-1 pr-8">
                     <DialogTitle className="text-xl sm:text-2xl lg:text-3xl leading-tight font-semibold tracking-tight break-words">
@@ -584,9 +587,9 @@ export default function ContentOperations() {
 
                     <div className="flex flex-wrap items-center gap-2 mt-3 sm:mt-4">
                       <Badge
-                        className={`${statusColors[selectedContent.status]} text-xs sm:text-sm font-medium px-2.5 sm:px-3 py-0.5 sm:py-1`}
+                        className={`${contentStatusStyles[selectedContent.status]} text-xs sm:text-sm font-medium px-2.5 sm:px-3 py-0.5 sm:py-1`}
                       >
-                        {statusLabels[selectedContent.status]}
+                        {contentStatusLabels[selectedContent.status]}
                       </Badge>
 
                       {selectedContent.platforms?.map((platform: string) => (
@@ -655,14 +658,14 @@ export default function ContentOperations() {
               </DialogHeader>
 
               {/* Scrollable Content Area */}
-              <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-4 sm:pb-8 space-y-6 sm:space-y-10 min-h-0">
+              <div className="min-h-0 flex-1 space-y-6 overflow-y-auto overscroll-y-contain bg-zinc-50/40 px-4 pb-4 pt-4 sm:space-y-8 sm:px-6 sm:pb-8 sm:pt-6 lg:px-8">
                 {/* Drive Files / Assets */}
                 {selectedContent.driveLinks &&
                   selectedContent.driveLinks.length > 0 && (
                     <div>
-                      <h4 className="text-[11px] sm:text-xs font-semibold tracking-widest text-zinc-500 mb-2 sm:mb-3">
-                        GOOGLE DRIVE FILES
-                      </h4>
+                      <ContentSectionLabel className="mb-2 sm:mb-3">
+                        Google Drive files
+                      </ContentSectionLabel>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {selectedContent.driveLinks.map((link, idx) => (
                           <a
@@ -670,7 +673,7 @@ export default function ContentOperations() {
                             href={link}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-3 p-4 border border-zinc-200 hover:border-zinc-300 rounded-2xl group transition-all hover:shadow-sm"
+                            className="group flex items-center gap-3 rounded-xl border border-zinc-200/80 bg-white p-4 shadow-sm ring-1 ring-black/[0.02] transition-all hover:border-[#430062]/25 hover:shadow-md"
                           >
                             <div className="w-10 h-10 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center flex-shrink-0">
                               <span className="text-xl">📁</span>
@@ -694,13 +697,13 @@ export default function ContentOperations() {
 
                 {/* Caption */}
                 <div>
-                  <h4 className="text-[11px] sm:text-xs font-semibold tracking-widest text-zinc-500 mb-2 sm:mb-3">
-                    CAPTION
-                  </h4>
+                  <ContentSectionLabel className="mb-2 sm:mb-3">
+                    Caption
+                  </ContentSectionLabel>
 
                   {selectedContent.caption ? (
                     <div
-                      className="text-sm sm:text-[15px] leading-relaxed text-zinc-700 prose prose-zinc max-w-none prose-headings:text-zinc-800 prose-strong:text-zinc-800 prose-a:text-blue-600"
+                      className="rounded-xl border border-zinc-200/80 bg-white p-4 text-sm leading-relaxed text-zinc-700 prose prose-zinc max-w-none prose-headings:text-zinc-800 prose-strong:text-zinc-800 prose-a:text-[#430062] sm:text-[15px]"
                       dangerouslySetInnerHTML={{
                         __html: selectedContent.caption,
                       }}
@@ -713,34 +716,34 @@ export default function ContentOperations() {
                 {/* Metadata Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 lg:gap-x-8 gap-y-4 sm:gap-y-6">
                   <div>
-                    <h4 className="text-[11px] sm:text-xs font-semibold tracking-widest text-zinc-500 mb-1.5 sm:mb-2">
-                      CLIENT
-                    </h4>
+                    <ContentSectionLabel className="mb-1.5 sm:mb-2">
+                      Client
+                    </ContentSectionLabel>
                     <p className="text-sm sm:text-base font-medium text-zinc-900">
                       {clientLookup[selectedContent.client]}
                     </p>
                   </div>
                   <div>
-                    <h4 className="text-[11px] sm:text-xs font-semibold tracking-widest text-zinc-500 mb-1.5 sm:mb-2">
-                      PILLAR
-                    </h4>
+                    <ContentSectionLabel className="mb-1.5 sm:mb-2">
+                      Pillar
+                    </ContentSectionLabel>
                     <p className="text-sm sm:text-base font-medium text-zinc-900">
                       {selectedContent.pillar}
                     </p>
                   </div>
                   <div>
-                    <h4 className="text-[11px] sm:text-xs font-semibold tracking-widest text-zinc-500 mb-1.5 sm:mb-2">
-                      PUBLISH DATE
-                    </h4>
+                    <ContentSectionLabel className="mb-1.5 sm:mb-2">
+                      Publish date
+                    </ContentSectionLabel>
                     <p className="text-sm sm:text-base font-medium text-zinc-900">
                       {selectedContent.publishDate}
                     </p>
                   </div>
                   {user?.role === "admin" && (
                     <div>
-                      <h4 className="text-[11px] sm:text-xs font-semibold tracking-widest text-zinc-500 mb-1.5 sm:mb-2">
-                        ASSIGNED TO
-                      </h4>
+                      <ContentSectionLabel className="mb-1.5 sm:mb-2">
+                        Assigned to
+                      </ContentSectionLabel>
                       <p className="text-sm sm:text-base font-medium text-zinc-900">
                         {userLookup[selectedContent.assignedTo]}
                       </p>
@@ -756,7 +759,7 @@ export default function ContentOperations() {
                   selectedContent.revisionDueDate ||
                   selectedContent.priority ||
                   typeof selectedContent.revisionCount === "number") && (
-                  <div className="space-y-5 rounded-2xl border border-amber-200 bg-amber-50/50 p-4 sm:p-6">
+                  <div className="space-y-5 rounded-xl border border-amber-200/80 bg-amber-50/60 p-4 ring-1 ring-amber-100 sm:p-6">
                     <div className="flex items-center justify-between">
                       <h4 className="text-sm sm:text-base font-semibold text-amber-900">
                         Revision Details
@@ -829,7 +832,7 @@ export default function ContentOperations() {
               </div>
 
               {/* Footer Actions */}
-              <div className="border-t bg-white p-4 sm:p-6 lg:p-8 z-10 flex-shrink-0">
+              <div className="z-10 shrink-0 border-t border-zinc-200/80 bg-white/95 p-4 backdrop-blur-sm sm:p-6 lg:px-8 lg:pb-8">
                 <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3">
                   {role === "admin" && selectedContent.status === "revise" && (
                     <Button
@@ -860,8 +863,7 @@ export default function ContentOperations() {
                   {role === "client" && selectedContent.status === "review" && (
                     <Button
                       size="lg"
-                      className="w-full sm:flex-1 h-11 sm:h-12 font-semibold text-white shadow-lg shadow-violet-500/20 hover:shadow-xl hover:shadow-violet-500/30 transition-all active:scale-[0.985] text-sm sm:text-base"
-                      style={{ backgroundColor: brandColor }}
+                      className="h-11 w-full rounded-xl bg-[#430062] text-sm font-semibold text-white shadow-lg shadow-[#430062]/25 transition-all hover:bg-[#5a0080] active:scale-[0.99] sm:h-12 sm:flex-1 sm:text-base"
                       onClick={() => {
                         setIsDetailOpen(false);
                         setIsApproveOpen(true);
@@ -937,7 +939,7 @@ export default function ContentOperations() {
             );
           }
         }}
-        brandColor={brandColor}
+        brandColor={CONTENT_BRAND}
       />
       <RequestRevisionModal
         isOpen={isRevisionOpen}
@@ -993,7 +995,7 @@ export default function ContentOperations() {
         contentTitle={selectedContent?.title}
         contentPlatforms={selectedContent?.platforms}
         assignedTo={selectedContent?.assignedTo || ""}
-        brandColor={brandColor}
+        brandColor={CONTENT_BRAND}
       />
       <SubmitRevisionModal
         isOpen={isSubmitRevisionOpen}
@@ -1022,7 +1024,7 @@ export default function ContentOperations() {
           }
         }}
         content={selectedContent}
-        brandColor={brandColor}
+        brandColor={CONTENT_BRAND}
         adminName={user?.fullname?.toString() || "Admin"}
       />
       <ApproveConfirmDialog
@@ -1052,7 +1054,7 @@ export default function ContentOperations() {
         contentTitle={selectedContent?.title}
         platforms={selectedContent?.platforms}
         clientName={selectedContent?.client}
-        brandColor={brandColor}
+        brandColor={CONTENT_BRAND}
       />
       <EditContentModal
         isOpen={isEditOpen}
@@ -1122,7 +1124,7 @@ export default function ContentOperations() {
           }
         }}
         content={selectedContent!}
-        brandColor={brandColor}
+        brandColor={CONTENT_BRAND}
       />
       <DeleteContentModal
         isOpen={isDeleteOpen}

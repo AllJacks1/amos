@@ -219,7 +219,7 @@ function SidebarUser({
   roleLabel: string;
   onLogout: () => void;
 }) {
-  const nameStr = typeof name === "string" ? name : name?.toString() || "";
+  const nameStr = typeof name === "string" ? name : "";
   const initials =
     nameStr
       .trim()
@@ -331,13 +331,25 @@ export default function AMOSLayout({
   const router = useRouter();
 
   const userDisplay = {
-    name:
-      role === "client"
-        ? user?.primary_contact_name
-        : user?.fullname || "Unknown User",
-    avatar: role === "client" ? String(user?.company_logo || "") : "",
-    roleLabel: role === "client" ? user?.company_name || "Client" : "Admin",
-  };
+  name:
+    role === "client"
+      ? typeof user?.primary_contact_name === "string"
+        ? user.primary_contact_name
+        : null
+      : typeof user?.fullname === "string"
+        ? user.fullname
+        : "Unknown User",
+
+  avatar:
+    role === "client" && typeof user?.company_logo === "string"
+      ? user.company_logo
+      : "",
+
+  roleLabel:
+    role === "client" && typeof user?.company_name === "string"
+      ? user.company_name
+      : "Admin",
+};
 
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);

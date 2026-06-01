@@ -41,10 +41,9 @@ export default function DeleteContentModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[420px] p-0 gap-0 overflow-hidden border-0 shadow-2xl">
-        {/* Header with gradient accent */}
-        <DialogHeader className="relative bg-gradient-to-br from-red-50 to-orange-50/30 p-6 pb-5">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-500 to-orange-400" />
+      <DialogContent className="gap-0 overflow-hidden border-zinc-200/80 p-0 shadow-2xl sm:max-w-[420px]">
+        <DialogHeader className="relative bg-gradient-to-b from-red-50/90 to-white p-6 pb-5">
+          <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-red-500 via-rose-400 to-orange-300" />
           <div className="flex items-start gap-4">
             <div className="w-11 h-11 rounded-xl bg-white shadow-sm border border-red-100 flex items-center justify-center flex-shrink-0">
               <AlertTriangle
@@ -100,7 +99,7 @@ export default function DeleteContentModal({
         </div>
 
         {/* Footer */}
-        <DialogFooter className="p-6 pb-10">
+        <DialogFooter className="border-t border-zinc-100 bg-zinc-50/50 p-6">
           <div className="flex gap-3 w-full">
             <Button
               variant="outline"

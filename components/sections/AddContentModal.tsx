@@ -40,6 +40,10 @@ import {
 } from "@/components/ui/select";
 import { useClientStore } from "@/store/clientStore";
 import { useUsersStore } from "@/store/useUsersStore";
+import {
+  ContentModalHeader,
+  ContentModalShell,
+} from "./content-ui";
 
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -292,56 +296,19 @@ export default function AddContentModal({
   const characterCount = editor?.storage.characterCount?.characters() ?? 0;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
-      <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
-        onClick={handleClose}
-      />
+    <ContentModalShell onClose={handleClose} maxWidth="max-w-lg">
+        <ContentModalHeader
+          icon={FileText}
+          title={step === 1 ? "New Content" : "Details & Assignment"}
+          subtitle={`Step ${step} of 2`}
+          onClose={handleClose}
+          disabled={isSubmitting}
+          progress={{ step, total: 2 }}
+        />
 
-      <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl shadow-black/10 overflow-hidden animate-in fade-in zoom-in-95 duration-200 max-h-[92vh] flex flex-col">
-        {/* Header */}
-        <div className="px-6 sm:px-8 pt-6 pb-5 border-b border-zinc-100 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div
-                className="w-10 h-10 rounded-2xl flex items-center justify-center"
-                style={{ backgroundColor: `${brandColor}15` }}
-              >
-                <FileText className="h-5 w-5" style={{ color: brandColor }} />
-              </div>
-              <div>
-                <h2 className="text-xl font-semibold text-zinc-900">
-                  {step === 1 ? "New Content" : "Details & Assignment"}
-                </h2>
-                <p className="text-sm text-zinc-500 mt-0.5">Step {step} of 2</p>
-              </div>
-            </div>
-            <button
-              onClick={handleClose}
-              disabled={isSubmitting}
-              className="w-8 h-8 rounded-xl flex items-center justify-center text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 transition-colors disabled:opacity-50"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-
-          {/* Progress Bar */}
-          <div className="mt-4 flex gap-2">
-            <div
-              className="h-1.5 flex-1 rounded-full transition-colors duration-300"
-              style={{ backgroundColor: step >= 1 ? brandColor : "#e4e4e7" }}
-            />
-            <div
-              className="h-1.5 flex-1 rounded-full transition-colors duration-300"
-              style={{ backgroundColor: step >= 2 ? brandColor : "#e4e4e7" }}
-            />
-          </div>
-        </div>
-
-        {/* Form */}
         <form
           onSubmit={handleSubmit}
-          className="flex-1 overflow-y-auto px-6 sm:px-8 py-6 space-y-6"
+          className="flex-1 space-y-6 overflow-y-auto overscroll-y-contain px-6 py-6 sm:px-8"
         >
           {step === 1 ? (
             <>
@@ -865,16 +832,15 @@ export default function AddContentModal({
           )}
         </form>
 
-        {/* Footer */}
-        <div className="border-t bg-white p-6 sm:p-8 flex-shrink-0">
-          <div className="flex flex-col-reverse sm:flex-row gap-3">
+        <div className="shrink-0 border-t border-zinc-100 bg-zinc-50/50 p-6 sm:p-8">
+          <div className="flex flex-col-reverse gap-3 sm:flex-row">
             {step === 2 && (
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setStep(1)}
                 disabled={isSubmitting}
-                className="w-full sm:flex-1 h-11 rounded-2xl font-medium"
+                className="h-11 w-full rounded-xl font-medium sm:flex-1"
               >
                 Back
               </Button>
@@ -884,7 +850,7 @@ export default function AddContentModal({
               variant="outline"
               onClick={handleClose}
               disabled={isSubmitting}
-              className="w-full sm:flex-1 h-11 rounded-2xl font-medium"
+              className="h-11 w-full rounded-xl font-medium sm:flex-1"
             >
               Cancel
             </Button>
@@ -892,11 +858,7 @@ export default function AddContentModal({
               type="submit"
               disabled={isSubmitting}
               onClick={handleSubmit}
-              className="w-full sm:flex-1 h-11 rounded-2xl font-semibold text-white shadow-lg transition-all active:scale-[0.985] disabled:opacity-70"
-              style={{
-                backgroundColor: brandColor,
-                boxShadow: `0 4px 14px ${brandColor}25`,
-              }}
+              className="h-11 w-full rounded-xl bg-[#430062] font-semibold text-white shadow-md shadow-[#430062]/20 transition-all hover:bg-[#5a0080] active:scale-[0.99] disabled:opacity-70 sm:flex-1"
             >
               {isSubmitting ? (
                 <>
@@ -914,7 +876,6 @@ export default function AddContentModal({
             </Button>
           </div>
         </div>
-      </div>
-    </div>
+    </ContentModalShell>
   );
 }
