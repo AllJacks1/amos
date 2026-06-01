@@ -573,7 +573,10 @@ export default function ContentOperations() {
         </TabsContent>
       </Tabs>
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="flex h-[100dvh] w-full max-w-[95vw] flex-col overflow-hidden border-zinc-200/80 p-0 shadow-2xl sm:h-[94vh] sm:max-w-[90vw] md:max-w-3xl lg:max-w-4xl xl:max-w-5xl">
+        <DialogContent
+          className="flex h-[100dvh] w-full max-w-[95vw] flex-col overflow-hidden border-zinc-200/80 p-0 shadow-2xl sm:h-[94vh] sm:max-w-[90vw] md:max-w-3xl lg:max-w-4xl xl:max-w-5xl"
+          showCloseButton={false}
+        >
           {selectedContent && (
             <div className="flex flex-col h-full min-h-0">
               {/* Header */}
