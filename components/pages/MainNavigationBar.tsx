@@ -11,6 +11,7 @@ import {
   Menu,
   ChevronLeft,
   LogOut,
+  ClipboardList,
   type LucideIcon,
 } from "lucide-react";
 
@@ -43,6 +44,7 @@ const mainNav: NavItem[] = [
 
 const managementNav: NavItem[] = [
   { label: "Clients", icon: Users, href: "/clients" },
+  { label: "Logs", icon: ClipboardList, href: "/logs" },
   { label: "Settings", icon: Settings, href: "/settings" },
 ];
 
