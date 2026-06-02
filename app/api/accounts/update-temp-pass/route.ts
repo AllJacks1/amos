@@ -12,19 +12,38 @@ type UserType = "user" | "client";
 interface AccountRecord {
   id: string;
   email: string;
-  table: UserType;
   first_login?: boolean;
 }
 
 export async function PATCH(req: NextRequest) {
   try {
     const body = await req.json();
-    const { id, newPassword, confirmPassword } = body;
+
+    const {
+      id,
+      type,
+      newPassword,
+      confirmPassword,
+    }: {
+      id: string;
+      type: UserType;
+      newPassword: string;
+      confirmPassword: string;
+    } = body;
 
     // ─── VALIDATE INPUT ──────────────────────────────
-    if (!id || !newPassword || !confirmPassword) {
+    if (!id || !type || !newPassword || !confirmPassword) {
       return NextResponse.json(
-        { error: "ID, new password, and confirm password are required" },
+        {
+          error: "ID, type, new password, and confirm password are required",
+        },
+        { status: 400 },
+      );
+    }
+
+    if (type !== "user" && type !== "client") {
+      return NextResponse.json(
+        { error: "Invalid account type" },
         { status: 400 },
       );
     }
@@ -43,46 +62,32 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
-    // ─── CHECK BOTH TABLES ───────────────────────────
-    let account: AccountRecord | null = null;
-    let tableName: UserType | null = null;
+    // ─── DETERMINE TARGET TABLE ──────────────────────
+    const targetTable = type === "client" ? "amos_clients" : "amos_users";
 
-    // Try amos_users first
-    const { data: userData, error: userError } = await supabase
-      .from("amos_users")
+    console.log("================================");
+    console.log("Incoming ID:", id);
+    console.log("Account Type:", type);
+    console.log("Target Table:", targetTable);
+    console.log("================================");
+
+    // ─── FETCH ACCOUNT FROM CORRECT TABLE ────────────
+    const { data: account, error: accountError } = await supabase
+      .from(targetTable)
       .select("id, email, first_login")
       .eq("id", id)
-      .single();
+      .single<AccountRecord>();
 
-    if (userData) {
-      account = { ...userData, table: "user" };
-      tableName = "user";
-    }
+    if (accountError || !account) {
+      console.error("Account lookup error:", accountError);
 
-    // If not found in users, try amos_clients
-    if (!account) {
-      const { data: clientData, error: clientError } = await supabase
-        .from("amos_clients")
-        .select("id, email, first_login")
-        .eq("id", id)
-        .single();
-
-      if (clientData) {
-        account = { ...clientData, table: "client" };
-        tableName = "client";
-      }
-    }
-
-    // Account not found in either table
-    if (!account || !tableName) {
       return NextResponse.json({ error: "Account not found" }, { status: 404 });
     }
 
-    // ─── HASH & UPDATE PASSWORD ──────────────────────
+    // ─── HASH PASSWORD ───────────────────────────────
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    const targetTable = tableName === "user" ? "amos_users" : "amos_clients";
-
+    // ─── UPDATE ACCOUNT ──────────────────────────────
     const { data: updatedAccount, error: updateError } = await supabase
       .from(targetTable)
       .update({
@@ -91,15 +96,21 @@ export async function PATCH(req: NextRequest) {
         updated_at: new Date().toISOString(),
       })
       .eq("id", id)
-      .select("id, email, first_login");
+      .select("id, email, first_login")
+      .single();
 
     if (updateError) {
+      console.error("Password update error:", updateError);
+
       return NextResponse.json({ error: updateError.message }, { status: 500 });
     }
 
+    // ─── LOG ACTIVITY ────────────────────────────────
     await supabase.from("amos_logs").insert([
       {
-        activity: `User ${account.email} changed temporary password`,
+        activity: `${type === "client" ? "Client" : "User"} ${
+          account.email
+        } changed temporary password`,
       },
     ]);
 
@@ -107,13 +118,15 @@ export async function PATCH(req: NextRequest) {
       {
         message: "Password updated successfully",
         account: updatedAccount,
-        type: tableName,
+        type,
       },
       { status: 200 },
     );
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
+
+    console.error("Password change error:", error);
 
     return NextResponse.json(
       { error: `Internal server error: ${errorMessage}` },

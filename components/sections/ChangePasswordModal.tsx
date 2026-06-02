@@ -10,7 +10,8 @@ import { Label } from "@/components/ui/label";
 interface ChangePasswordModalProps {
   isOpen: boolean;
   onClose: () => void;
-  userId: string; // Required: the user's ID from your auth/session
+  userId: string;
+  userType: string;
   userEmail?: string;
 }
 
@@ -18,6 +19,7 @@ export default function ChangePasswordModal({
   isOpen,
   onClose,
   userId,
+  userType,
   userEmail,
 }: ChangePasswordModalProps) {
   const [newPassword, setNewPassword] = useState("");
@@ -76,6 +78,12 @@ export default function ChangePasswordModal({
     setLoading(true);
 
     try {
+      console.log({
+        userId,
+        userType,
+        userEmail,
+      });
+
       const response = await fetch("/api/accounts/update-temp-pass", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -83,6 +91,7 @@ export default function ChangePasswordModal({
           id: userId,
           newPassword,
           confirmPassword,
+          type: userType,
         }),
       });
 

@@ -356,6 +356,16 @@ export default function AMOSLayout({
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
 
   useEffect(() => {
+  console.log("AMOSLayout User:", {
+    id: user?.id,
+    role,
+    email: user?.email,
+    first_login: user?.first_login,
+    user,
+  });
+}, [user, role]);
+
+  useEffect(() => {
     if (user?.first_login) {
       setIsChangePasswordOpen(true);
     }
@@ -450,6 +460,7 @@ export default function AMOSLayout({
         onClose={() => setIsChangePasswordOpen(false)}
         userId={user?.id || ""}
         userEmail={user?.email}
+        userType={role}
       />
     </div>
   );
