@@ -185,16 +185,27 @@ export default function ApprovalsModule() {
 
   /* ───────── FILTERING ───────── */
   const filteredApprovals = useMemo(() => {
-    return contents.filter((item) => {
-      const matchesSearch =
-        item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.client.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesClient =
-        clientFilter === "all" || item.client === clientFilter;
-      const matchesTab = item.status === activeTab;
-      return matchesSearch && matchesClient && matchesTab;
-    });
-  }, [contents, searchTerm, clientFilter, activeTab]);
+  const search = String(searchTerm ?? "").toLowerCase().trim();
+  const clientValue = String(clientFilter ?? "");
+
+  return contents.filter((item) => {
+    const title = String(item?.title ?? "").toLowerCase();
+    const client = String(item?.client ?? "");
+    const status = String(item?.status ?? "");
+
+    const matchesSearch =
+      !search ||
+      title.includes(search) ||
+      client.includes(search);
+
+    const matchesClient =
+      clientValue === "all" || client === clientValue;
+
+    const matchesTab = status === activeTab;
+
+    return matchesSearch && matchesClient && matchesTab;
+  });
+}, [contents, searchTerm, clientFilter, activeTab]);
 
   const uniqueClients = useMemo(
     () => [...new Set(contents.map((item) => item.client).filter(Boolean))],
@@ -282,7 +293,7 @@ export default function ApprovalsModule() {
             <div className="relative flex-1 sm:w-64 md:w-182">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 shrink-0 text-zinc-400" />
               <Input
-                placeholder="Search by title or client..."
+                placeholder="Search by title..."
                 className="h-10 w-full rounded-xl border-zinc-200/80 bg-zinc-50/50 pl-10 shadow-sm focus-visible:ring-[#430062]/15"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
