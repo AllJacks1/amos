@@ -62,7 +62,7 @@ interface OrganicPost {
   platform: "instagram" | "facebook" | "linkedin" | "twitter" | "tiktok";
   contentType: "image" | "video" | "carousel" | "reel" | "story";
   publishDate: string;
-  
+
   // Core Metrics
   reach: number;
   impressions: number;
@@ -73,11 +73,11 @@ interface OrganicPost {
   saves: number;
   clicks: number;
   profileVisits: number;
-  
+
   // Video Metrics (optional for non-video)
   watchTimeSeconds?: number;
   avgWatchTimeSeconds?: number;
-  
+
   // Auto-calculated
   interactions: number; // likes + comments + shares + saves + clicks
   engagementRate: number; // (interactions / reach) * 100
@@ -416,15 +416,23 @@ export default function OrganicPerformanceTracker() {
     const totalShares = posts.reduce((sum, p) => sum + p.shares, 0);
     const totalSaves = posts.reduce((sum, p) => sum + p.saves, 0);
     const totalClicks = posts.reduce((sum, p) => sum + p.clicks, 0);
-    const totalProfileVisits = posts.reduce((sum, p) => sum + p.profileVisits, 0);
+    const totalProfileVisits = posts.reduce(
+      (sum, p) => sum + p.profileVisits,
+      0,
+    );
     const totalInteractions = posts.reduce((sum, p) => sum + p.interactions, 0);
-    const avgEngagementRate = posts.reduce((sum, p) => sum + p.engagementRate, 0) / posts.length;
+    const avgEngagementRate =
+      posts.reduce((sum, p) => sum + p.engagementRate, 0) / posts.length;
 
     // Video-specific
     const videoPosts = posts.filter((p) => p.watchTimeSeconds);
-    const totalWatchTime = videoPosts.reduce((sum, p) => sum + (p.watchTimeSeconds || 0), 0);
+    const totalWatchTime = videoPosts.reduce(
+      (sum, p) => sum + (p.watchTimeSeconds || 0),
+      0,
+    );
     const avgWatchTime = videoPosts.length
-      ? videoPosts.reduce((sum, p) => sum + (p.avgWatchTimeSeconds || 0), 0) / videoPosts.length
+      ? videoPosts.reduce((sum, p) => sum + (p.avgWatchTimeSeconds || 0), 0) /
+        videoPosts.length
       : 0;
 
     return {
@@ -450,7 +458,9 @@ export default function OrganicPerformanceTracker() {
     let result = [...posts];
 
     // Search
-    const searchValue = String(searchTerm ?? "").toLowerCase().trim();
+    const searchValue = String(searchTerm ?? "")
+      .toLowerCase()
+      .trim();
     if (searchValue) {
       result = result.filter((p) => {
         const title = String(p.contentTitle).toLowerCase();
@@ -506,52 +516,6 @@ export default function OrganicPerformanceTracker() {
   /* ───────── RENDER ───────── */
   return (
     <div className="space-y-6 p-4 sm:space-y-8 sm:p-6 lg:p-8">
-      {/* ═══════ HEADER ═══════ */}
-      <div className="rounded-2xl border border-zinc-200/80 bg-white/90 p-4 shadow-sm ring-1 ring-black/[0.03] backdrop-blur-sm sm:p-5">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-center gap-3">
-            <div
-              className="flex h-10 w-10 items-center justify-center rounded-xl"
-              style={{ backgroundColor: `${CONTENT_BRAND}15` }}
-            >
-              <TrendingUp className="h-5 w-5" style={{ color: CONTENT_BRAND }} />
-            </div>
-            <div>
-              <h1 className="text-lg font-semibold text-zinc-900 sm:text-xl">
-                Organic Performance Tracker
-              </h1>
-              <p className="text-sm text-zinc-500">
-                Track all organic content performance metrics
-              </p>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="relative sm:w-72">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 shrink-0 text-zinc-400" />
-              <Input
-                placeholder="Search posts..."
-                className="h-10 w-full rounded-xl border-zinc-200/80 bg-zinc-50/50 pl-10 shadow-sm focus-visible:ring-[#430062]/15 text-sm"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={fetchPosts}
-              disabled={loading}
-              className="h-10 rounded-xl border-zinc-200/80 hover:bg-zinc-50 hover:border-zinc-300"
-            >
-              <RefreshCw
-                className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`}
-              />
-              Refresh
-            </Button>
-          </div>
-        </div>
-      </div>
-
       {/* ═══════ AGGREGATE KPI CARDS ═══════ */}
       {aggregateMetrics && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 sm:gap-4 lg:gap-6">
@@ -671,7 +635,9 @@ export default function OrganicPerformanceTracker() {
               </span>
             </div>
             <div className="mt-3 text-2xl font-bold tracking-tight text-zinc-900 tabular-nums sm:text-3xl">
-              {formatNumber(aggregateMetrics.totalShares + aggregateMetrics.totalSaves)}
+              {formatNumber(
+                aggregateMetrics.totalShares + aggregateMetrics.totalSaves,
+              )}
             </div>
           </div>
         </div>
@@ -685,7 +651,10 @@ export default function OrganicPerformanceTracker() {
             <h2 className="text-base font-semibold text-zinc-900 sm:text-lg">
               Video Performance
             </h2>
-            <Badge variant="secondary" className="text-xs bg-white text-zinc-600">
+            <Badge
+              variant="secondary"
+              className="text-xs bg-white text-zinc-600"
+            >
               {aggregateMetrics.videoCount} video posts
             </Badge>
           </div>
@@ -728,46 +697,78 @@ export default function OrganicPerformanceTracker() {
 
       {/* ═══════ FILTERS ═══════ */}
       <div className="rounded-2xl border border-zinc-200/80 bg-white/90 p-4 shadow-sm ring-1 ring-black/[0.03] sm:p-5">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <div className="flex items-center gap-2 text-sm text-zinc-500">
-            <Filter className="h-4 w-4" />
-            <span>Filters:</span>
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          {/* Filters */}
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+            <div className="relative sm:w-72 md:w-182">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+              <Input
+                placeholder="Search posts..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="h-10 rounded-xl border-zinc-200/80 bg-zinc-50/50 pl-10 text-sm shadow-sm focus-visible:ring-[#430062]/15"
+              />
+            </div>
           </div>
-          
-          <Select value={platformFilter} onValueChange={setPlatformFilter}>
-            <SelectTrigger className="h-10 w-full rounded-xl border-zinc-200/80 bg-white sm:w-44">
-              <SelectValue placeholder="All Platforms" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Platforms</SelectItem>
-              {Object.entries(PLATFORM_CONFIG).map(([key, cfg]) => (
-                <SelectItem key={key} value={key}>
-                  <div className="flex items-center gap-2">
-                    <cfg.icon className="h-4 w-4" style={{ color: cfg.color }} />
-                    {cfg.label}
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
 
-          <Select value={contentTypeFilter} onValueChange={setContentTypeFilter}>
-            <SelectTrigger className="h-10 w-full rounded-xl border-zinc-200/80 bg-white sm:w-44">
-              <SelectValue placeholder="All Types" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Content Types</SelectItem>
-              {Object.entries(CONTENT_TYPE_CONFIG).map(([key, cfg]) => (
-                <SelectItem key={key} value={key}>
-                  <span
-                    className="inline-block h-2 w-2 rounded-full mr-2"
-                    style={{ backgroundColor: cfg.color }}
-                  />
-                  {cfg.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {/* Search + Actions */}
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <Select value={platformFilter} onValueChange={setPlatformFilter}>
+              <SelectTrigger className="h-10 w-full rounded-xl border-zinc-200/80 bg-white sm:w-44">
+                <SelectValue placeholder="All Platforms" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Platforms</SelectItem>
+                {Object.entries(PLATFORM_CONFIG).map(([key, cfg]) => (
+                  <SelectItem key={key} value={key}>
+                    <div className="flex items-center gap-2">
+                      <cfg.icon
+                        className="h-4 w-4"
+                        style={{ color: cfg.color }}
+                      />
+                      {cfg.label}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={contentTypeFilter}
+              onValueChange={setContentTypeFilter}
+            >
+              <SelectTrigger className="h-10 w-full rounded-xl border-zinc-200/80 bg-white sm:w-44">
+                <SelectValue placeholder="All Types" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Content Types</SelectItem>
+                {Object.entries(CONTENT_TYPE_CONFIG).map(([key, cfg]) => (
+                  <SelectItem key={key} value={key}>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="h-2 w-2 rounded-full"
+                        style={{ backgroundColor: cfg.color }}
+                      />
+                      {cfg.label}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={fetchPosts}
+              disabled={loading}
+              className="h-10 rounded-xl border-zinc-200/80 hover:border-zinc-300 hover:bg-zinc-50"
+            >
+              <RefreshCw
+                className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`}
+              />
+              Refresh
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -811,8 +812,16 @@ export default function OrganicPerformanceTracker() {
                   { key: "saves", label: "Saves", width: "w-20" },
                   { key: "clicks", label: "Clicks", width: "w-20" },
                   { key: "profileVisits", label: "Profile", width: "w-20" },
-                  { key: "watchTimeSeconds", label: "Watch Time", width: "w-28" },
-                  { key: "avgWatchTimeSeconds", label: "Avg Watch", width: "w-24" },
+                  {
+                    key: "watchTimeSeconds",
+                    label: "Watch Time",
+                    width: "w-28",
+                  },
+                  {
+                    key: "avgWatchTimeSeconds",
+                    label: "Avg Watch",
+                    width: "w-24",
+                  },
                   { key: "publishDate", label: "Date", width: "w-32" },
                 ].map((col) => (
                   <TableHead
@@ -822,13 +831,12 @@ export default function OrganicPerformanceTracker() {
                   >
                     <div className="flex items-center gap-1">
                       {col.label}
-                      {sortBy === col.key && (
-                        sortOrder === "asc" ? (
+                      {sortBy === col.key &&
+                        (sortOrder === "asc" ? (
                           <ArrowUpRight className="h-3 w-3" />
                         ) : (
                           <ArrowDownRight className="h-3 w-3" />
-                        )
-                      )}
+                        ))}
                     </div>
                   </TableHead>
                 ))}
@@ -939,8 +947,8 @@ export default function OrganicPerformanceTracker() {
                               post.engagementRate >= 15
                                 ? "text-emerald-600"
                                 : post.engagementRate >= 10
-                                ? "text-amber-600"
-                                : "text-zinc-600"
+                                  ? "text-amber-600"
+                                  : "text-zinc-600"
                             }`}
                           >
                             {post.engagementRate.toFixed(2)}%
@@ -1003,7 +1011,9 @@ export default function OrganicPerformanceTracker() {
                       {/* Avg Watch Time */}
                       <TableCell className="py-3 px-3 sm:py-4 sm:px-4">
                         <span className="text-xs sm:text-sm text-zinc-700 tabular-nums">
-                          {post.avgWatchTimeSeconds ? `${post.avgWatchTimeSeconds}s` : "—"}
+                          {post.avgWatchTimeSeconds
+                            ? `${post.avgWatchTimeSeconds}s`
+                            : "—"}
                         </span>
                       </TableCell>
 
@@ -1063,9 +1073,7 @@ export default function OrganicPerformanceTracker() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() =>
-                  setCurrentPage((prev) => Math.max(prev - 1, 1))
-                }
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
                 className="h-9 rounded-xl border-zinc-200/80 text-xs hover:bg-zinc-50 hover:border-zinc-300 disabled:opacity-40"
               >
@@ -1089,7 +1097,7 @@ export default function OrganicPerformanceTracker() {
                     >
                       {page}
                     </Button>
-                  )
+                  ),
                 )}
               </div>
 
@@ -1126,7 +1134,8 @@ export default function OrganicPerformanceTracker() {
               </code>
             </p>
             <p className="mt-1 text-xs text-zinc-500">
-              Where <strong>Interactions</strong> = Likes + Comments + Shares + Saves + Clicks
+              Where <strong>Interactions</strong> = Likes + Comments + Shares +
+              Saves + Clicks
             </p>
           </div>
         </div>
