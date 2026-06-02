@@ -537,6 +537,7 @@ export default function ContentOperations() {
                     setCurrentPage((prev) => Math.max(prev - 1, 1))
                   }
                   disabled={currentPage === 1}
+                  className="h-9 rounded-xl border-zinc-200/80 text-xs hover:bg-zinc-50 hover:border-zinc-300 disabled:opacity-40"
                 >
                   Previous
                 </Button>
@@ -549,7 +550,11 @@ export default function ContentOperations() {
                         variant={currentPage === page ? "default" : "outline"}
                         size="sm"
                         onClick={() => setCurrentPage(page)}
-                        className="w-8"
+                        className={`h-9 w-9 rounded-xl text-xs ${
+                          currentPage === page
+                            ? "bg-[#430062] text-white shadow-sm hover:bg-[#5a0080]"
+                            : "border-zinc-200/80 hover:bg-zinc-50 hover:border-zinc-300"
+                        }`}
                       >
                         {page}
                       </Button>
@@ -564,6 +569,7 @@ export default function ContentOperations() {
                     setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                   }
                   disabled={currentPage === totalPages}
+                  className="h-9 rounded-xl border-zinc-200/80 text-xs hover:bg-zinc-50 hover:border-zinc-300 disabled:opacity-40"
                 >
                   Next
                 </Button>

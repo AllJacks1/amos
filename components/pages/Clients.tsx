@@ -92,29 +92,34 @@ export default function Clients() {
 
   /* ───────── FILTERING ───────── */
   const filteredClients = useMemo(() => {
-  const searchValue = String(searchTerm ?? "").toLowerCase().trim();
-  const statusValue = String(statusFilter ?? "").toLowerCase().trim();
+    const searchValue = String(searchTerm ?? "")
+      .toLowerCase()
+      .trim();
+    const statusValue = String(statusFilter ?? "")
+      .toLowerCase()
+      .trim();
 
-  return clients.filter((client) => {
-    const company = String(client?.company_name ?? "").toLowerCase();
-    const industry = String(client?.industry ?? "").toLowerCase();
-    const status = String(client?.status ?? "").toLowerCase();
-    const clientName = String(client?.primary_contact_name ?? "").toLowerCase();
-    const email = String(client?.email ?? "").toLowerCase();
+    return clients.filter((client) => {
+      const company = String(client?.company_name ?? "").toLowerCase();
+      const industry = String(client?.industry ?? "").toLowerCase();
+      const status = String(client?.status ?? "").toLowerCase();
+      const clientName = String(
+        client?.primary_contact_name ?? "",
+      ).toLowerCase();
+      const email = String(client?.email ?? "").toLowerCase();
 
-    const matchesSearch =
-      !searchValue ||
-      company.includes(searchValue) ||
-      industry.includes(searchValue) ||
-      clientName.includes(searchValue) ||   // ✅ added
-      email.includes(searchValue);          // (optional but useful)
+      const matchesSearch =
+        !searchValue ||
+        company.includes(searchValue) ||
+        industry.includes(searchValue) ||
+        clientName.includes(searchValue) || // ✅ added
+        email.includes(searchValue); // (optional but useful)
 
-    const matchesStatus =
-      statusValue === "all" || status === statusValue;
+      const matchesStatus = statusValue === "all" || status === statusValue;
 
-    return matchesSearch && matchesStatus;
-  });
-}, [clients, searchTerm, statusFilter]);
+      return matchesSearch && matchesStatus;
+    });
+  }, [clients, searchTerm, statusFilter]);
 
   const counts = useMemo(() => {
     return {
@@ -133,7 +138,9 @@ export default function Clients() {
         variant="outline"
         className={`${cfg.bg} ${cfg.text} ${cfg.border} text-[11px] font-semibold uppercase tracking-wider px-2.5 py-0.5`}
       >
-        <span className={`mr-1.5 inline-block h-1.5 w-1.5 rounded-full ${cfg.dot}`} />
+        <span
+          className={`mr-1.5 inline-block h-1.5 w-1.5 rounded-full ${cfg.dot}`}
+        />
         {cfg.label}
       </Badge>
     );
@@ -204,6 +211,19 @@ export default function Clients() {
     }
   };
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const totalPages = Math.ceil(filteredClients.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedClients = filteredClients.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter]);
+
   /* ───────── RENDER ───────── */
   return (
     <div className="space-y-6 p-4 sm:space-y-8 sm:p-6 lg:p-8">
@@ -223,8 +243,6 @@ export default function Clients() {
           </div>
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            
-
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="h-10 w-full rounded-xl border-zinc-200/80 bg-white sm:w-44">
                 <SelectValue placeholder="All Statuses" />
@@ -250,12 +268,38 @@ export default function Clients() {
 
       {/* ═══════ KPI STRIP ═══════ */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 sm:gap-6">
-        {([
-          { key: "total", label: "Total Clients", count: counts.total, icon: Building2, color: "#430062" },
-          { key: "active", label: "Active", count: counts.active, icon: Shield, color: "#10b981" },
-          { key: "onboarding", label: "Onboarding", count: counts.onboarding, icon: Calendar, color: "#f59e0b" },
-          { key: "paused", label: "Paused", count: counts.paused, icon: Lock, color: "#71717a" },
-        ] as const).map((stat) => (
+        {(
+          [
+            {
+              key: "total",
+              label: "Total Clients",
+              count: counts.total,
+              icon: Building2,
+              color: "#430062",
+            },
+            {
+              key: "active",
+              label: "Active",
+              count: counts.active,
+              icon: Shield,
+              color: "#10b981",
+            },
+            {
+              key: "onboarding",
+              label: "Onboarding",
+              count: counts.onboarding,
+              icon: Calendar,
+              color: "#f59e0b",
+            },
+            {
+              key: "paused",
+              label: "Paused",
+              count: counts.paused,
+              icon: Lock,
+              color: "#71717a",
+            },
+          ] as const
+        ).map((stat) => (
           <div
             key={stat.key}
             className="rounded-2xl border border-zinc-200/80 bg-white/90 p-4 shadow-sm ring-1 ring-black/[0.03] sm:p-5"
@@ -267,7 +311,9 @@ export default function Clients() {
               >
                 <stat.icon className="h-4 w-4" style={{ color: stat.color }} />
               </div>
-              <span className="text-sm font-medium text-zinc-600">{stat.label}</span>
+              <span className="text-sm font-medium text-zinc-600">
+                {stat.label}
+              </span>
             </div>
             <div className="mt-3 text-3xl font-bold tracking-tight text-zinc-900 tabular-nums sm:text-4xl">
               {stat.count}
@@ -281,11 +327,19 @@ export default function Clients() {
         <div className="border-b border-zinc-100 px-4 py-4 sm:px-6 sm:py-5">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-base font-semibold text-zinc-900 sm:text-lg">All Clients</h2>
-              <p className="text-sm text-zinc-500">Manage workspaces and performance</p>
+              <h2 className="text-base font-semibold text-zinc-900 sm:text-lg">
+                All Clients
+              </h2>
+              <p className="text-sm text-zinc-500">
+                Manage workspaces and performance
+              </p>
             </div>
-            <Badge variant="secondary" className="text-xs bg-zinc-100 text-zinc-600">
-              {filteredClients.length} result{filteredClients.length !== 1 ? "s" : ""}
+            <Badge
+              variant="secondary"
+              className="text-xs bg-zinc-100 text-zinc-600"
+            >
+              {filteredClients.length} result
+              {filteredClients.length !== 1 ? "s" : ""}
             </Badge>
           </div>
         </div>
@@ -309,7 +363,7 @@ export default function Clients() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredClients.map((client) => (
+              {paginatedClients.map((client) => (
                 <TableRow
                   key={client.id}
                   className="cursor-pointer border-b border-zinc-100 transition-colors hover:bg-zinc-50"
@@ -334,13 +388,19 @@ export default function Clients() {
                     </div>
                   </TableCell>
                   <TableCell className="py-3 px-3 sm:py-5 sm:px-6">
-                    <div className="text-sm font-medium text-zinc-900">{client.company_name}</div>
+                    <div className="text-sm font-medium text-zinc-900">
+                      {client.company_name}
+                    </div>
                   </TableCell>
                   <TableCell className="py-3 px-3 sm:py-5 sm:px-6">
-                    <div className="text-xs text-zinc-600 sm:text-sm">{client.industry}</div>
+                    <div className="text-xs text-zinc-600 sm:text-sm">
+                      {client.industry}
+                    </div>
                   </TableCell>
                   <TableCell className="py-3 px-3 sm:py-5 sm:px-6">
-                    {getStatusBadge(client.status as keyof typeof STATUS_CONFIG)}
+                    {getStatusBadge(
+                      client.status as keyof typeof STATUS_CONFIG,
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
@@ -348,19 +408,91 @@ export default function Clients() {
           </Table>
         </div>
 
+        {/* Pagination Controls */}
+        {filteredClients.length > itemsPerPage && (
+          <div className="flex items-center justify-between border-t border-zinc-100 px-4 py-4 sm:px-6">
+            <div className="text-sm text-zinc-500">
+              Showing{" "}
+              <span className="font-medium text-zinc-700">
+                {startIndex + 1}
+              </span>{" "}
+              to{" "}
+              <span className="font-medium text-zinc-700">
+                {Math.min(endIndex, filteredClients.length)}
+              </span>{" "}
+              of{" "}
+              <span className="font-medium text-zinc-700">
+                {filteredClients.length}
+              </span>{" "}
+              clients
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="h-9 rounded-xl border-zinc-200/80 text-xs hover:bg-zinc-50 hover:border-zinc-300 disabled:opacity-40"
+              >
+                Previous
+              </Button>
+
+              <div className="flex gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (page) => (
+                    <Button
+                      key={page}
+                      variant={currentPage === page ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setCurrentPage(page)}
+                      className={`h-9 w-9 rounded-xl text-xs ${
+                        currentPage === page
+                          ? "bg-[#430062] text-white shadow-sm hover:bg-[#5a0080]"
+                          : "border-zinc-200/80 hover:bg-zinc-50 hover:border-zinc-300"
+                      }`}
+                    >
+                      {page}
+                    </Button>
+                  ),
+                )}
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }
+                disabled={currentPage === totalPages}
+                className="h-9 rounded-xl border-zinc-200/80 text-xs hover:bg-zinc-50 hover:border-zinc-300 disabled:opacity-40"
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        )}
+
         {filteredClients.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-zinc-100">
               <Building2 className="h-8 w-8 text-zinc-300" />
             </div>
-            <h3 className="mt-4 text-lg font-semibold text-zinc-800">No clients found</h3>
-            <p className="mt-1 text-sm text-zinc-400">Try adjusting your search or filters</p>
+            <h3 className="mt-4 text-lg font-semibold text-zinc-800">
+              No clients found
+            </h3>
+            <p className="mt-1 text-sm text-zinc-400">
+              Try adjusting your search or filters
+            </p>
           </div>
         )}
       </div>
 
       {/* ═══════ CLIENT DETAIL DIALOG ═══════ */}
-      <Dialog open={!!selectedClient} onOpenChange={() => setSelectedClient(null)}>
+      <Dialog
+        open={!!selectedClient}
+        onOpenChange={() => setSelectedClient(null)}
+      >
         <DialogContent
           className="flex h-[100dvh] w-full max-w-[95vw] flex-col overflow-hidden rounded-2xl border-zinc-200/80 p-0 shadow-2xl sm:h-[94vh] sm:max-w-[90vw] md:max-w-xl lg:max-w-2xl"
           showCloseButton={false}
@@ -383,8 +515,12 @@ export default function Clients() {
                         {selectedClient.company_name}
                       </DialogTitle>
                       <div className="mt-1.5 flex flex-wrap items-center gap-2">
-                        {getStatusBadge(selectedClient.status as keyof typeof STATUS_CONFIG)}
-                        <span className="text-xs text-zinc-500">{selectedClient.industry}</span>
+                        {getStatusBadge(
+                          selectedClient.status as keyof typeof STATUS_CONFIG,
+                        )}
+                        <span className="text-xs text-zinc-500">
+                          {selectedClient.industry}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -401,7 +537,10 @@ export default function Clients() {
               </DialogHeader>
 
               {/* Tabs */}
-              <Tabs defaultValue="profile" className="flex min-h-0 flex-1 flex-col">
+              <Tabs
+                defaultValue="profile"
+                className="flex min-h-0 flex-1 flex-col"
+              >
                 <div className="shrink-0 border-b border-zinc-100 px-4 pt-4 sm:px-6 sm:pt-5">
                   <TabsList className="flex h-auto w-full gap-1 rounded-xl border border-zinc-200/80 bg-white/90 p-1 shadow-sm ring-1 ring-black/[0.03] md:w-fit">
                     <TabsTrigger
@@ -433,10 +572,26 @@ export default function Clients() {
                       </h4>
                       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
                         {[
-                          { label: "Company Name", value: selectedClient.company_name, icon: Building2 },
-                          { label: "Industry", value: selectedClient.industry, icon: Building2 },
-                          { label: "Primary Contact", value: selectedClient.primary_contact_name, icon: Users },
-                          { label: "Member Since", value: formatDate(selectedClient.created_at), icon: Calendar },
+                          {
+                            label: "Company Name",
+                            value: selectedClient.company_name,
+                            icon: Building2,
+                          },
+                          {
+                            label: "Industry",
+                            value: selectedClient.industry,
+                            icon: Building2,
+                          },
+                          {
+                            label: "Primary Contact",
+                            value: selectedClient.primary_contact_name,
+                            icon: Users,
+                          },
+                          {
+                            label: "Member Since",
+                            value: formatDate(selectedClient.created_at),
+                            icon: Calendar,
+                          },
                         ].map((field) => (
                           <div
                             key={field.label}
@@ -474,7 +629,9 @@ export default function Clients() {
                             Account Status
                           </div>
                           <div className="mt-1">
-                            {getStatusBadge(selectedClient.status as keyof typeof STATUS_CONFIG)}
+                            {getStatusBadge(
+                              selectedClient.status as keyof typeof STATUS_CONFIG,
+                            )}
                           </div>
                         </div>
                       </div>
@@ -490,8 +647,12 @@ export default function Clients() {
                   <div className="mx-auto max-w-lg space-y-6 sm:space-y-8">
                     {/* Email Section */}
                     <div className="rounded-xl border border-zinc-200/80 bg-white p-5 shadow-sm ring-1 ring-black/[0.02] sm:p-6">
-                      <h4 className="mb-1 text-sm font-semibold text-zinc-900">Email Address</h4>
-                      <p className="mb-4 text-xs text-zinc-500">Contact support to change email</p>
+                      <h4 className="mb-1 text-sm font-semibold text-zinc-900">
+                        Email Address
+                      </h4>
+                      <p className="mb-4 text-xs text-zinc-500">
+                        Contact support to change email
+                      </p>
                       <Input
                         value={selectedClient.email || "admin@company.com"}
                         className="h-10 rounded-xl border-zinc-200/80 bg-zinc-50/50 text-sm shadow-sm"
@@ -501,12 +662,18 @@ export default function Clients() {
 
                     {/* Password Section */}
                     <div className="rounded-xl border border-zinc-200/80 bg-white p-5 shadow-sm ring-1 ring-black/[0.02] sm:p-6">
-                      <h4 className="mb-1 text-sm font-semibold text-zinc-900">Change Password</h4>
-                      <p className="mb-5 text-xs text-zinc-500">Update login credentials for this client</p>
+                      <h4 className="mb-1 text-sm font-semibold text-zinc-900">
+                        Change Password
+                      </h4>
+                      <p className="mb-5 text-xs text-zinc-500">
+                        Update login credentials for this client
+                      </p>
 
                       <div className="space-y-4">
                         <div className="space-y-1.5">
-                          <label className="text-xs font-medium text-zinc-600">New Password</label>
+                          <label className="text-xs font-medium text-zinc-600">
+                            New Password
+                          </label>
                           <Input
                             type="password"
                             placeholder="Enter new password"
@@ -517,7 +684,9 @@ export default function Clients() {
                         </div>
 
                         <div className="space-y-1.5">
-                          <label className="text-xs font-medium text-zinc-600">Confirm New Password</label>
+                          <label className="text-xs font-medium text-zinc-600">
+                            Confirm New Password
+                          </label>
                           <Input
                             type="password"
                             placeholder="Confirm new password"
@@ -532,7 +701,9 @@ export default function Clients() {
                           disabled={isUpdatingPassword}
                           className="h-11 w-full rounded-xl bg-[#430062] text-sm font-semibold text-white shadow-md shadow-[#430062]/20 transition-all hover:bg-[#5a0080] active:scale-[0.99] sm:h-12"
                         >
-                          {isUpdatingPassword ? "Updating..." : "Update Password"}
+                          {isUpdatingPassword
+                            ? "Updating..."
+                            : "Update Password"}
                         </Button>
                       </div>
                     </div>
@@ -564,7 +735,10 @@ export default function Clients() {
             const formData = new FormData();
             formData.append("company_name", client.company_name);
             formData.append("industry", client.industry);
-            formData.append("primary_contact_name", client.primary_contact_name);
+            formData.append(
+              "primary_contact_name",
+              client.primary_contact_name,
+            );
             formData.append("email", client.email);
             formData.append("password", client.password);
             if (client.logoFile) {

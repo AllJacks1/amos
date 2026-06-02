@@ -81,9 +81,7 @@ const ROLE_CONFIG: Record<string, { label: string; color: string }> = {
 };
 
 /* ───────── SIDEBAR ITEMS ───────── */
-const sidebarItems = [
-  { id: "users", label: "Team Members", icon: Users },
-];
+const sidebarItems = [{ id: "users", label: "Team Members", icon: Users }];
 
 /* ───────── MAIN COMPONENT ───────── */
 export default function SettingsModule() {
@@ -108,11 +106,17 @@ export default function SettingsModule() {
 
   /* ───────── FILTERING ───────── */
   const filteredUsers = useMemo(() => {
-    const searchValue = String(searchTerm ?? "").toLowerCase().trim();
+    const searchValue = String(searchTerm ?? "")
+      .toLowerCase()
+      .trim();
     return users.filter((u) => {
       const name = String(u?.fullname ?? "").toLowerCase();
       const email = String(u?.email ?? "").toLowerCase();
-      return !searchValue || name.includes(searchValue) || email.includes(searchValue);
+      return (
+        !searchValue ||
+        name.includes(searchValue) ||
+        email.includes(searchValue)
+      );
     });
   }, [users, searchTerm]);
 
@@ -132,19 +136,28 @@ export default function SettingsModule() {
         variant="outline"
         className={`${cfg.bg} ${cfg.text} ${cfg.border} text-[11px] font-semibold uppercase tracking-wider px-2.5 py-0.5`}
       >
-        <span className={`mr-1.5 inline-block h-1.5 w-1.5 rounded-full ${cfg.dot}`} />
+        <span
+          className={`mr-1.5 inline-block h-1.5 w-1.5 rounded-full ${cfg.dot}`}
+        />
         {cfg.label}
       </Badge>
     );
   };
 
   const getRoleBadge = (role: string) => {
-    const cfg = ROLE_CONFIG[role.toLowerCase()] || { label: role, color: "#71717a" };
+    const cfg = ROLE_CONFIG[role.toLowerCase()] || {
+      label: role,
+      color: "#71717a",
+    };
     return (
       <Badge
         variant="outline"
         className="text-[11px] font-medium capitalize"
-        style={{ borderColor: `${cfg.color}30`, color: cfg.color, backgroundColor: `${cfg.color}10` }}
+        style={{
+          borderColor: `${cfg.color}30`,
+          color: cfg.color,
+          backgroundColor: `${cfg.color}10`,
+        }}
       >
         {cfg.label}
       </Badge>
@@ -219,6 +232,19 @@ export default function SettingsModule() {
     }
   };
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
+
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
   /* ───────── RENDER ───────── */
   return (
     <div className="space-y-6 p-4 sm:space-y-8 sm:p-6 lg:p-8">
@@ -254,11 +280,28 @@ export default function SettingsModule() {
             <div className="space-y-6">
               {/* KPI Strip */}
               <div className="grid grid-cols-3 gap-4 sm:gap-6">
-                {([
-                  { label: "Total Members", count: counts.total, icon: Users, color: "#430062" },
-                  { label: "Active", count: counts.active, icon: ShieldCheck, color: "#10b981" },
-                  { label: "Deactivated", count: counts.deactivated, icon: AlertCircle, color: "#ef4444" },
-                ] as const).map((stat) => (
+                {(
+                  [
+                    {
+                      label: "Total Members",
+                      count: counts.total,
+                      icon: Users,
+                      color: "#430062",
+                    },
+                    {
+                      label: "Active",
+                      count: counts.active,
+                      icon: ShieldCheck,
+                      color: "#10b981",
+                    },
+                    {
+                      label: "Deactivated",
+                      count: counts.deactivated,
+                      icon: AlertCircle,
+                      color: "#ef4444",
+                    },
+                  ] as const
+                ).map((stat) => (
                   <div
                     key={stat.label}
                     className="rounded-2xl border border-zinc-200/80 bg-white/90 p-4 shadow-sm ring-1 ring-black/[0.03] sm:p-5"
@@ -268,9 +311,14 @@ export default function SettingsModule() {
                         className="flex h-8 w-8 items-center justify-center rounded-lg"
                         style={{ backgroundColor: `${stat.color}15` }}
                       >
-                        <stat.icon className="h-4 w-4" style={{ color: stat.color }} />
+                        <stat.icon
+                          className="h-4 w-4"
+                          style={{ color: stat.color }}
+                        />
                       </div>
-                      <span className="text-xs font-medium text-zinc-600 sm:text-sm">{stat.label}</span>
+                      <span className="text-xs font-medium text-zinc-600 sm:text-sm">
+                        {stat.label}
+                      </span>
                     </div>
                     <div className="mt-3 text-2xl font-bold tracking-tight text-zinc-900 tabular-nums sm:text-3xl">
                       {stat.count}
@@ -283,8 +331,12 @@ export default function SettingsModule() {
               <div className="overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-sm ring-1 ring-black/[0.03]">
                 <div className="flex flex-col gap-3 border-b border-zinc-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-5">
                   <div>
-                    <h2 className="text-base font-semibold text-zinc-900 sm:text-lg">Team Members</h2>
-                    <p className="text-sm text-zinc-500">Manage who has access to this workspace</p>
+                    <h2 className="text-base font-semibold text-zinc-900 sm:text-lg">
+                      Team Members
+                    </h2>
+                    <p className="text-sm text-zinc-500">
+                      Manage who has access to this workspace
+                    </p>
                   </div>
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                     <div className="relative sm:w-56">
@@ -323,7 +375,7 @@ export default function SettingsModule() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredUsers.map((u) => (
+                      {paginatedUsers.map((u) => (
                         <TableRow
                           key={u.id}
                           className="border-b border-zinc-100 transition-colors hover:bg-zinc-50"
@@ -349,7 +401,9 @@ export default function SettingsModule() {
                             {getRoleBadge(u.role)}
                           </TableCell>
                           <TableCell className="py-3 px-3 sm:py-5 sm:px-6">
-                            {getStatusBadge(u.status as keyof typeof STATUS_CONFIG)}
+                            {getStatusBadge(
+                              u.status as keyof typeof STATUS_CONFIG,
+                            )}
                           </TableCell>
                           <TableCell className="py-3 px-3 sm:py-5 sm:px-6">
                             <Button
@@ -368,13 +422,89 @@ export default function SettingsModule() {
                   </Table>
                 </div>
 
+                {/* Pagination Controls */}
+                {filteredUsers.length > itemsPerPage && (
+                  <div className="flex items-center justify-between border-t border-zinc-100 px-4 py-4 sm:px-6">
+                    <div className="text-sm text-zinc-500">
+                      Showing{" "}
+                      <span className="font-medium text-zinc-700">
+                        {startIndex + 1}
+                      </span>{" "}
+                      to{" "}
+                      <span className="font-medium text-zinc-700">
+                        {Math.min(endIndex, filteredUsers.length)}
+                      </span>{" "}
+                      of{" "}
+                      <span className="font-medium text-zinc-700">
+                        {filteredUsers.length}
+                      </span>{" "}
+                      members
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          setCurrentPage((prev) => Math.max(prev - 1, 1))
+                        }
+                        disabled={currentPage === 1}
+                        className="h-9 rounded-xl border-zinc-200/80 text-xs hover:bg-zinc-50 hover:border-zinc-300 disabled:opacity-40"
+                      >
+                        Previous
+                      </Button>
+
+                      <div className="flex gap-1">
+                        {Array.from(
+                          { length: totalPages },
+                          (_, i) => i + 1,
+                        ).map((page) => (
+                          <Button
+                            key={page}
+                            variant={
+                              currentPage === page ? "default" : "outline"
+                            }
+                            size="sm"
+                            onClick={() => setCurrentPage(page)}
+                            className={`h-9 w-9 rounded-xl text-xs ${
+                              currentPage === page
+                                ? "bg-[#430062] text-white shadow-sm hover:bg-[#5a0080]"
+                                : "border-zinc-200/80 hover:bg-zinc-50 hover:border-zinc-300"
+                            }`}
+                          >
+                            {page}
+                          </Button>
+                        ))}
+                      </div>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          setCurrentPage((prev) =>
+                            Math.min(prev + 1, totalPages),
+                          )
+                        }
+                        disabled={currentPage === totalPages}
+                        className="h-9 rounded-xl border-zinc-200/80 text-xs hover:bg-zinc-50 hover:border-zinc-300 disabled:opacity-40"
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
                 {filteredUsers.length === 0 && (
                   <div className="flex flex-col items-center justify-center py-20">
                     <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-zinc-100">
                       <Users className="h-8 w-8 text-zinc-300" />
                     </div>
-                    <h3 className="mt-4 text-lg font-semibold text-zinc-800">No members found</h3>
-                    <p className="mt-1 text-sm text-zinc-400">Try adjusting your search</p>
+                    <h3 className="mt-4 text-lg font-semibold text-zinc-800">
+                      No members found
+                    </h3>
+                    <p className="mt-1 text-sm text-zinc-400">
+                      Try adjusting your search
+                    </p>
                   </div>
                 )}
               </div>
@@ -387,8 +517,12 @@ export default function SettingsModule() {
               <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-zinc-100">
                 <Settings className="h-8 w-8 text-zinc-300" />
               </div>
-              <h3 className="mt-4 text-lg font-semibold text-zinc-800">Coming Soon</h3>
-              <p className="mt-1 text-sm text-zinc-400">This section is under development</p>
+              <h3 className="mt-4 text-lg font-semibold text-zinc-800">
+                Coming Soon
+              </h3>
+              <p className="mt-1 text-sm text-zinc-400">
+                This section is under development
+              </p>
             </div>
           )}
         </div>
