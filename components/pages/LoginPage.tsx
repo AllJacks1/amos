@@ -14,6 +14,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useRouter } from "next/navigation";
+import TermsOfServiceModal from "../sections/TermsModal";
 
 const BRAND = "#430062";
 const BRAND_DARK = "#2d0044";
@@ -32,6 +33,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const setUser = useAuthStore((state) => state.setUser);
+  const [isTermsOpen, setIsTermsOpen] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -268,27 +270,30 @@ export default function LoginPage() {
 
             <div className="mt-8 pt-6 border-t border-gray-100">
               <p className="text-center text-xs text-gray-500 leading-relaxed">
-                By signing in, you agree to our{" "}
-                <Link
-                  href="/terms"
-                  className="font-medium hover:underline underline-offset-2"
-                  style={{ color: BRAND }}
-                >
-                  Terms of Service
-                </Link>{" "}
-                and{" "}
-                <Link
-                  href="/privacy"
-                  className="font-medium hover:underline underline-offset-2"
-                  style={{ color: BRAND }}
-                >
-                  Privacy Policy
-                </Link>
-              </p>
+        By signing in, you agree to our{" "}
+        <button
+          type="button"
+          onClick={() => setIsTermsOpen(true)}
+          className="font-medium hover:underline underline-offset-2 bg-transparent border-none p-0 cursor-pointer"
+          style={{ color: BRAND }}
+        >
+          Terms of Service
+        </button>{" "}
+        and{" "}
+        <button
+          type="button"
+          //onClick={() => setIsPrivacyOpen(true)}
+          className="font-medium hover:underline underline-offset-2 bg-transparent border-none p-0 cursor-pointer"
+          style={{ color: BRAND }}
+        >
+          Privacy Policy
+        </button>
+      </p>
             </div>
           </div>
         </div>
       </div>
+      <TermsOfServiceModal isOpen={isTermsOpen} onClose={() => setIsTermsOpen(false)} />
     </div>
   );
 }
