@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 const PAGE_TITLES: Record<string, string> = {
   "/content": "Content",
   "/approvals": "Approvals",
+  "/analytics-test": "Analytics",
   "/clients": "Clients",
   "/settings": "Settings",
 };
