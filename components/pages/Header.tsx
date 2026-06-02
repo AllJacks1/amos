@@ -7,6 +7,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/content": "Content",
   "/approvals": "Approvals",
   "/analytics-test": "Organic Performance Tracker",
+  "/reports-test": "Executive Reports",
   "/clients": "Clients",
   "/settings": "Settings",
 };
