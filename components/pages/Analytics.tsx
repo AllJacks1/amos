@@ -24,6 +24,7 @@ import {
   Calendar,
   Download,
   RefreshCw,
+  Plus,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -52,6 +53,8 @@ import { FacebookIcon } from "../icons/Facebook";
 import { LinkedInIcon } from "../icons/LinkedIn";
 import { XIcon } from "../icons/X";
 import { TikTokIcon } from "../icons/TikTok";
+import { useAuthStore } from "@/store/useAuthStore";
+import AddOrganicPostModal from "../sections/AddAnalyticsRecordModal";
 
 const CONTENT_BRAND = "#430062";
 
@@ -376,6 +379,8 @@ const getInitials = (name: string): string => {
 
 /* ───────── MAIN COMPONENT ───────── */
 export default function OrganicPerformanceTracker() {
+  const user = useAuthStore((state) => state.user);
+
   const [posts, setPosts] = useState<OrganicPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -512,6 +517,8 @@ export default function OrganicPerformanceTracker() {
       setSortOrder("desc");
     }
   };
+
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   /* ───────── RENDER ───────── */
   return (
@@ -768,6 +775,15 @@ export default function OrganicPerformanceTracker() {
               />
               Refresh
             </Button>
+            {user?.role === "admin" && (
+              <Button
+                className="h-10 rounded-xl bg-[#430062] text-white shadow-md shadow-[#430062]/20 hover:bg-[#5a0080]"
+                onClick={() => setIsAddModalOpen(true)}
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Add Performance Data
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -1140,6 +1156,48 @@ export default function OrganicPerformanceTracker() {
           </div>
         </div>
       </div>
+      <AddOrganicPostModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onAdd={async (data) => {
+          try {
+            const res = await fetch("/api/organic-performance", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                content_title: data.contentTitle,
+                platform: data.platform,
+                content_type: data.contentType,
+                publish_date: data.publishDate,
+                reach: data.reach,
+                impressions: data.impressions,
+                views: data.views,
+                likes: data.likes,
+                comments: data.comments,
+                shares: data.shares,
+                saves: data.saves,
+                clicks: data.clicks,
+                profile_visits: data.profileVisits,
+                watch_time_seconds: data.isVideoContent
+                  ? data.watchTimeSeconds
+                  : null,
+                avg_watch_time_seconds: data.isVideoContent
+                  ? data.avgWatchTimeSeconds
+                  : null,
+              }),
+            });
+
+            if (!res.ok) throw new Error("Failed to create");
+
+            // Refresh data
+            await fetchPosts();
+            setIsAddModalOpen(false);
+          } catch (error) {
+            console.error(error);
+            alert("Failed to add performance data");
+          }
+        }}
+      />
     </div>
   );
 }
