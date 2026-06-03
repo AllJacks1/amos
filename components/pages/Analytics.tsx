@@ -1161,35 +1161,23 @@ export default function OrganicPerformanceTracker() {
         onClose={() => setIsAddModalOpen(false)}
         onAdd={async (data) => {
           try {
-            const res = await fetch("/api/organic-performance", {
+            const res = await fetch("/api/reports/add-analytic-data", {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              headers: {
+                "Content-Type": "application/json",
+              },
               body: JSON.stringify({
-                content_title: data.contentTitle,
-                platform: data.platform,
-                content_type: data.contentType,
-                publish_date: data.publishDate,
-                reach: data.reach,
-                impressions: data.impressions,
-                views: data.views,
-                likes: data.likes,
-                comments: data.comments,
-                shares: data.shares,
-                saves: data.saves,
-                clicks: data.clicks,
-                profile_visits: data.profileVisits,
-                watch_time_seconds: data.isVideoContent
-                  ? data.watchTimeSeconds
-                  : null,
-                avg_watch_time_seconds: data.isVideoContent
-                  ? data.avgWatchTimeSeconds
-                  : null,
+                ...data,
+                adminName: user?.fullname,
               }),
             });
 
-            if (!res.ok) throw new Error("Failed to create");
+            const result = await res.json();
 
-            // Refresh data
+            if (!res.ok) {
+              throw new Error(result.error);
+            }
+
             await fetchPosts();
             setIsAddModalOpen(false);
           } catch (error) {
