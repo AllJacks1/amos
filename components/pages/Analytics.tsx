@@ -393,17 +393,28 @@ export default function OrganicPerformanceTracker() {
 
   /* ───────── FETCH DATA ───────── */
   const fetchPosts = async () => {
-    setLoading(true);
-    try {
-      // Replace with: const res = await fetch("/api/organic-performance");
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      setPosts(MOCK_POSTS);
-    } catch (error) {
-      console.error("Failed to fetch posts:", error);
-    } finally {
-      setLoading(false);
+  setLoading(true);
+
+  try {
+    const res = await fetch("/api/reports/fetch-analytics", {
+      method: "GET",
+      cache: "no-store",
+    });
+
+    const result = await res.json();
+
+    if (!res.ok) {
+      throw new Error(result.error || "Failed to fetch data");
     }
-  };
+
+    setPosts(result.records || []);
+  } catch (error) {
+    console.error("Failed to fetch posts:", error);
+    setPosts([]);
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     fetchPosts();
