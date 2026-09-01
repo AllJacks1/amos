@@ -43,6 +43,8 @@ import { FacebookIcon } from "../icons/Facebook";
 import { LinkedInIcon } from "../icons/LinkedIn";
 import { XIcon } from "../icons/X";
 import { TikTokIcon } from "../icons/TikTok";
+import { MetaIcon } from "../icons/Meta";
+import { GoogleIcon } from "../icons/Google";
 
 const CONTENT_BRAND = "#430062";
 
@@ -72,8 +74,8 @@ interface OrganicPostFormData {
 
 /* ───────── PLATFORM CONFIG ───────── */
 const PLATFORM_CONFIG = {
-  instagram: { label: "Instagram", icon: InstagramIcon, color: "#E4405F" },
-  facebook: { label: "Facebook", icon: FacebookIcon, color: "#1877F2" },
+  instagram: { label: "Google Business", icon: GoogleIcon, color: "#E4405F" },
+  facebook: { label: "Meta", icon: MetaIcon, color: "#1877F2" },
   linkedin: { label: "LinkedIn", icon: LinkedInIcon, color: "#0A66C2" },
   twitter: { label: "Twitter", icon: XIcon, color: "#1DA1F2" },
   tiktok: { label: "TikTok", icon: TikTokIcon, color: "#000000" },

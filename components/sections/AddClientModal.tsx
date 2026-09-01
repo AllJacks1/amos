@@ -49,6 +49,7 @@ const industries = [
   { value: "health_wellness", label: "Health & Wellness" },
   { value: "finance", label: "Finance & Banking" },
   { value: "education", label: "Education" },
+  { value: "environmental_consulting_and_services", label: "Environmental Consulting & Services" },
   { value: "entertainment", label: "Entertainment" },
   { value: "real_estate", label: "Real Estate" },
   { value: "automotive", label: "Automotive" },
