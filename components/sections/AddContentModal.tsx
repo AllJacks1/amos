@@ -40,10 +40,7 @@ import {
 } from "@/components/ui/select";
 import { useClientStore } from "@/store/clientStore";
 import { useUsersStore } from "@/store/useUsersStore";
-import {
-  ContentModalHeader,
-  ContentModalShell,
-} from "./content-ui";
+import { ContentModalHeader, ContentModalShell } from "./content-ui";
 
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -102,6 +99,11 @@ const pillars = [
   "Seasonal",
   "Community",
   "Brand Positioning",
+  "Practical Education",
+  "Authority & Credibility",
+  "Community Engagement",
+  "Training Decision Support",
+  "Training Announcement",
   "Others",
 ];
 
@@ -297,453 +299,445 @@ export default function AddContentModal({
 
   return (
     <ContentModalShell onClose={handleClose} maxWidth="max-w-lg">
-        <ContentModalHeader
-          icon={FileText}
-          title={step === 1 ? "New Content" : "Details & Assignment"}
-          subtitle={`Step ${step} of 2`}
-          onClose={handleClose}
-          disabled={isSubmitting}
-          progress={{ step, total: 2 }}
-        />
+      <ContentModalHeader
+        icon={FileText}
+        title={step === 1 ? "New Content" : "Details & Assignment"}
+        subtitle={`Step ${step} of 2`}
+        onClose={handleClose}
+        disabled={isSubmitting}
+        progress={{ step, total: 2 }}
+      />
 
-        <form
-          onSubmit={handleSubmit}
-          className="flex-1 space-y-6 overflow-y-auto overscroll-y-contain px-6 py-6 sm:px-8"
-        >
-          {step === 1 ? (
-            <>
-              {/* Title */}
-              <div className="space-y-2">
-                <Label
-                  htmlFor="title"
-                  className="text-sm font-medium text-zinc-700"
-                >
-                  Content Title
-                </Label>
-                <Input
-                  id="title"
-                  placeholder="e.g. Summer Collection Launch Reel"
-                  value={formData.title}
-                  onChange={(e) => {
-                    setFormData((prev) => ({ ...prev, title: e.target.value }));
-                    if (errors.title)
-                      setErrors((prev) => ({ ...prev, title: "" }));
-                  }}
-                  className={`rounded-2xl h-11 ${errors.title ? "border-red-300 focus-visible:ring-red-200" : ""}`}
-                />
-                {errors.title && (
-                  <p className="text-xs text-red-500 ml-1">{errors.title}</p>
-                )}
-              </div>
+      <form
+        onSubmit={handleSubmit}
+        className="flex-1 space-y-6 overflow-y-auto overscroll-y-contain px-6 py-6 sm:px-8"
+      >
+        {step === 1 ? (
+          <>
+            {/* Title */}
+            <div className="space-y-2">
+              <Label
+                htmlFor="title"
+                className="text-sm font-medium text-zinc-700"
+              >
+                Content Title
+              </Label>
+              <Input
+                id="title"
+                placeholder="e.g. Summer Collection Launch Reel"
+                value={formData.title}
+                onChange={(e) => {
+                  setFormData((prev) => ({ ...prev, title: e.target.value }));
+                  if (errors.title)
+                    setErrors((prev) => ({ ...prev, title: "" }));
+                }}
+                className={`rounded-2xl h-11 ${errors.title ? "border-red-300 focus-visible:ring-red-200" : ""}`}
+              />
+              {errors.title && (
+                <p className="text-xs text-red-500 ml-1">{errors.title}</p>
+              )}
+            </div>
 
-              {/* Caption */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-zinc-700">
-                  Caption
-                </Label>
+            {/* Caption */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-zinc-700">
+                Caption
+              </Label>
 
-                {/* Toolbar */}
-                <div className="flex flex-wrap gap-1 border border-zinc-200 bg-zinc-50 p-2 rounded-2xl">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => editor?.chain().focus().toggleBold().run()}
-                    className={editor?.isActive("bold") ? "bg-zinc-200" : ""}
-                  >
-                    <Bold className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => editor?.chain().focus().toggleItalic().run()}
-                    className={editor?.isActive("italic") ? "bg-zinc-200" : ""}
-                  >
-                    <Italic className="h-4 w-4" />
-                  </Button>
-
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() =>
-                      editor?.chain().focus().toggleHeading({ level: 1 }).run()
-                    }
-                    className={
-                      editor?.isActive("heading", { level: 1 })
-                        ? "bg-zinc-200"
-                        : ""
-                    }
-                  >
-                    <Heading1 className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() =>
-                      editor?.chain().focus().toggleHeading({ level: 2 }).run()
-                    }
-                    className={
-                      editor?.isActive("heading", { level: 2 })
-                        ? "bg-zinc-200"
-                        : ""
-                    }
-                  >
-                    <Heading2 className="h-4 w-4" />
-                  </Button>
-
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() =>
-                      editor?.chain().focus().toggleBulletList().run()
-                    }
-                    className={
-                      editor?.isActive("bulletList") ? "bg-zinc-200" : ""
-                    }
-                  >
-                    <List className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() =>
-                      editor?.chain().focus().toggleOrderedList().run()
-                    }
-                    className={
-                      editor?.isActive("orderedList") ? "bg-zinc-200" : ""
-                    }
-                  >
-                    <ListOrdered className="h-4 w-4" />
-                  </Button>
-
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      const url = prompt("Enter URL:");
-                      if (url)
-                        editor?.chain().focus().setLink({ href: url }).run();
-                    }}
-                  >
-                    <LinkIcon className="h-4 w-4" />
-                  </Button>
-                </div>
-
-                {/* Editor Content */}
-                <div className="min-h-[140px] border border-zinc-200 rounded-2xl p-4 focus-within:border-violet-500 transition-colors bg-white">
-                  <EditorContent
-                    editor={editor}
-                    className="prose prose-sm max-w-none focus:outline-none min-h-[120px]"
-                  />
-                </div>
-
-                <div className="flex justify-between text-xs text-zinc-400">
-                  <span>Rich text supported</span>
-                  <span>{characterCount} characters</span>
-                </div>
-              </div>
-
-              {/* Platform */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-zinc-700">
-                  Platforms{" "}
-                  <span className="text-zinc-400 text-xs">
-                    (multiple allowed)
-                  </span>
-                </Label>
-                <div className="grid grid-cols-3 gap-2">
-                  {platforms.map((platform) => {
-                    const Icon = platform.icon;
-                    const isSelected = formData.platforms.includes(
-                      platform.value,
-                    );
-                    return (
-                      <button
-                        key={platform.value}
-                        type="button"
-                        onClick={() => togglePlatform(platform.value)}
-                        className={`
-              flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all duration-200 relative
-              ${
-                isSelected
-                  ? "border-violet-500 bg-violet-50 text-violet-700"
-                  : "border-zinc-200 hover:border-zinc-300 text-zinc-600 hover:bg-zinc-50"
-              }
-            `}
-                      >
-                        <Icon
-                          className="h-5 w-5"
-                          style={{ color: isSelected ? brandColor : undefined }}
-                        />
-                        <span className="text-xs font-medium">
-                          {platform.label}
-                        </span>
-                        {isSelected && (
-                          <div className="absolute top-1.5 right-1.5">
-                            <Check className="h-3 w-3 text-violet-600" />
-                          </div>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-                {errors.platform && (
-                  <p className="text-xs text-red-500 ml-1">{errors.platform}</p>
-                )}
-              </div>
-
-              {/* Content Type */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-zinc-700">
-                  Content Types{" "}
-                  <span className="text-zinc-400 text-xs">
-                    (multiple allowed)
-                  </span>
-                </Label>
-                <div className="grid grid-cols-3 gap-2">
-                  {contentTypes.map((type) => {
-                    const Icon = type.icon;
-                    const isSelected = formData.contentTypes.includes(
-                      type.value,
-                    );
-                    return (
-                      <button
-                        key={type.value}
-                        type="button"
-                        onClick={() => toggleContentType(type.value)}
-                        className={`
-              flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all duration-200 relative
-              ${
-                isSelected
-                  ? "border-violet-500 bg-violet-50 text-violet-700"
-                  : "border-zinc-200 hover:border-zinc-300 text-zinc-600 hover:bg-zinc-50"
-              }
-            `}
-                      >
-                        <Icon className="h-5 w-5" />
-                        <span className="text-xs font-medium">
-                          {type.label}
-                        </span>
-                        {isSelected && (
-                          <div className="absolute top-1.5 right-1.5">
-                            <Check className="h-3 w-3 text-violet-600" />
-                          </div>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-                {errors.contentType && (
-                  <p className="text-xs text-red-500 ml-1">
-                    {errors.contentType}
-                  </p>
-                )}
-              </div>
-            </>
-          ) : (
-            <>
-              {/* Client */}
-              <div className="space-y-2">
-                <Label
-                  htmlFor="client"
-                  className="text-sm font-medium text-zinc-700"
-                >
-                  Client
-                </Label>
-                <Select
-                  value={formData.client}
-                  onValueChange={(value) => {
-                    setFormData((prev) => ({ ...prev, client: value }));
-                    if (errors.client)
-                      setErrors((prev) => ({ ...prev, client: "" }));
-                  }}
-                >
-                  <SelectTrigger
-                    id="client"
-                    className={`rounded-2xl h-11 ${errors.client ? "border-red-300 focus-visible:ring-red-200" : ""}`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <Building2 className="h-4 w-4 text-zinc-400" />
-                      <SelectValue placeholder="Select client" />
-                    </div>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clientsList.map((client) => (
-                      <SelectItem key={client.id} value={String(client.id)}>
-                        {client.company_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.client && (
-                  <p className="text-xs text-red-500 ml-1">{errors.client}</p>
-                )}
-              </div>
-
-              {/* Assigned To */}
-              <div className="space-y-2">
-                <Label
-                  htmlFor="assignedTo"
-                  className="text-sm font-medium text-zinc-700"
-                >
-                  Assigned To
-                </Label>
-                <Select
-                  value={formData.assignedTo}
-                  onValueChange={(value) => {
-                    setFormData((prev) => ({ ...prev, assignedTo: value }));
-                    if (errors.assignedTo)
-                      setErrors((prev) => ({ ...prev, assignedTo: "" }));
-                  }}
-                >
-                  <SelectTrigger
-                    id="assignedTo"
-                    className={`rounded-2xl h-11 ${errors.assignedTo ? "border-red-300 focus-visible:ring-red-200" : ""}`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-zinc-400" />
-                      <SelectValue placeholder="Select team member" />
-                    </div>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {usersList.map((user) => (
-                      <SelectItem key={user.id} value={String(user.id)}>
-                        {user.fullname}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.assignedTo && (
-                  <p className="text-xs text-red-500 ml-1">
-                    {errors.assignedTo}
-                  </p>
-                )}
-              </div>
-
-              {/* Pillar */}
-              <div className="space-y-2">
-                <Label
-                  htmlFor="pillar"
-                  className="text-sm font-medium text-zinc-700"
-                >
-                  Content Pillar
-                </Label>
-                <Select
-                  value={formData.pillar}
-                  onValueChange={(value) => {
-                    setFormData((prev) => ({ ...prev, pillar: value }));
-                    if (errors.pillar)
-                      setErrors((prev) => ({ ...prev, pillar: "" }));
-                  }}
-                >
-                  <SelectTrigger
-                    id="pillar"
-                    className={`rounded-2xl h-11 ${errors.pillar ? "border-red-300 focus-visible:ring-red-200" : ""}`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <Tag className="h-4 w-4 text-zinc-400" />
-                      <SelectValue placeholder="Select pillar" />
-                    </div>
-                  </SelectTrigger>
-                  <SelectContent className="rounded-2xl">
-                    {pillars.map((pillar) => (
-                      <SelectItem
-                        key={pillar}
-                        value={pillar}
-                        className="rounded-xl cursor-pointer"
-                      >
-                        {pillar}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.pillar && (
-                  <p className="text-xs text-red-500 ml-1">{errors.pillar}</p>
-                )}
-              </div>
-
-              {/* Publish Date */}
-              <div className="space-y-2">
-                <Label
-                  htmlFor="publishDate"
-                  className="text-sm font-medium text-zinc-700"
-                >
-                  Publish Date
-                </Label>
-                <div className="relative">
-                  <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
-                  <Input
-                    id="publishDate"
-                    type="date"
-                    value={formData.publishDate}
-                    onChange={(e) => {
-                      setFormData((prev) => ({
-                        ...prev,
-                        publishDate: e.target.value,
-                      }));
-                      if (errors.publishDate)
-                        setErrors((prev) => ({ ...prev, publishDate: "" }));
-                    }}
-                    className={`pl-10 rounded-2xl h-11 ${errors.publishDate ? "border-red-300 focus-visible:ring-red-200" : ""}`}
-                  />
-                </div>
-                {errors.publishDate && (
-                  <p className="text-xs text-red-500 ml-1">
-                    {errors.publishDate}
-                  </p>
-                )}
-              </div>
-
-              {/* Drive Links */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-zinc-700">
-                  Google Drive Links
-                </Label>
-                <div className="space-y-2">
-                  {formData.driveLinks.map((link, index) => (
-                    <div key={index} className="flex gap-2">
-                      <div className="relative flex-1">
-                        <Link2 className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
-                        <Input
-                          placeholder="https://drive.google.com/..."
-                          value={link}
-                          onChange={(e) =>
-                            updateDriveLink(index, e.target.value)
-                          }
-                          className="pl-10 rounded-2xl h-11"
-                        />
-                      </div>
-                      {formData.driveLinks.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => removeDriveLink(index)}
-                          className="w-11 h-11 rounded-2xl border border-zinc-200 flex items-center justify-center text-zinc-400 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-colors"
-                        >
-                          <X className="h-4 w-4" />
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-                <button
+              {/* Toolbar */}
+              <div className="flex flex-wrap gap-1 border border-zinc-200 bg-zinc-50 p-2 rounded-2xl">
+                <Button
                   type="button"
-                  onClick={addDriveLink}
-                  className="text-sm font-medium flex items-center gap-1.5 hover:underline"
-                  style={{ color: brandColor }}
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => editor?.chain().focus().toggleBold().run()}
+                  className={editor?.isActive("bold") ? "bg-zinc-200" : ""}
                 >
-                  <Plus className="h-3.5 w-3.5" />
-                  Add another link
-                </button>
+                  <Bold className="h-4 w-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => editor?.chain().focus().toggleItalic().run()}
+                  className={editor?.isActive("italic") ? "bg-zinc-200" : ""}
+                >
+                  <Italic className="h-4 w-4" />
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() =>
+                    editor?.chain().focus().toggleHeading({ level: 1 }).run()
+                  }
+                  className={
+                    editor?.isActive("heading", { level: 1 })
+                      ? "bg-zinc-200"
+                      : ""
+                  }
+                >
+                  <Heading1 className="h-4 w-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() =>
+                    editor?.chain().focus().toggleHeading({ level: 2 }).run()
+                  }
+                  className={
+                    editor?.isActive("heading", { level: 2 })
+                      ? "bg-zinc-200"
+                      : ""
+                  }
+                >
+                  <Heading2 className="h-4 w-4" />
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() =>
+                    editor?.chain().focus().toggleBulletList().run()
+                  }
+                  className={
+                    editor?.isActive("bulletList") ? "bg-zinc-200" : ""
+                  }
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() =>
+                    editor?.chain().focus().toggleOrderedList().run()
+                  }
+                  className={
+                    editor?.isActive("orderedList") ? "bg-zinc-200" : ""
+                  }
+                >
+                  <ListOrdered className="h-4 w-4" />
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    const url = prompt("Enter URL:");
+                    if (url)
+                      editor?.chain().focus().setLink({ href: url }).run();
+                  }}
+                >
+                  <LinkIcon className="h-4 w-4" />
+                </Button>
               </div>
 
-              {/* Status */}
-              {/* <div className="space-y-2">
+              {/* Editor Content */}
+              <div className="min-h-[140px] border border-zinc-200 rounded-2xl p-4 focus-within:border-violet-500 transition-colors bg-white">
+                <EditorContent
+                  editor={editor}
+                  className="prose prose-sm max-w-none focus:outline-none min-h-[120px]"
+                />
+              </div>
+
+              <div className="flex justify-between text-xs text-zinc-400">
+                <span>Rich text supported</span>
+                <span>{characterCount} characters</span>
+              </div>
+            </div>
+
+            {/* Platform */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-zinc-700">
+                Platforms{" "}
+                <span className="text-zinc-400 text-xs">
+                  (multiple allowed)
+                </span>
+              </Label>
+              <div className="grid grid-cols-3 gap-2">
+                {platforms.map((platform) => {
+                  const Icon = platform.icon;
+                  const isSelected = formData.platforms.includes(
+                    platform.value,
+                  );
+                  return (
+                    <button
+                      key={platform.value}
+                      type="button"
+                      onClick={() => togglePlatform(platform.value)}
+                      className={`
+              flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all duration-200 relative
+              ${
+                isSelected
+                  ? "border-violet-500 bg-violet-50 text-violet-700"
+                  : "border-zinc-200 hover:border-zinc-300 text-zinc-600 hover:bg-zinc-50"
+              }
+            `}
+                    >
+                      <Icon
+                        className="h-5 w-5"
+                        style={{ color: isSelected ? brandColor : undefined }}
+                      />
+                      <span className="text-xs font-medium">
+                        {platform.label}
+                      </span>
+                      {isSelected && (
+                        <div className="absolute top-1.5 right-1.5">
+                          <Check className="h-3 w-3 text-violet-600" />
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+              {errors.platform && (
+                <p className="text-xs text-red-500 ml-1">{errors.platform}</p>
+              )}
+            </div>
+
+            {/* Content Type */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-zinc-700">
+                Content Types{" "}
+                <span className="text-zinc-400 text-xs">
+                  (multiple allowed)
+                </span>
+              </Label>
+              <div className="grid grid-cols-3 gap-2">
+                {contentTypes.map((type) => {
+                  const Icon = type.icon;
+                  const isSelected = formData.contentTypes.includes(type.value);
+                  return (
+                    <button
+                      key={type.value}
+                      type="button"
+                      onClick={() => toggleContentType(type.value)}
+                      className={`
+              flex flex-col items-center gap-2 p-3 rounded-2xl border-2 transition-all duration-200 relative
+              ${
+                isSelected
+                  ? "border-violet-500 bg-violet-50 text-violet-700"
+                  : "border-zinc-200 hover:border-zinc-300 text-zinc-600 hover:bg-zinc-50"
+              }
+            `}
+                    >
+                      <Icon className="h-5 w-5" />
+                      <span className="text-xs font-medium">{type.label}</span>
+                      {isSelected && (
+                        <div className="absolute top-1.5 right-1.5">
+                          <Check className="h-3 w-3 text-violet-600" />
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+              {errors.contentType && (
+                <p className="text-xs text-red-500 ml-1">
+                  {errors.contentType}
+                </p>
+              )}
+            </div>
+          </>
+        ) : (
+          <>
+            {/* Client */}
+            <div className="space-y-2">
+              <Label
+                htmlFor="client"
+                className="text-sm font-medium text-zinc-700"
+              >
+                Client
+              </Label>
+              <Select
+                value={formData.client}
+                onValueChange={(value) => {
+                  setFormData((prev) => ({ ...prev, client: value }));
+                  if (errors.client)
+                    setErrors((prev) => ({ ...prev, client: "" }));
+                }}
+              >
+                <SelectTrigger
+                  id="client"
+                  className={`rounded-2xl h-11 ${errors.client ? "border-red-300 focus-visible:ring-red-200" : ""}`}
+                >
+                  <div className="flex items-center gap-2">
+                    <Building2 className="h-4 w-4 text-zinc-400" />
+                    <SelectValue placeholder="Select client" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  {clientsList.map((client) => (
+                    <SelectItem key={client.id} value={String(client.id)}>
+                      {client.company_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.client && (
+                <p className="text-xs text-red-500 ml-1">{errors.client}</p>
+              )}
+            </div>
+
+            {/* Assigned To */}
+            <div className="space-y-2">
+              <Label
+                htmlFor="assignedTo"
+                className="text-sm font-medium text-zinc-700"
+              >
+                Assigned To
+              </Label>
+              <Select
+                value={formData.assignedTo}
+                onValueChange={(value) => {
+                  setFormData((prev) => ({ ...prev, assignedTo: value }));
+                  if (errors.assignedTo)
+                    setErrors((prev) => ({ ...prev, assignedTo: "" }));
+                }}
+              >
+                <SelectTrigger
+                  id="assignedTo"
+                  className={`rounded-2xl h-11 ${errors.assignedTo ? "border-red-300 focus-visible:ring-red-200" : ""}`}
+                >
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-zinc-400" />
+                    <SelectValue placeholder="Select team member" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  {usersList.map((user) => (
+                    <SelectItem key={user.id} value={String(user.id)}>
+                      {user.fullname}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.assignedTo && (
+                <p className="text-xs text-red-500 ml-1">{errors.assignedTo}</p>
+              )}
+            </div>
+
+            {/* Pillar */}
+            <div className="space-y-2">
+              <Label
+                htmlFor="pillar"
+                className="text-sm font-medium text-zinc-700"
+              >
+                Content Pillar
+              </Label>
+              <Select
+                value={formData.pillar}
+                onValueChange={(value) => {
+                  setFormData((prev) => ({ ...prev, pillar: value }));
+                  if (errors.pillar)
+                    setErrors((prev) => ({ ...prev, pillar: "" }));
+                }}
+              >
+                <SelectTrigger
+                  id="pillar"
+                  className={`rounded-2xl h-11 ${errors.pillar ? "border-red-300 focus-visible:ring-red-200" : ""}`}
+                >
+                  <div className="flex items-center gap-2">
+                    <Tag className="h-4 w-4 text-zinc-400" />
+                    <SelectValue placeholder="Select pillar" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl">
+                  {pillars.map((pillar) => (
+                    <SelectItem
+                      key={pillar}
+                      value={pillar}
+                      className="rounded-xl cursor-pointer"
+                    >
+                      {pillar}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.pillar && (
+                <p className="text-xs text-red-500 ml-1">{errors.pillar}</p>
+              )}
+            </div>
+
+            {/* Publish Date */}
+            <div className="space-y-2">
+              <Label
+                htmlFor="publishDate"
+                className="text-sm font-medium text-zinc-700"
+              >
+                Publish Date
+              </Label>
+              <div className="relative">
+                <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+                <Input
+                  id="publishDate"
+                  type="date"
+                  value={formData.publishDate}
+                  onChange={(e) => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      publishDate: e.target.value,
+                    }));
+                    if (errors.publishDate)
+                      setErrors((prev) => ({ ...prev, publishDate: "" }));
+                  }}
+                  className={`pl-10 rounded-2xl h-11 ${errors.publishDate ? "border-red-300 focus-visible:ring-red-200" : ""}`}
+                />
+              </div>
+              {errors.publishDate && (
+                <p className="text-xs text-red-500 ml-1">
+                  {errors.publishDate}
+                </p>
+              )}
+            </div>
+
+            {/* Drive Links */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-zinc-700">
+                Google Drive Links
+              </Label>
+              <div className="space-y-2">
+                {formData.driveLinks.map((link, index) => (
+                  <div key={index} className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Link2 className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+                      <Input
+                        placeholder="https://drive.google.com/..."
+                        value={link}
+                        onChange={(e) => updateDriveLink(index, e.target.value)}
+                        className="pl-10 rounded-2xl h-11"
+                      />
+                    </div>
+                    {formData.driveLinks.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeDriveLink(index)}
+                        className="w-11 h-11 rounded-2xl border border-zinc-200 flex items-center justify-center text-zinc-400 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-colors"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={addDriveLink}
+                className="text-sm font-medium flex items-center gap-1.5 hover:underline"
+                style={{ color: brandColor }}
+              >
+                <Plus className="h-3.5 w-3.5" />
+                Add another link
+              </button>
+            </div>
+
+            {/* Status */}
+            {/* <div className="space-y-2">
                 <Label className="text-sm font-medium text-zinc-700">
                   Initial Status
                 </Label>
@@ -769,113 +763,113 @@ export default function AddContentModal({
                   ))}
                 </div>
               </div> */}
-            </>
-          )}
+          </>
+        )}
 
-          {/* Live Preview */}
-          {/* Live Preview */}
-          {(formData.title ||
-            formData.platforms.length > 0 ||
-            formData.caption) && (
-            <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
-              <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">
-                Preview
-              </p>
+        {/* Live Preview */}
+        {/* Live Preview */}
+        {(formData.title ||
+          formData.platforms.length > 0 ||
+          formData.caption) && (
+          <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
+            <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">
+              Preview
+            </p>
 
-              <div className="flex items-start gap-3">
-                {/* Platform Icons */}
-                <div className="flex -space-x-2">
-                  {selectedPlatformObjects.slice(0, 3).map((p, i) => (
-                    <div
-                      key={i}
-                      className="w-9 h-9 rounded-xl flex items-center justify-center border-2 border-white"
-                      style={{ backgroundColor: `${p.color}15` }}
-                    >
-                      <p.icon className="h-4 w-4" style={{ color: p.color }} />
-                    </div>
-                  ))}
-                  {selectedPlatformObjects.length > 3 && (
-                    <div className="w-9 h-9 rounded-xl bg-zinc-200 flex items-center justify-center text-xs font-medium border-2 border-white">
-                      +{selectedPlatformObjects.length - 3}
-                    </div>
-                  )}
-                </div>
-
-                <div className="min-w-0 flex-1">
-                  <p className="font-semibold text-zinc-900 truncate">
-                    {formData.title || "Untitled Content"}
-                  </p>
-
-                  <div className="flex flex-wrap gap-1.5 mt-2">
-                    {formData.platforms.map((p) => (
-                      <Badge key={p} variant="outline" className="text-[10px]">
-                        {p}
-                      </Badge>
-                    ))}
-                    {formData.contentTypes.map((t) => (
-                      <Badge key={t} variant="outline" className="text-[10px]">
-                        {t}
-                      </Badge>
-                    ))}
+            <div className="flex items-start gap-3">
+              {/* Platform Icons */}
+              <div className="flex -space-x-2">
+                {selectedPlatformObjects.slice(0, 3).map((p, i) => (
+                  <div
+                    key={i}
+                    className="w-9 h-9 rounded-xl flex items-center justify-center border-2 border-white"
+                    style={{ backgroundColor: `${p.color}15` }}
+                  >
+                    <p.icon className="h-4 w-4" style={{ color: p.color }} />
                   </div>
+                ))}
+                {selectedPlatformObjects.length > 3 && (
+                  <div className="w-9 h-9 rounded-xl bg-zinc-200 flex items-center justify-center text-xs font-medium border-2 border-white">
+                    +{selectedPlatformObjects.length - 3}
+                  </div>
+                )}
+              </div>
 
-                  {/* Updated Caption Preview with HTML rendering */}
-                  {formData.caption && (
-                    <div
-                      className="text-sm text-zinc-600 mt-3 line-clamp-3 prose prose-sm prose-zinc max-w-none"
-                      dangerouslySetInnerHTML={{ __html: formData.caption }}
-                    />
-                  )}
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-zinc-900 truncate">
+                  {formData.title || "Untitled Content"}
+                </p>
+
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {formData.platforms.map((p) => (
+                    <Badge key={p} variant="outline" className="text-[10px]">
+                      {p}
+                    </Badge>
+                  ))}
+                  {formData.contentTypes.map((t) => (
+                    <Badge key={t} variant="outline" className="text-[10px]">
+                      {t}
+                    </Badge>
+                  ))}
                 </div>
+
+                {/* Updated Caption Preview with HTML rendering */}
+                {formData.caption && (
+                  <div
+                    className="text-sm text-zinc-600 mt-3 line-clamp-3 prose prose-sm prose-zinc max-w-none"
+                    dangerouslySetInnerHTML={{ __html: formData.caption }}
+                  />
+                )}
               </div>
             </div>
-          )}
-        </form>
+          </div>
+        )}
+      </form>
 
-        <div className="shrink-0 border-t border-zinc-100 bg-zinc-50/50 p-6 sm:p-8">
-          <div className="flex flex-col-reverse gap-3 sm:flex-row">
-            {step === 2 && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setStep(1)}
-                disabled={isSubmitting}
-                className="h-11 w-full rounded-xl font-medium sm:flex-1"
-              >
-                Back
-              </Button>
-            )}
+      <div className="shrink-0 border-t border-zinc-100 bg-zinc-50/50 p-6 sm:p-8">
+        <div className="flex flex-col-reverse gap-3 sm:flex-row">
+          {step === 2 && (
             <Button
               type="button"
               variant="outline"
-              onClick={handleClose}
+              onClick={() => setStep(1)}
               disabled={isSubmitting}
               className="h-11 w-full rounded-xl font-medium sm:flex-1"
             >
-              Cancel
+              Back
             </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              onClick={handleSubmit}
-              className="h-11 w-full rounded-xl bg-[#430062] font-semibold text-white shadow-md shadow-[#430062]/20 transition-all hover:bg-[#5a0080] active:scale-[0.99] disabled:opacity-70 sm:flex-1"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating...
-                </>
-              ) : step === 1 ? (
-                <>Next</>
-              ) : (
-                <>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create Content
-                </>
-              )}
-            </Button>
-          </div>
+          )}
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleClose}
+            disabled={isSubmitting}
+            className="h-11 w-full rounded-xl font-medium sm:flex-1"
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            onClick={handleSubmit}
+            className="h-11 w-full rounded-xl bg-[#430062] font-semibold text-white shadow-md shadow-[#430062]/20 transition-all hover:bg-[#5a0080] active:scale-[0.99] disabled:opacity-70 sm:flex-1"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Creating...
+              </>
+            ) : step === 1 ? (
+              <>Next</>
+            ) : (
+              <>
+                <Plus className="mr-2 h-4 w-4" />
+                Create Content
+              </>
+            )}
+          </Button>
         </div>
+      </div>
     </ContentModalShell>
   );
 }
