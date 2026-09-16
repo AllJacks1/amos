@@ -9,11 +9,12 @@ import {
   ContentModalShell,
   ContentPreviewCard,
 } from "./content-ui";
+import { toast } from "sonner"; // ← added
 
 interface ApproveConfirmDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: () => void | Promise<void>;
   contentTitle?: string;
   platforms?: string[];
   clientName?: string;
@@ -39,10 +40,21 @@ export default function ApproveConfirmDialog({
 
     try {
       await onConfirm();
+
+      toast.success("Content approved", {
+        description: `"${contentTitle}" has been approved and is ready for scheduling.`,
+        duration: 4000,
+      });
+
+      onClose();
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to approve content",
-      );
+      const message =
+        err instanceof Error ? err.message : "Failed to approve content";
+
+      setError(message);
+      toast.error("Approval failed", {
+        description: message,
+      });
     } finally {
       setIsApproving(false);
     }
@@ -87,7 +99,9 @@ export default function ApproveConfirmDialog({
               </Badge>
             )}
             {clientName ? (
-              <span className="ml-auto text-xs text-zinc-500">{clientName}</span>
+              <span className="ml-auto text-xs text-zinc-500">
+                {clientName}
+              </span>
             ) : null}
           </div>
         </ContentPreviewCard>

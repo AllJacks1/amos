@@ -11,6 +11,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { toast } from "sonner"; // ← added
 
 interface DeleteContentModalProps {
   isOpen: boolean;
@@ -32,15 +33,41 @@ export default function DeleteContentModal({
   const [confirmText, setConfirmText] = useState("");
 
   const handleConfirm = () => {
-    onConfirm(contentId);
-    // Reset input after confirm
-    setConfirmText("");
+    if (confirmText.toLowerCase() !== "delete") {
+      toast.error("Confirmation required", {
+        description: 'Please type "DELETE" to confirm this action.',
+      });
+      return;
+    }
+
+    try {
+      onConfirm(contentId);
+
+      toast.success("Content deleted", {
+        description: `"${contentTitle}" has been permanently removed.`,
+        duration: 4000,
+      });
+
+      setConfirmText("");
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast.error("Failed to delete", {
+        description: "Something went wrong. Please try again.",
+      });
+    }
+  };
+
+  const handleOpenChange = (open: boolean) => {
+    if (!open && !isDeleting) {
+      setConfirmText(""); // reset on close
+      onClose();
+    }
   };
 
   const isConfirmed = confirmText.toLowerCase() === "delete";
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="gap-0 overflow-hidden border-zinc-200/80 p-0 shadow-2xl sm:max-w-[420px]">
         <DialogHeader className="relative bg-gradient-to-b from-red-50/90 to-white p-6 pb-5">
           <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-red-500 via-rose-400 to-orange-300" />
@@ -72,7 +99,7 @@ export default function DeleteContentModal({
               Item to delete
             </p>
             <p className="font-semibold text-zinc-800 text-sm leading-snug break-all">
-              "{contentTitle}"
+              &quot;{contentTitle}&quot;
             </p>
           </div>
 
@@ -94,6 +121,7 @@ export default function DeleteContentModal({
               autoComplete="off"
               autoCorrect="off"
               spellCheck="false"
+              disabled={isDeleting}
             />
           </div>
         </div>

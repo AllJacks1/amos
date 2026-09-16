@@ -41,6 +41,7 @@ import {
 } from "@/components/ui/select";
 import { useAuthStore } from "@/store/useAuthStore";
 import { ContentModalShell } from "./content-ui";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 import { useEditor, EditorContent } from "@tiptap/react";
@@ -206,7 +207,12 @@ export default function SubmitRevisionModal({
     const newErrors: Record<string, string> = {};
 
     if (!title.trim()) newErrors.title = "Title is required";
-    if (!caption.trim()) newErrors.caption = "Caption is required";
+
+    // Better TipTap empty check
+    const isCaptionEmpty =
+      !editor || editor.isEmpty || !editor.getText().trim();
+    if (isCaptionEmpty) newErrors.caption = "Caption is required";
+
     if (platforms.length === 0)
       newErrors.platforms = "At least one platform is required";
     if (contentTypes.length === 0)
@@ -221,6 +227,40 @@ export default function SubmitRevisionModal({
     }
 
     setErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) {
+      const messages = Object.values(newErrors);
+
+      toast.error("Please fix the following issues", {
+        description: (
+          <ul className="mt-1 list-disc pl-4 text-sm">
+            {messages.map((msg) => (
+              <li key={msg}>{msg}</li>
+            ))}
+          </ul>
+        ),
+        duration: 5000,
+      });
+
+      // Auto switch to the tab that has the errors
+      const editSideErrors = [
+        "title",
+        "caption",
+        "platforms",
+        "contentTypes",
+        "pillar",
+        "publishDate",
+        "driveLinks",
+      ];
+      const hasEditErrors = editSideErrors.some((key) => newErrors[key]);
+
+      if (hasEditErrors) {
+        setActiveSection("edit");
+      } else {
+        setActiveSection("note");
+      }
+    }
+
     return Object.keys(newErrors).length === 0;
   };
 
@@ -281,8 +321,8 @@ export default function SubmitRevisionModal({
       id: content.id,
       content_title: title.trim(),
       caption: caption.trim(),
-      platforms, // ← Updated
-      content_types: contentTypes, // ← Updated
+      platforms,
+      content_types: contentTypes,
       content_pillar: pillar,
       publish_date: publishDate,
       gdrive_links: driveLinks.filter((l) => l.trim() !== ""),
@@ -291,11 +331,19 @@ export default function SubmitRevisionModal({
     };
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 600));
       onSubmit(updatePayload);
+
+      toast.success("Revision submitted", {
+        description: "Content has been sent back for review",
+        duration: 4000,
+      });
+
       onClose();
     } catch (error) {
       console.error("Submission error:", error);
+      toast.error("Something went wrong", {
+        description: "Could not submit the revision. Please try again.",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -541,6 +589,13 @@ export default function SubmitRevisionModal({
                 <span>Rich text supported</span>
                 <span>{characterCount} characters</span>
               </div>
+
+              {errors.caption && (
+                <p className="text-xs text-red-500 flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" />
+                  {errors.caption}
+                </p>
+              )}
             </div>
 
             {/* Platforms - Multi Select */}
@@ -822,7 +877,7 @@ export default function SubmitRevisionModal({
                 </div>
                 <div>
                   <p className="font-medium text-emerald-900">
-                    Status will change to "For Review"
+                    Status will change to &quot;For Review&quot;
                   </p>
                   <p className="text-xs text-emerald-600 mt-0.5">
                     Content will return to the review pipeline

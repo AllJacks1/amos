@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from "react";
+import { toast } from "sonner";
 import {
   X,
   Building2,
@@ -49,7 +50,10 @@ const industries = [
   { value: "health_wellness", label: "Health & Wellness" },
   { value: "finance", label: "Finance & Banking" },
   { value: "education", label: "Education" },
-  { value: "environmental_consulting_and_services", label: "Environmental Consulting & Services" },
+  {
+    value: "environmental_consulting_and_services",
+    label: "Environmental Consulting & Services",
+  },
   { value: "entertainment", label: "Entertainment" },
   { value: "real_estate", label: "Real Estate" },
   { value: "automotive", label: "Automotive" },
@@ -79,7 +83,8 @@ export default function AddClientModal({
   const validate = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.primary_contact_name.trim()) newErrors.name = "Contact name is required";
+    if (!formData.primary_contact_name.trim())
+      newErrors.primary_contact_name = "Contact name is required";
     if (!formData.logoFile) {
       newErrors.logo = "Company logo is required";
     }
@@ -98,6 +103,20 @@ export default function AddClientModal({
     }
 
     setErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) {
+      toast.error("Please fix the following issues", {
+        description: (
+          <ul className="mt-1 list-disc pl-4 text-sm">
+            {Object.values(newErrors).map((msg) => (
+              <li key={msg}>{msg}</li>
+            ))}
+          </ul>
+        ),
+        duration: 4500,
+      });
+    }
+
     return Object.keys(newErrors).length === 0;
   };
 
@@ -111,10 +130,21 @@ export default function AddClientModal({
 
       await onAdd(formData);
 
+      toast.success("Client created", {
+        description: `${formData.company_name || "New client"} has been added successfully.`,
+        duration: 4000,
+      });
+
       resetForm();
       onClose();
     } catch (error) {
       console.error(error);
+      toast.error("Failed to create client", {
+        description:
+          error instanceof Error
+            ? error.message
+            : "Something went wrong. Please try again.",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -405,14 +435,27 @@ export default function AddClientModal({
                 placeholder="e.g. Rachel Green"
                 value={formData.primary_contact_name}
                 onChange={(e) => {
-                  setFormData((prev) => ({ ...prev, primary_contact_name: e.target.value }));
-                  if (errors.primary_contact_name) setErrors((prev) => ({ ...prev, primary_contact_name: "" }));
+                  setFormData((prev) => ({
+                    ...prev,
+                    primary_contact_name: e.target.value,
+                  }));
+                  if (errors.primary_contact_name)
+                    setErrors((prev) => ({
+                      ...prev,
+                      primary_contact_name: "",
+                    }));
                 }}
-                className={`pl-10 rounded-2xl h-11 ${errors.primary_contact_name ? "border-red-300 focus-visible:ring-red-200" : ""}`}
+                className={`pl-10 rounded-2xl h-11 ${
+                  errors.primary_contact_name
+                    ? "border-red-300 focus-visible:ring-red-200"
+                    : ""
+                }`}
               />
             </div>
             {errors.primary_contact_name && (
-              <p className="text-xs text-red-500 ml-1">{errors.primary_contact_name}</p>
+              <p className="text-xs text-red-500 ml-1">
+                {errors.primary_contact_name}
+              </p>
             )}
           </div>
 

@@ -6,6 +6,7 @@ import { X, Eye, EyeOff, Lock, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { toast } from "sonner"; // ← added
 
 interface ChangePasswordModalProps {
   isOpen: boolean;
@@ -60,30 +61,37 @@ export default function ChangePasswordModal({
 
     // Validation
     if (!newPassword || !confirmPassword) {
-      setError("Both password fields are required");
+      const msg = "Both password fields are required";
+      setError(msg);
+      toast.error("Missing fields", {
+        description: msg,
+      });
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError("Passwords do not match");
+      const msg = "Passwords do not match";
+      setError(msg);
+      toast.error("Passwords do not match", {
+        description: "Please make sure both passwords are the same.",
+      });
       return;
     }
 
     const checks = validatePassword(newPassword);
     if (!Object.values(checks).every(Boolean)) {
-      setError("Password does not meet all requirements");
+      const msg = "Password does not meet all requirements";
+      setError(msg);
+      toast.error("Weak password", {
+        description:
+          "Password must be at least 8 characters and include uppercase, lowercase, and a number.",
+      });
       return;
     }
 
     setLoading(true);
 
     try {
-      console.log({
-        userId,
-        userType,
-        userEmail,
-      });
-
       const response = await fetch("/api/accounts/update-temp-pass", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -101,12 +109,23 @@ export default function ChangePasswordModal({
         throw new Error(data.error || "Failed to change password");
       }
 
+      // Success
       setSuccess(true);
+      toast.success("Password updated", {
+        description: "Your password has been changed successfully.",
+        duration: 4000,
+      });
+
       setTimeout(() => {
         handleClose();
       }, 2000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      const message =
+        err instanceof Error ? err.message : "Something went wrong";
+      setError(message);
+      toast.error("Update failed", {
+        description: message,
+      });
     } finally {
       setLoading(false);
     }

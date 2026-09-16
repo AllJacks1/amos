@@ -1,39 +1,72 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { X, UserPlus, Mail, User, Shield, Eye, EyeOff, Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import React, { useState } from "react";
+import {
+  X,
+  UserPlus,
+  Mail,
+  User,
+  Shield,
+  Eye,
+  EyeOff,
+  Loader2,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { toast } from "sonner"; // ← added
 
 interface AddMemberModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (member: { name: string; email: string; role: string; password: string }) => void;
+  onAdd: (member: {
+    name: string;
+    email: string;
+    role: string;
+    password: string;
+  }) => void;
   brandColor?: string;
 }
 
 const roles = [
-  { value: 'admin', label: 'Admin', description: 'Full workspace access' },
-  { value: 'marketing_lead', label: 'Marketing Lead', description: 'Manage campaigns and content' },
-  { value: 'creative_director', label: 'Creative Director', description: 'Oversee creative assets' },
-  { value: 'client_view', label: 'Client View', description: 'View-only access' },
+  { value: "admin", label: "Admin", description: "Full workspace access" },
+  {
+    value: "marketing_lead",
+    label: "Marketing Lead",
+    description: "Manage campaigns and content",
+  },
+  {
+    value: "creative_director",
+    label: "Creative Director",
+    description: "Oversee creative assets",
+  },
+  {
+    value: "client_view",
+    label: "Client View",
+    description: "View-only access",
+  },
 ];
 
-export default function AddMemberModal({ 
-  isOpen, 
-  onClose, 
+export default function AddMemberModal({
+  isOpen,
+  onClose,
   onAdd,
-  brandColor = '#430062' 
+  brandColor = "#430062",
 }: AddMemberModalProps) {
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    role: '',
-    password: '',
+    name: "",
+    email: "",
+    role: "",
+    password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -41,21 +74,35 @@ export default function AddMemberModal({
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
-    
-    if (!formData.name.trim()) newErrors.name = 'Name is required';
+
+    if (!formData.name.trim()) newErrors.name = "Name is required";
     if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
+      newErrors.email = "Email is required";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email';
+      newErrors.email = "Please enter a valid email";
     }
-    if (!formData.role) newErrors.role = 'Please select a role';
+    if (!formData.role) newErrors.role = "Please select a role";
     if (!formData.password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = "Password is required";
     } else if (formData.password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
+      newErrors.password = "Password must be at least 8 characters";
     }
 
     setErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) {
+      toast.error("Please fix the following issues", {
+        description: (
+          <ul className="mt-1 list-disc pl-4 text-sm">
+            {Object.values(newErrors).map((msg) => (
+              <li key={msg}>{msg}</li>
+            ))}
+          </ul>
+        ),
+        duration: 4500,
+      });
+    }
+
     return Object.keys(newErrors).length === 0;
   };
 
@@ -64,16 +111,30 @@ export default function AddMemberModal({
     if (!validate()) return;
 
     setIsSubmitting(true);
-    await new Promise(resolve => setTimeout(resolve, 800));
-    onAdd(formData);
-    setIsSubmitting(false);
-    setFormData({ name: '', email: '', role: '', password: '' });
-    onClose();
+
+    try {
+      onAdd(formData);
+
+      toast.success("Team member added", {
+        description: `${formData.name} has been invited to the workspace.`,
+        duration: 4000,
+      });
+
+      setFormData({ name: "", email: "", role: "", password: "" });
+      onClose();
+    } catch (error) {
+      console.error("Add member error:", error);
+      toast.error("Failed to add member", {
+        description: "Something went wrong. Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleClose = () => {
     if (!isSubmitting) {
-      setFormData({ name: '', email: '', role: '', password: '' });
+      setFormData({ name: "", email: "", role: "", password: "" });
       setErrors({});
       onClose();
     }
@@ -84,26 +145,30 @@ export default function AddMemberModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
       {/* Backdrop */}
-      <div 
+      <div
         className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
         onClick={handleClose}
       />
-      
+
       {/* Modal */}
       <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl shadow-black/10 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="px-6 sm:px-8 pt-6 pb-5 border-b border-zinc-100">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div 
+              <div
                 className="w-10 h-10 rounded-2xl flex items-center justify-center"
                 style={{ backgroundColor: `${brandColor}15` }}
               >
                 <UserPlus className="h-5 w-5" style={{ color: brandColor }} />
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-zinc-900">Add Team Member</h2>
-                <p className="text-sm text-zinc-500 mt-0.5">Invite someone to your workspace</p>
+                <h2 className="text-xl font-semibold text-zinc-900">
+                  Add Team Member
+                </h2>
+                <p className="text-sm text-zinc-500 mt-0.5">
+                  Invite someone to your workspace
+                </p>
               </div>
             </div>
             <button
@@ -130,10 +195,10 @@ export default function AddMemberModal({
                 placeholder="e.g. Sarah Chen"
                 value={formData.name}
                 onChange={(e) => {
-                  setFormData(prev => ({ ...prev, name: e.target.value }));
-                  if (errors.name) setErrors(prev => ({ ...prev, name: '' }));
+                  setFormData((prev) => ({ ...prev, name: e.target.value }));
+                  if (errors.name) setErrors((prev) => ({ ...prev, name: "" }));
                 }}
-                className={`pl-10 rounded-2xl h-11 ${errors.name ? 'border-red-300 focus-visible:ring-red-200' : ''}`}
+                className={`pl-10 rounded-2xl h-11 ${errors.name ? "border-red-300 focus-visible:ring-red-200" : ""}`}
               />
             </div>
             {errors.name && (
@@ -143,7 +208,10 @@ export default function AddMemberModal({
 
           {/* Email */}
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-sm font-medium text-zinc-700">
+            <Label
+              htmlFor="email"
+              className="text-sm font-medium text-zinc-700"
+            >
               Email Address
             </Label>
             <div className="relative">
@@ -154,10 +222,11 @@ export default function AddMemberModal({
                 placeholder="sarah@company.com"
                 value={formData.email}
                 onChange={(e) => {
-                  setFormData(prev => ({ ...prev, email: e.target.value }));
-                  if (errors.email) setErrors(prev => ({ ...prev, email: '' }));
+                  setFormData((prev) => ({ ...prev, email: e.target.value }));
+                  if (errors.email)
+                    setErrors((prev) => ({ ...prev, email: "" }));
                 }}
-                className={`pl-10 rounded-2xl h-11 ${errors.email ? 'border-red-300 focus-visible:ring-red-200' : ''}`}
+                className={`pl-10 rounded-2xl h-11 ${errors.email ? "border-red-300 focus-visible:ring-red-200" : ""}`}
               />
             </div>
             {errors.email && (
@@ -173,13 +242,13 @@ export default function AddMemberModal({
             <Select
               value={formData.role}
               onValueChange={(value) => {
-                setFormData(prev => ({ ...prev, role: value }));
-                if (errors.role) setErrors(prev => ({ ...prev, role: '' }));
+                setFormData((prev) => ({ ...prev, role: value }));
+                if (errors.role) setErrors((prev) => ({ ...prev, role: "" }));
               }}
             >
-              <SelectTrigger 
+              <SelectTrigger
                 id="role"
-                className={`rounded-2xl p-4 py-6 h-11 ${errors.role ? 'border-red-300 focus-visible:ring-red-200' : ''}`}
+                className={`rounded-2xl p-4 py-6 h-11 ${errors.role ? "border-red-300 focus-visible:ring-red-200" : ""}`}
               >
                 <div className="flex items-center gap-2">
                   <Shield className="h-4 w-4 text-zinc-400" />
@@ -188,14 +257,16 @@ export default function AddMemberModal({
               </SelectTrigger>
               <SelectContent className="rounded-2xl p-1">
                 {roles.map((role) => (
-                  <SelectItem 
-                    key={role.value} 
+                  <SelectItem
+                    key={role.value}
                     value={role.value}
                     className="rounded-xl cursor-pointer"
                   >
                     <div className="flex flex-col py-1">
                       <span className="font-medium">{role.label}</span>
-                      <span className="text-xs text-zinc-500">{role.description}</span>
+                      <span className="text-xs text-zinc-500">
+                        {role.description}
+                      </span>
                     </div>
                   </SelectItem>
                 ))}
@@ -209,15 +280,20 @@ export default function AddMemberModal({
           {/* Password */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="password" className="text-sm font-medium text-zinc-700">
+              <Label
+                htmlFor="password"
+                className="text-sm font-medium text-zinc-700"
+              >
                 Temporary Password
               </Label>
               <button
                 type="button"
                 onClick={() => {
-                  const generated = Math.random().toString(36).slice(-12) + 'A1!';
-                  setFormData(prev => ({ ...prev, password: generated }));
-                  if (errors.password) setErrors(prev => ({ ...prev, password: '' }));
+                  const generated =
+                    Math.random().toString(36).slice(-12) + "A1!";
+                  setFormData((prev) => ({ ...prev, password: generated }));
+                  if (errors.password)
+                    setErrors((prev) => ({ ...prev, password: "" }));
                 }}
                 className="text-xs font-medium hover:underline"
                 style={{ color: brandColor }}
@@ -228,21 +304,29 @@ export default function AddMemberModal({
             <div className="relative">
               <Input
                 id="password"
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
                 placeholder="Min. 8 characters"
                 value={formData.password}
                 onChange={(e) => {
-                  setFormData(prev => ({ ...prev, password: e.target.value }));
-                  if (errors.password) setErrors(prev => ({ ...prev, password: '' }));
+                  setFormData((prev) => ({
+                    ...prev,
+                    password: e.target.value,
+                  }));
+                  if (errors.password)
+                    setErrors((prev) => ({ ...prev, password: "" }));
                 }}
-                className={`pr-10 rounded-2xl h-11 ${errors.password ? 'border-red-300 focus-visible:ring-red-200' : ''}`}
+                className={`pr-10 rounded-2xl h-11 ${errors.password ? "border-red-300 focus-visible:ring-red-200" : ""}`}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 transition-colors"
               >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
               </button>
             </div>
             {errors.password ? (
@@ -257,23 +341,37 @@ export default function AddMemberModal({
           {/* Live Preview */}
           {formData.name && (
             <div className="p-4 bg-zinc-50 rounded-2xl border border-zinc-100">
-              <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">Preview</p>
+              <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">
+                Preview
+              </p>
               <div className="flex items-center gap-3">
-                <div 
+                <div
                   className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-semibold text-sm"
                   style={{ backgroundColor: brandColor }}
                 >
-                  {formData.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                  {formData.name
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                    .slice(0, 2)
+                    .toUpperCase()}
                 </div>
                 <div className="min-w-0">
-                  <p className="font-medium text-zinc-900 truncate">{formData.name || 'New Member'}</p>
+                  <p className="font-medium text-zinc-900 truncate">
+                    {formData.name || "New Member"}
+                  </p>
                   <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-xs text-zinc-500 truncate">{formData.email}</span>
+                    <span className="text-xs text-zinc-500 truncate">
+                      {formData.email}
+                    </span>
                     {formData.role && (
                       <>
                         <span className="text-zinc-300">•</span>
-                        <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                          {roles.find(r => r.value === formData.role)?.label}
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] px-1.5 py-0"
+                        >
+                          {roles.find((r) => r.value === formData.role)?.label}
                         </Badge>
                       </>
                     )}
@@ -300,9 +398,9 @@ export default function AddMemberModal({
               type="submit"
               disabled={isSubmitting}
               className="w-full sm:flex-1 h-11 rounded-2xl font-semibold text-white shadow-lg transition-all active:scale-[0.985] disabled:opacity-70"
-              style={{ 
+              style={{
                 backgroundColor: brandColor,
-                boxShadow: `0 4px 14px ${brandColor}25`
+                boxShadow: `0 4px 14px ${brandColor}25`,
               }}
             >
               {isSubmitting ? (

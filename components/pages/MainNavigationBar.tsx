@@ -24,6 +24,7 @@ import { useUsersStore } from "@/store/useUsersStore";
 import { useContentStore } from "@/store/useContentStore";
 import { useClientStore } from "@/store/clientStore";
 import { useAuthStore } from "@/store/useAuthStore";
+import { Toaster } from "@/components/ui/sonner"
 import { cn } from "@/lib/utils";
 
 import GlobalHeader from "./Header";
@@ -453,6 +454,7 @@ export default function AMOSLayout({
         <GlobalHeader />
 
         <main className="min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-y-contain pt-14 lg:pt-0">
+          <Toaster position="top-center" richColors />
           {children}
         </main>
       </div>

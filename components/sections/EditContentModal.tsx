@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { toast } from "sonner";
 import {
   X,
   Plus,
@@ -213,6 +214,20 @@ export default function EditContentModal({
       newErrors.contentType = "At least one content type is required";
 
     setErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) {
+      toast.error("Please complete the required fields", {
+        description: (
+          <ul className="mt-1 list-disc pl-4 text-sm">
+            {Object.values(newErrors).map((msg) => (
+              <li key={msg}>{msg}</li>
+            ))}
+          </ul>
+        ),
+        duration: 4500,
+      });
+    }
+
     return Object.keys(newErrors).length === 0;
   };
 
@@ -223,31 +238,65 @@ export default function EditContentModal({
     if (!formData.pillar) newErrors.pillar = "Content pillar is required";
     if (!formData.publishDate)
       newErrors.publishDate = "Publish date is required";
+
     setErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) {
+      toast.error("Please complete the required fields", {
+        description: (
+          <ul className="mt-1 list-disc pl-4 text-sm">
+            {Object.values(newErrors).map((msg) => (
+              <li key={msg}>{msg}</li>
+            ))}
+          </ul>
+        ),
+        duration: 4500,
+      });
+    }
+
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (step === 1) {
       if (validateStep1()) setStep(2);
       return;
     }
+
     if (!validateStep2()) return;
 
     setIsSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 600));
 
-    const cleanLinks = formData.driveLinks.filter((link) => link.trim() !== "");
+    try {
+      // Simulate network delay (remove in production)
+      await new Promise((resolve) => setTimeout(resolve, 600));
 
-    onUpdate(content.id, {
-      ...formData,
-      driveLinks: cleanLinks,
-      caption: formData.caption || "<p></p>",
-    });
+      const cleanLinks = formData.driveLinks.filter(
+        (link) => link.trim() !== "",
+      );
 
-    setIsSubmitting(false);
-    onClose();
+      onUpdate(content.id, {
+        ...formData,
+        driveLinks: cleanLinks,
+        caption: formData.caption || "<p></p>",
+      });
+
+      toast.success("Content updated", {
+        description: "Your changes have been saved successfully",
+        duration: 4000,
+      });
+
+      onClose();
+    } catch (error) {
+      console.error("Update error:", error);
+      toast.error("Something went wrong", {
+        description: "Could not save the changes. Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleClose = () => {

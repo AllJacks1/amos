@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { toast } from "sonner";
 import {
   X,
   Plus,
@@ -175,6 +176,20 @@ export default function AddContentModal({
       newErrors.contentType = "At least one content type is required";
 
     setErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) {
+      toast.error("Please complete the required fields", {
+        description: (
+          <ul className="mt-1 list-disc pl-4 text-sm">
+            {Object.values(newErrors).map((msg) => (
+              <li key={msg}>{msg}</li>
+            ))}
+          </ul>
+        ),
+        duration: 4500,
+      });
+    }
+
     return Object.keys(newErrors).length === 0;
   };
 
@@ -185,34 +200,65 @@ export default function AddContentModal({
     if (!formData.pillar) newErrors.pillar = "Content pillar is required";
     if (!formData.publishDate)
       newErrors.publishDate = "Publish date is required";
+
     setErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) {
+      toast.error("Please complete the required fields", {
+        description: (
+          <ul className="mt-1 list-disc pl-4 text-sm">
+            {Object.values(newErrors).map((msg) => (
+              <li key={msg}>{msg}</li>
+            ))}
+          </ul>
+        ),
+        duration: 4500,
+      });
+    }
+
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (step === 1) {
       if (validateStep1()) setStep(2);
       return;
     }
+
     if (!validateStep2()) return;
 
     setIsSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 800));
 
-    const cleanLinks = formData.driveLinks.filter((link) => link.trim() !== "");
+    try {
+      const cleanLinks = formData.driveLinks.filter(
+        (link) => link.trim() !== "",
+      );
 
-    onAdd({
-      ...formData,
-      platforms: formData.platforms,
-      contentTypes: formData.contentTypes,
-      driveLinks: cleanLinks.length > 0 ? cleanLinks : [],
-      caption: formData.caption || "<p></p>",
-    });
+      onAdd({
+        ...formData,
+        platforms: formData.platforms,
+        contentTypes: formData.contentTypes,
+        driveLinks: cleanLinks.length > 0 ? cleanLinks : [],
+        caption: formData.caption || "<p></p>",
+      });
 
-    setIsSubmitting(false);
-    resetForm();
-    onClose();
+      toast.success("Content created", {
+        description: `"${formData.title || "Untitled"}" has been added successfully.`,
+        duration: 4000,
+      });
+
+      resetForm();
+      onClose();
+    } catch (error) {
+      console.error("Create content error:", error);
+      toast.error("Failed to create content", {
+        description: "Something went wrong. Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const resetForm = () => {
