@@ -154,6 +154,11 @@ export default function ContentOperations() {
       title: "Approved",
       items: filteredContents.filter((c) => c.status === "approved"),
     },
+    {
+      id: "posted",
+      title: "Posted",
+      items: filteredContents.filter((c) => c.status === "posted"),
+    },
   ];
 
   const handleStatusChange = async (
@@ -161,6 +166,31 @@ export default function ContentOperations() {
     newStatus: ContentItem["status"],
   ) => {
     await updateStatus(id, newStatus);
+  };
+
+  const markAsPosted = async (id: string) => {
+    try {
+      const res = await fetch("/api/contents/mark-posted", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id,
+          adminName: user?.fullname?.toString() || "Admin",
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to mark as posted");
+      }
+
+      // Update local store + refresh
+      await handleStatusChange(id, "posted");
+      await fetchContents();
+    } catch (error) {
+      console.error(error);
+      alert(error instanceof Error ? error.message : "Something went wrong");
+    }
   };
 
   const openDetail = (content: ContentItem) => {
@@ -220,7 +250,7 @@ export default function ContentOperations() {
                 <SelectItem value="review">In Review</SelectItem>
                 <SelectItem value="revise">For Revision</SelectItem>
                 <SelectItem value="approved">Approved</SelectItem>
-                {/* <SelectItem value="scheduled">Scheduled</SelectItem> */}
+                <SelectItem value="posted">Posted</SelectItem>
               </SelectContent>
             </Select>
 
@@ -579,6 +609,7 @@ export default function ContentOperations() {
           </div>
         </TabsContent>
       </Tabs>
+
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
         <DialogContent
           className="flex h-[100dvh] w-full max-w-[95vw] flex-col overflow-hidden border-zinc-200/80 p-0 shadow-2xl sm:h-[94vh] sm:max-w-[90vw] md:max-w-3xl lg:max-w-4xl xl:max-w-5xl"
@@ -882,12 +913,28 @@ export default function ContentOperations() {
                       Approve
                     </Button>
                   )}
+
+                  {role === "admin" &&
+                    selectedContent.status === "approved" && (
+                      <Button
+                        size="lg"
+                        className="h-11 w-full rounded-xl bg-emerald-600 text-sm font-semibold text-white shadow-lg shadow-emerald-600/25 transition-all hover:bg-emerald-700 active:scale-[0.99] sm:h-12 sm:flex-1 sm:text-base"
+                        onClick={async () => {
+                          if (!selectedContent) return;
+                          await markAsPosted(selectedContent.id);
+                          setIsDetailOpen(false);
+                        }}
+                      >
+                        Mark as Posted
+                      </Button>
+                    )}
                 </div>
               </div>
             </div>
           )}
         </DialogContent>
       </Dialog>
+
       <AddContentModal
         isOpen={isAddContentOpen}
         onClose={() => setIsAddContentOpen(false)}

@@ -185,27 +185,26 @@ export default function ApprovalsModule() {
 
   /* ───────── FILTERING ───────── */
   const filteredApprovals = useMemo(() => {
-  const search = String(searchTerm ?? "").toLowerCase().trim();
-  const clientValue = String(clientFilter ?? "");
+    const search = String(searchTerm ?? "")
+      .toLowerCase()
+      .trim();
+    const clientValue = String(clientFilter ?? "");
 
-  return contents.filter((item) => {
-    const title = String(item?.title ?? "").toLowerCase();
-    const client = String(item?.client ?? "");
-    const status = String(item?.status ?? "");
+    return contents.filter((item) => {
+      const title = String(item?.title ?? "").toLowerCase();
+      const client = String(item?.client ?? "");
+      const status = String(item?.status ?? "");
 
-    const matchesSearch =
-      !search ||
-      title.includes(search) ||
-      client.includes(search);
+      const matchesSearch =
+        !search || title.includes(search) || client.includes(search);
 
-    const matchesClient =
-      clientValue === "all" || client === clientValue;
+      const matchesClient = clientValue === "all" || client === clientValue;
 
-    const matchesTab = status === activeTab;
+      const matchesTab = status === activeTab;
 
-    return matchesSearch && matchesClient && matchesTab;
-  });
-}, [contents, searchTerm, clientFilter, activeTab]);
+      return matchesSearch && matchesClient && matchesTab;
+    });
+  }, [contents, searchTerm, clientFilter, activeTab]);
 
   const uniqueClients = useMemo(
     () => [...new Set(contents.map((item) => item.client).filter(Boolean))],
@@ -273,11 +272,17 @@ export default function ApprovalsModule() {
     setIsEditOpen(true);
   };
 
-  const getInitials = (name?: string | null): string => {
-    if (!name) return "U";
-    return name
-      .split(" ")
-      .map((n) => n[0])
+  const getInitials = (name?: unknown): string => {
+    // Force everything to a string first
+    const nameStr =
+      typeof name === "string" ? name : name == null ? "" : String(name);
+
+    const trimmed = nameStr.trim();
+    if (!trimmed) return "U";
+
+    return trimmed
+      .split(/\s+/)
+      .map((word) => word.charAt(0))
       .join("")
       .toUpperCase()
       .slice(0, 2);
